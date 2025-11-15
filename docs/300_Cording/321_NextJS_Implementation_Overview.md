@@ -63,4 +63,5 @@ Next.js 16 の新機能とベストプラクティスを最大限に活用し、
 **関連ドキュメント:**
 - [基本設計書](../100_BasicDesign/100_BasicDesign.md)
 - [全体アーキテクチャ](../202_DetailedDesign/202_DetailedDesign_Architecture.md)
+- [コーディング規約（概要）](./301_CodingStandards.md)
 
