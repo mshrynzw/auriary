@@ -342,10 +342,269 @@ export async function createNotification(
 - 日記リマインダーの時間設定
 - 日記未記入リマインダーの日数設定
 
+### 4.7 PWA機能（将来実装）
+
+#### 4.7.1 インストール可能（Installable）
+
+**実装方式:**
+- `manifest.json` を設定してPWAとして認識させる
+- インストールプロンプトを表示
+- ホーム画面に追加可能にする
+
+**manifest.json の設定:**
+```json
+{
+  "name": "auriary - AI Diary App",
+  "short_name": "auriary",
+  "description": "AI と連携して日々の記録を楽に・美しく残せる日記アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["lifestyle", "productivity"]
+}
+```
+
+**インストールプロンプト:**
+```typescript
+// src/components/pwa/InstallPrompt.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+
+export function InstallPrompt() {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setShowPrompt(false);
+    }
+    setDeferredPrompt(null);
+  };
+
+  if (!showPrompt) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 p-4 bg-white border rounded-lg shadow-lg">
+      <p>アプリをインストールして、より快適にご利用ください</p>
+      <Button onClick={handleInstall}>インストール</Button>
+    </div>
+  );
+}
+```
+
+#### 4.7.2 オフライン対応
+
+**実装方式:**
+- Service Worker によるキャッシング戦略
+- IndexedDB によるオフラインストレージ
+- オンライン復帰時の自動同期
+
+**キャッシング戦略:**
+- **Cache First**: 静的アセット（CSS、JS、画像）
+- **Network First**: API レスポンス（日記データ）
+- **Stale While Revalidate**: ページHTML
+
+**Service Worker 実装例:**
+```typescript
+// public/sw.js
+const CACHE_NAME = 'auriary-v1';
+const STATIC_CACHE = 'auriary-static-v1';
+const API_CACHE = 'auriary-api-v1';
+
+// インストール時に静的アセットをキャッシュ
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      return cache.addAll([
+        '/',
+        '/diary',
+        '/manifest.json',
+        '/icon-192x192.png',
+        '/icon-512x512.png',
+      ]);
+    })
+  );
+  self.skipWaiting();
+});
+
+// フェッチ時にキャッシュを確認
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // 静的アセットは Cache First
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(request).then((response) => {
+        return response || fetch(request);
+      })
+    );
+    return;
+  }
+
+  // API リクエストは Network First
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(API_CACHE).then((cache) => {
+            cache.put(request, clone);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // その他は Network First
+  event.respondWith(
+    fetch(request).catch(() => {
+      return caches.match(request);
+    })
+  );
+});
+```
+
+#### 4.7.3 オフライン時の動作
+
+**閲覧機能:**
+- 既にキャッシュされた日記データを表示可能
+- オフラインインジケーターを表示
+
+**下書き保存:**
+- IndexedDB に下書きを保存
+- オンライン復帰時に自動的にSupabaseに同期
+
+**コード例:**
+```typescript
+// src/lib/offline-storage.ts
+import { openDB, DBSchema } from 'idb';
+
+interface DiaryDraft {
+  id?: number;
+  diary_date: string;
+  note: string;
+  // ... その他のフィールド
+}
+
+interface AuriaryDB extends DBSchema {
+  drafts: {
+    key: number;
+    value: DiaryDraft;
+  };
+}
+
+export async function saveDraft(draft: DiaryDraft) {
+  const db = await openDB<AuriaryDB>('auriary', 1, {
+    upgrade(db) {
+      db.createObjectStore('drafts', { keyPath: 'id', autoIncrement: true });
+    },
+  });
+
+  await db.put('drafts', draft);
+}
+
+export async function syncDrafts() {
+  const db = await openDB<AuriaryDB>('auriary', 1);
+  const drafts = await db.getAll('drafts');
+
+  for (const draft of drafts) {
+    try {
+      // Supabase に保存
+      await createDiary(draft);
+      // 成功したら IndexedDB から削除
+      await db.delete('drafts', draft.id!);
+    } catch (error) {
+      console.error('Failed to sync draft:', error);
+    }
+  }
+}
+```
+
+#### 4.7.4 オフラインインジケーター
+
+**実装方式:**
+- `navigator.onLine` でオンライン/オフラインを検知
+- オフライン時にバナーを表示
+
+**コード例:**
+```typescript
+// src/components/pwa/OfflineIndicator.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Alert } from '@/components/ui/alert';
+
+export function OfflineIndicator() {
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  if (isOnline) return null;
+
+  return (
+    <Alert className="fixed top-0 left-0 right-0 z-50">
+      オフラインです。一部の機能が制限されます。
+    </Alert>
+  );
+}
+```
+
 ---
 
 **関連ドキュメント:**
 - [基本設計書](./100_BasicDesign.md)
 - [API設計](./206_DetailedDesign_API.md)
 - [データベース設計](./205_DetailedDesign_Database.md)
+- [全体アーキテクチャ](./202_DetailedDesign_Architecture.md)
 

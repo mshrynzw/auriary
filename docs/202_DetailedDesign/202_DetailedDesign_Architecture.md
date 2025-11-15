@@ -67,7 +67,45 @@ src/
 日記保存 → Server Action → OpenAI API 呼び出し → 結果を DB に保存
 ```
 
-### 2.5 デプロイ構成（Cloudflare Pages）
+### 2.5 PWA構成（将来実装）
+
+```mermaid
+graph TB
+    Browser[ブラウザ] -->|HTTPS| App[Next.js App]
+    App -->|Service Worker| SW[Service Worker]
+    SW -->|Cache| Cache[Cache Storage]
+    SW -->|Offline Storage| IDB[IndexedDB]
+    App -->|Manifest| Manifest[manifest.json]
+    Manifest -->|Install| HomeScreen[ホーム画面]
+    SW -->|Push| Push[プッシュ通知]
+```
+
+**主要機能:**
+- **Service Worker**: オフライン対応、キャッシング、プッシュ通知
+- **manifest.json**: PWA メタデータ、インストール設定
+- **IndexedDB**: オフライン時のデータストレージ
+- **Cache Storage**: 静的アセット・API レスポンスのキャッシュ
+
+**ファイル構成:**
+```
+public/
+├── manifest.json          # PWA マニフェスト
+├── sw.js                  # Service Worker
+├── icon-192x192.png      # アプリアイコン（192x192）
+├── icon-512x512.png      # アプリアイコン（512x512）
+└── icon-maskable.png     # マスク可能アイコン
+
+src/
+├── components/
+│   └── pwa/
+│       ├── InstallPrompt.tsx      # インストールプロンプト
+│       ├── OfflineIndicator.tsx   # オフラインインジケーター
+│       └── PwaScript.tsx          # Service Worker 登録
+└── lib/
+    └── offline-storage.ts         # IndexedDB 操作
+```
+
+### 2.6 デプロイ構成（Cloudflare Pages）
 
 ```mermaid
 graph LR
@@ -83,9 +121,11 @@ graph LR
 - **@opennextjs/cloudflare**：Next.js を Cloudflare Pages に最適化
 - **Edge Network**：グローバル CDN による高速配信
 - **KV Storage**：セッション管理やキャッシュ（将来実装）
+- **PWA対応**：Service Worker と manifest.json を配信
 
 ---
 
 **関連ドキュメント:**
 - [基本設計書](./100_BasicDesign.md)
+- [機能設計](./204_DetailedDesign_Functions.md)
 

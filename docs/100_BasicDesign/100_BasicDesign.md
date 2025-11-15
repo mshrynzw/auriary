@@ -18,6 +18,7 @@ AI と連携して日々の記録を楽に・美しく残せる次世代の日�
 | UI フレームワーク | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント） |
 | 認証 | Supabase Auth（Email / OAuth） |
 | AI | OpenAI / ChatGPT API |
+| PWA | Service Worker、manifest.json、IndexedDB（将来実装） |
 | 開発ツール | ESLint + Prettier, TypeScript 5, pnpm |
 
 ### 1.4 想定ユーザー
@@ -32,6 +33,7 @@ AI と連携して日々の記録を楽に・美しく残せる次世代の日�
 - **感情・傾向分析**：過去の記録から感情シーケンスを可視化
 - **セキュアなデータ管理**：Supabase RLS による完全なユーザースコープ
 - **クロスデバイス同期**：Supabase を利用したリアルタイム同期
+- **PWA対応**（将来実装）：オフライン対応、ホーム画面へのインストール、ネイティブアプリのような体験
 
 ---
 
