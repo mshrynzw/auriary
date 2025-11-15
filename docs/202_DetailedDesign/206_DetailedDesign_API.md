@@ -64,6 +64,40 @@
 - リクエストボディ：`{ email: string, password: string, display_name: string }`
 - レスポンス：`{ user: User, session: Session }`
 
+#### 6.1.4 通知関連（将来実装）
+
+**GET /api/notifications**
+- 通知一覧を取得
+- クエリパラメータ：`?page=1&limit=20&is_read=false`
+- レスポンス：`{ notifications: Notification[], total: number, unread_count: number }`
+
+**PATCH /api/notifications/[id]**
+- 通知を既読に更新
+- リクエストボディ：`{ is_read: boolean }`
+- レスポンス：`{ notification: Notification }`
+
+**PATCH /api/notifications/read-all**
+- すべての通知を既読に更新
+- レスポンス：`{ success: boolean, updated_count: number }`
+
+**POST /api/push/subscribe**
+- プッシュ通知の購読を登録
+- リクエストボディ：`{ subscription: PushSubscription }`
+- レスポンス：`{ success: boolean }`
+
+**DELETE /api/push/unsubscribe**
+- プッシュ通知の購読を解除
+- レスポンス：`{ success: boolean }`
+
+**GET /api/notifications/settings**
+- 通知設定を取得
+- レスポンス：`{ settings: NotificationSettings }`
+
+**PATCH /api/notifications/settings**
+- 通知設定を更新
+- リクエストボディ：`{ push_enabled?: boolean, email_enabled?: boolean, ... }`
+- レスポンス：`{ settings: NotificationSettings }`
+
 ### 6.2 バリデーション（Zod）
 
 **実装予定スキーマ:**
@@ -86,6 +120,29 @@ export const createDiarySchema = z.object({
 });
 
 export const updateDiarySchema = createDiarySchema.partial();
+```
+
+**通知関連スキーマ:**
+```typescript
+// src/lib/validators/notification.ts
+import { z } from 'zod';
+
+export const updateNotificationSchema = z.object({
+  is_read: z.boolean(),
+});
+
+export const updateNotificationSettingsSchema = z.object({
+  push_enabled: z.boolean().optional(),
+  email_enabled: z.boolean().optional(),
+  push_diary_reminder: z.boolean().optional(),
+  push_diary_missing: z.boolean().optional(),
+  push_ai_analysis_complete: z.boolean().optional(),
+  email_diary_reminder: z.boolean().optional(),
+  email_diary_missing: z.boolean().optional(),
+  email_weekly_summary: z.boolean().optional(),
+  diary_reminder_time: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+  diary_missing_days: z.number().min(1).max(30).optional(),
+});
 ```
 
 ### 6.3 エラーハンドリング

@@ -168,6 +168,180 @@ export function createSupabaseServerClient() {
 - 日記本文の要約を生成
 - 結果を `t_diaries.ai_summary` に保存（将来実装）
 
+### 4.6 通知機能（将来実装）
+
+#### 4.6.1 プッシュ通知（Web Push）
+
+**実装方式:**
+- Web Push API を使用したブラウザプッシュ通知
+- Service Worker で通知を受信
+- プッシュ通知の購読情報を `t_push_subscriptions` に保存
+
+**通知タイミング:**
+- 日記リマインダー（設定した時間に通知）
+- 日記未記入リマインダー（N日連続で日記未記入の場合）
+- AI分析完了通知（感情分析・要約生成完了時）
+
+**フロー:**
+```
+1. ユーザーがプッシュ通知を許可
+2. Service Worker で Push Subscription を取得
+3. Subscription を Supabase に保存
+4. 通知送信時、Supabase Edge Function または API Route で送信
+5. Service Worker で通知を受信・表示
+```
+
+**コード例:**
+```typescript
+// src/lib/push-notification.ts
+export async function subscribePushNotification(userId: string) {
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  });
+  
+  // Supabase に保存
+  await supabase.from('t_push_subscriptions').insert({
+    user_id: userId,
+    subscription: subscription.toJSON(),
+    is_active: true,
+  });
+}
+```
+
+#### 4.6.2 メール自動送信
+
+**実装方式:**
+- Supabase Edge Functions または外部サービス（SendGrid / Resend など）を使用
+- メールテンプレートを Supabase Storage または環境変数で管理
+
+**送信タイミング:**
+- 新規登録時のウェルカムメール
+- パスワードリセットメール（Supabase Auth の機能を使用）
+- 週次サマリーメール（過去1週間の日記サマリー）
+- 日記未記入リマインダー（メール通知設定がONの場合）
+
+**フロー:**
+```
+1. トリガーイベント発生（日記保存、ユーザー登録など）
+2. Supabase Edge Function または API Route でメール送信処理
+3. メール送信サービス（SendGrid / Resend）にリクエスト
+4. 送信ログを `t_email_logs` に保存（将来実装）
+```
+
+**コード例:**
+```typescript
+// supabase/functions/send-email/index.ts
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+
+serve(async (req) => {
+  const { to, subject, template, data } = await req.json();
+  
+  // Resend または SendGrid を使用してメール送信
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'noreply@auriary.app',
+      to,
+      subject,
+      html: renderTemplate(template, data),
+    }),
+  });
+  
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+});
+```
+
+#### 4.6.3 アプリ内通知
+
+**実装方式:**
+- データベースベースの通知システム
+- `t_notifications` テーブルに通知を保存
+- リアルタイム更新は Supabase Realtime を使用（将来実装）
+
+**通知種別:**
+- `diary_reminder`: 日記リマインダー
+- `diary_missing`: 日記未記入リマインダー
+- `ai_analysis_complete`: AI分析完了
+- `weekly_summary`: 週次サマリー
+- `system`: システム通知
+
+**フロー:**
+```
+1. 通知イベント発生
+2. `t_notifications` テーブルに通知レコードを作成
+3. ユーザーが通知一覧画面で確認
+4. 通知をクリックで既読に更新
+5. 通知設定に基づいてプッシュ通知・メール送信も実行
+```
+
+**コード例:**
+```typescript
+// src/lib/notifications.ts
+export async function createNotification(
+  userId: number,
+  type: NotificationType,
+  title: string,
+  message: string,
+  linkUrl?: string
+) {
+  const supabase = createSupabaseServerClient();
+  
+  // 通知設定を確認
+  const { data: settings } = await supabase
+    .from('m_notification_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+  
+  // アプリ内通知を作成
+  const { data: notification } = await supabase
+    .from('t_notifications')
+    .insert({
+      user_id: userId,
+      type,
+      title,
+      message,
+      link_url: linkUrl,
+      is_read: false,
+    })
+    .select()
+    .single();
+  
+  // プッシュ通知設定がONの場合、プッシュ通知を送信
+  if (settings?.push_enabled && settings?.[`push_${type}`]) {
+    await sendPushNotification(userId, title, message, linkUrl);
+  }
+  
+  // メール通知設定がONの場合、メールを送信
+  if (settings?.email_enabled && settings?.[`email_${type}`]) {
+    await sendEmailNotification(userId, title, message);
+  }
+  
+  return notification;
+}
+```
+
+#### 4.6.4 通知設定
+
+**実装方式:**
+- `m_notification_settings` テーブルでユーザーごとの通知設定を管理
+- 設定画面（`/settings/notifications`）で設定を変更可能
+
+**設定項目:**
+- プッシュ通知の有効/無効
+- メール通知の有効/無効
+- 通知種別ごとのON/OFF設定
+- 日記リマインダーの時間設定
+- 日記未記入リマインダーの日数設定
+
 ---
 
 **関連ドキュメント:**

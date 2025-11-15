@@ -83,7 +83,50 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 - `appetite_level_default`：食欲レベルデフォルト（SMALLINT, 1-5, NOT NULL）
 - `sleep_desire_level_default`：睡眠欲レベルデフォルト（SMALLINT, 1-5, NOT NULL）
 
-#### 5.3.5 その他のテーブル
+#### 5.3.5 通知関連テーブル（将来実装）
+
+**t_notifications（通知）**
+- アプリ内通知を管理するテーブル
+- 通知種別、タイトル、メッセージ、リンクURL、既読フラグなどを保存
+
+**主要カラム:**
+- `id`：通知ID（BIGINT, PK）
+- `user_id`：ユーザーID（BIGINT, FK → m_users.id）
+- `type`：通知種別（TEXT, NOT NULL）
+- `title`：通知タイトル（TEXT, NOT NULL）
+- `message`：通知メッセージ（TEXT, NOT NULL）
+- `link_url`：リンクURL（TEXT, NULL）
+- `is_read`：既読フラグ（BOOLEAN, NOT NULL）
+- `created_at`：作成日時（TIMESTAMPTZ, NOT NULL）
+
+**m_notification_settings（通知設定）**
+- ユーザーごとの通知設定を管理するマスタ
+
+**主要カラム:**
+- `id`：設定ID（BIGINT, PK）
+- `user_id`：ユーザーID（BIGINT, FK → m_users.id）
+- `push_enabled`：プッシュ通知有効フラグ（BOOLEAN, NOT NULL）
+- `email_enabled`：メール通知有効フラグ（BOOLEAN, NOT NULL）
+- `push_diary_reminder`：日記リマインダー（プッシュ）（BOOLEAN, NOT NULL）
+- `push_diary_missing`：日記未記入リマインダー（プッシュ）（BOOLEAN, NOT NULL）
+- `email_weekly_summary`：週次サマリー（メール）（BOOLEAN, NOT NULL）
+- `diary_reminder_time`：日記リマインダー時刻（TIME, NULL）
+- `diary_missing_days`：日記未記入リマインダー日数（SMALLINT, NULL）
+
+**t_push_subscriptions（プッシュ通知購読）**
+- Web Push API の購読情報を管理
+
+**主要カラム:**
+- `id`：購読ID（BIGINT, PK）
+- `user_id`：ユーザーID（BIGINT, FK → m_users.id）
+- `subscription`：購読情報（JSONB, NOT NULL）
+- `is_active`：有効フラグ（BOOLEAN, NOT NULL）
+- `created_at`：作成日時（TIMESTAMPTZ, NOT NULL）
+
+**RLS ポリシー:**
+- ユーザーは自身の通知・設定・購読情報のみ参照・更新可能
+
+#### 5.3.6 その他のテーブル
 
 - **m_medications**：薬マスタ
 - **r_user_medications**：ユーザー別処方
