@@ -132,7 +132,7 @@ test('日記を作成できる', async ({ page }) => {
 **関連ドキュメント:**
 - [開発フロー・ワークフロー](./402_Workflow.md)
 - [コミット・PR規約](./403_Commit_PR.md)
-- [単体テスト戦略](../500_Unit_Test/Unit_Test_Strategy.md)
-- [結合テスト戦略](../600_Integration_Test/Integration_Test_Strategy.md)
-- [E2Eテスト戦略](../700_E2E_Test/E2E_Test_Strategy.md)
+- [単体テスト戦略](../500_Unit_Test/500_Strategy.md)
+- [結合テスト戦略](../600_Integration_Test/600_Strategy.md)
+- [E2Eテスト戦略](../700_E2E_Test/700Strategy.md)
 

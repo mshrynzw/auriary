@@ -288,6 +288,93 @@
 
 ---
 
+### 400_Test_Operation_Guideline（テスト運用ガイドライン）
+
+**目的：** テスト運用の全体像と1人開発に最適化されたワークフローを定義
+
+- [400_Guideline.md](./400_Test_Operation_Guideline/400_Guideline.md)
+  - テスト運用ガイドラインの目次
+- [401_Overview.md](./400_Test_Operation_Guideline/401_Overview.md)
+  - テストの全体像・開発フロー
+- [402_Workflow.md](./400_Test_Operation_Guideline/402_Workflow.md)
+  - 1人開発ワークフロー・実践例
+- [403_Commit_PR.md](./400_Test_Operation_Guideline/403_Commit_PR.md)
+  - コミット・PR規約
+- [404_Regression.md](./400_Test_Operation_Guideline/404_Regression.md)
+  - デグレ防止・優先順位
+- [405_Execution.md](./400_Test_Operation_Guideline/405_Execution.md)
+  - テスト実行タイミング
+- [406_CI_CD.md](./400_Test_Operation_Guideline/406_CI_CD.md)
+  - CI/CDパイプライン
+- [407_Branch.md](./400_Test_Operation_Guideline/407_Branch.md)
+  - ブランチ戦略
+- [408_AI.md](./400_Test_Operation_Guideline/408_AI.md)
+  - AI活用
+- [409_Release.md](./400_Test_Operation_Guideline/409_Release.md)
+  - リリース・メンテナンス
+- [410_Infrastructure.md](./400_Test_Operation_Guideline/410_Infrastructure.md)
+  - インフラ（Supabase Test DB）
+- [411_Reference.md](./400_Test_Operation_Guideline/411_Reference.md)
+  - リファレンス（コマンド・トラブルシューティング）
+
+---
+
+### 500_Unit_Test（単体テスト戦略）
+
+**目的：** 個別の関数・コンポーネント・ユーティリティの動作を検証するテスト戦略を定義
+
+- [500_Strategy.md](./500_Unit_Test/500_Strategy.md)
+  - 最小限の単体テスト哲学
+  - テスト対象/非対象
+  - Vitest ルール
+  - モッキング
+  - 命名規則
+  - フォルダ構造
+  - テストデータ
+  - カバレッジ
+  - 実装例
+  - Cursor 自動生成情報
+
+---
+
+### 600_Integration_Test（結合テスト戦略）
+
+**目的：** API Route Handler と Supabase の連携を検証するテスト戦略を定義
+
+- [600_Strategy.md](./600_Integration_Test/600_Strategy.md)
+  - API Route Handler から Supabase
+  - Supabase Local Test DB
+  - RLS テスト
+  - Service Role key
+  - Supertest + Vitest
+  - 正常系/異常系
+  - API Schema Contract Test
+  - auth モッキング
+  - トランザクションロールバック
+  - 実装例
+  - Cursor 自動生成情報
+
+---
+
+### 700_E2E_Test（E2Eテスト戦略）
+
+**目的：** ユーザーが実際に使用する機能をブラウザ上で検証するテスト戦略を定義
+
+- [700Strategy.md](./700_E2E_Test/700Strategy.md)
+  - auriary における E2Eテストの重要性
+  - Playwright ルール
+  - セレクター戦略
+  - 過度な待機を避ける
+  - テスト対象/非対象
+  - テストアカウント管理
+  - テストデータ初期化
+  - クロスブラウザ/モバイル
+  - シナリオ作成
+  - 実装例
+  - Cursor 自動生成の注意点
+
+---
+
 ## 🔗 関連リソース
 
 - **プロジェクト README**: [../README.md](../README.md)
@@ -355,6 +442,10 @@
 | **Next.jsエラー処理** | [328_NextJS_ErrorHandling.md](./300_Cording/328_NextJS_ErrorHandling.md) | Next.js エラーハンドリング |
 | **パフォーマンス** | [329_NextJS_Performance.md](./300_Cording/329_NextJS_Performance.md) | パフォーマンス最適化 |
 | **ベストプラクティス** | [330_NextJS_BestPractices.md](./300_Cording/330_NextJS_BestPractices.md) | その他のベストプラクティス |
+| **テスト運用ガイドライン** | [400_Guideline.md](./400_Test_Operation_Guideline/400_Guideline.md) | テスト運用の全体像 |
+| **単体テスト戦略** | [500_Strategy.md](./500_Unit_Test/500_Strategy.md) | 単体テスト戦略 |
+| **結合テスト戦略** | [600_Strategy.md](./600_Integration_Test/600_Strategy.md) | 結合テスト戦略 |
+| **E2Eテスト戦略** | [700Strategy.md](./700_E2E_Test/700Strategy.md) | E2Eテスト戦略 |
 
 ---
 
