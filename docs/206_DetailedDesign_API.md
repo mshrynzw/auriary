@@ -73,7 +73,7 @@
 import { z } from 'zod';
 
 export const createDiarySchema = z.object({
-  diary_date: z.date(),
+  diary_date: z.string().date(), // ISO8601 date string (e.g. "2025-01-10")
   note: z.string().max(10000).optional(),
   sleep_quality: z.number().min(1).max(5).optional(),
   wake_level: z.number().min(1).max(5).optional(),

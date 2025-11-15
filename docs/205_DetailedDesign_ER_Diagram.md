@@ -166,20 +166,20 @@ erDiagram
 
 	m_users||--o{m_user_daily_defaults:"user_id"
 	m_users||--o{r_user_medications:"user_id"
-	m_users||--o{t_daily_diarys:"user_id"
+	m_users||--o{t_diaries:"user_id"
 	m_users||--o{t_overdoses:"user_id"
 	m_users||--o{t_medication_intakes:"user_id"
 	m_users||--o{r_user_ext_accounts:"user_id"
 	m_medications||--o{r_user_medications:"medication_id"
 	r_user_medications||--o{t_medication_intakes:"user_medication_id"
-	t_daily_diarys||--o{t_diary_attachments:"diary_id"
+	t_diaries||--o{t_diary_attachments:"diary_id"
 
 	style m_users stroke:#D50000,fill:#FFFFFF
 	style m_user_daily_defaults fill:#FFFFFF,stroke:#D50000
 	style m_medications fill:#FFFFFF,stroke:#D50000
 	style r_user_medications fill:#FFFFFF,stroke:#AA00FF
 	style r_user_ext_accounts fill:#FFFFFF,stroke:#2962FF
-	style t_daily_diarys fill:#FFFFFF,stroke:#2962FF
+	style t_diaries fill:#FFFFFF,stroke:#2962FF
 	style t_diary_attachments fill:#FFFFFF,stroke:#2962FF
 	style t_overdoses fill:#FFFFFF,stroke:#2962FF
 	style t_medication_intakes fill:#FFFFFF
