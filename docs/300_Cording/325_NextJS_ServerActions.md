@@ -267,8 +267,8 @@ export async function updateDiary(id: string, data: DiaryData) {
 ---
 
 **関連ドキュメント:**
-- [基本設計書](./100_BasicDesign.md)
-- [Next.js 16 実装方針（概要）](./211_NextJS_Implementation_Overview.md)
-- [API設計](./206_DetailedDesign_API.md)
-- [認証管理](./224_NextJS_Authentication.md)
+- [基本設計書](../100_BasicDesign/100_BasicDesign.md)
+- [Next.js 16 実装方針（概要）](./321_NextJS_Implementation_Overview.md)
+- [API設計](../202_DetailedDesign/206_DetailedDesign_API.md)
+- [認証管理](./324_NextJS_Authentication.md)
 

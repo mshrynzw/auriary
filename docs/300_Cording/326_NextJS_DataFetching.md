@@ -280,8 +280,8 @@ export const getCachedDiaries = unstable_cache(
 ---
 
 **関連ドキュメント:**
-- [基本設計書](./100_BasicDesign.md)
-- [Next.js 16 実装方針（概要）](./211_NextJS_Implementation_Overview.md)
-- [キャッシング戦略](./223_NextJS_Caching.md)
-- [React Server Components 優先原則](./222_NextJS_ServerComponents.md)
+- [基本設計書](../100_BasicDesign/100_BasicDesign.md)
+- [Next.js 16 実装方針（概要）](./321_NextJS_Implementation_Overview.md)
+- [キャッシング戦略](./323_NextJS_Caching.md)
+- [React Server Components 優先原則](./322_NextJS_ServerComponents.md)
 

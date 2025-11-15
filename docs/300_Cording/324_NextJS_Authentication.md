@@ -343,8 +343,8 @@ export async function requireAuth() {
 ---
 
 **関連ドキュメント:**
-- [基本設計書](./100_BasicDesign.md)
-- [Next.js 16 実装方針（概要）](./211_NextJS_Implementation_Overview.md)
-- [セキュリティ設計](./208_DetailedDesign_08_Security.md)
-- [機能設計（認証）](./204_DetailedDesign_Functions.md#41-認証)
+- [基本設計書](../100_BasicDesign/100_BasicDesign.md)
+- [Next.js 16 実装方針（概要）](./321_NextJS_Implementation_Overview.md)
+- [セキュリティ設計](../202_DetailedDesign/208_DetailedDesign_08_Security.md)
+- [機能設計（認証）](../202_DetailedDesign/204_DetailedDesign_Functions.md#41-認証)
 

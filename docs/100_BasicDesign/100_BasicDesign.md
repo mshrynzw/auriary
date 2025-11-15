@@ -40,49 +40,49 @@ AI と連携して日々の記録を楽に・美しく残せる次世代の日�
 詳細設計書は以下のドキュメントに分割されています。
 
 ### 2. 全体アーキテクチャ
-→ [202_DetailedDesign_Architecture.md](./202_DetailedDesign_Architecture.md)
+→ [202_DetailedDesign_Architecture.md](../202_DetailedDesign/202_DetailedDesign_Architecture.md)
 
 ### 3. 画面一覧（UI設計）
-→ [203_DetailedDesign_UI.md](./203_DetailedDesign_UI.md)
+→ [203_DetailedDesign_UI.md](../202_DetailedDesign/203_DetailedDesign_UI.md)
 
 ### 4. 機能設計
-→ [204_DetailedDesign_Functions.md](./204_DetailedDesign_Functions.md)
+→ [204_DetailedDesign_Functions.md](../202_DetailedDesign/204_DetailedDesign_Functions.md)
 
 ### 5. データベース設計
-→ [205_DetailedDesign_Database.md](./205_DetailedDesign_Database.md)
+→ [205_DetailedDesign_Database.md](../202_DetailedDesign/205_DetailedDesign_Database.md)
 
 **関連ドキュメント:**
-- [205_DetailedDesign_ER_Diagram.md](./205_DetailedDesign_ER_Diagram.md) - ER図
-- [205_DetailedDesign_Table_Definition.md](./205_DetailedDesign_Table_Definition.md) - テーブル定義書
+- [205_DetailedDesign_ER_Diagram.md](../202_DetailedDesign/205_DetailedDesign_ER_Diagram.md) - ER図
+- [205_DetailedDesign_Table_Definition.md](../202_DetailedDesign/205_DetailedDesign_Table_Definition.md) - テーブル定義書
 
 ### 6. API設計（App Router）
-→ [206_DetailedDesign_API.md](./206_DetailedDesign_API.md)
+→ [206_DetailedDesign_API.md](../202_DetailedDesign/206_DetailedDesign_API.md)
 
 ### 7. コンポーネント設計
-→ [207_DetailedDesign_Components.md](./207_DetailedDesign_Components.md)
+→ [207_DetailedDesign_Components.md](../202_DetailedDesign/207_DetailedDesign_Components.md)
 
 ### 8. セキュリティ設計
-→ [208_DetailedDesign_08_Security.md](./208_DetailedDesign_08_Security.md)
+→ [208_DetailedDesign_08_Security.md](../202_DetailedDesign/208_DetailedDesign_08_Security.md)
 
 ### 9. ログ・監査
-→ [209_DetailedDesign_Logging.md](./209_DetailedDesign_Logging.md)
+→ [209_DetailedDesign_Logging.md](../202_DetailedDesign/209_DetailedDesign_Logging.md)
 
 ### 10. 非機能要件
-→ [210_DetailedDesign_NonFunctional.md](./210_DetailedDesign_NonFunctional.md)
+→ [210_DetailedDesign_NonFunctional.md](../202_DetailedDesign/210_DetailedDesign_NonFunctional.md)
 
 ### 11. Next.js 16 実装方針
-→ [211_NextJS_Implementation_Overview.md](./211_NextJS_Implementation_Overview.md)
+→ [321_NextJS_Implementation_Overview.md](../300_Cording/321_NextJS_Implementation_Overview.md)
 
 **関連ドキュメント:**
-- [222_NextJS_ServerComponents.md](./222_NextJS_ServerComponents.md) - React Server Components 優先原則
-- [223_NextJS_Caching.md](./223_NextJS_Caching.md) - キャッシング戦略
-- [224_NextJS_Authentication.md](./224_NextJS_Authentication.md) - 認証管理
-- [225_NextJS_ServerActions.md](./225_NextJS_ServerActions.md) - Server Actions
-- [226_NextJS_DataFetching.md](./226_NextJS_DataFetching.md) - データフェッチング
-- [227_NextJS_AsyncAPIs.md](./227_NextJS_AsyncAPIs.md) - 非同期 API の活用
-- [228_NextJS_ErrorHandling.md](./228_NextJS_ErrorHandling.md) - エラーハンドリング
-- [229_NextJS_Performance.md](./229_NextJS_Performance.md) - パフォーマンス最適化
-- [230_NextJS_BestPractices.md](./230_NextJS_BestPractices.md) - その他のベストプラクティス
+- [322_NextJS_ServerComponents.md](../300_Cording/322_NextJS_ServerComponents.md) - React Server Components 優先原則
+- [323_NextJS_Caching.md](../300_Cording/323_NextJS_Caching.md) - キャッシング戦略
+- [324_NextJS_Authentication.md](../300_Cording/324_NextJS_Authentication.md) - 認証管理
+- [325_NextJS_ServerActions.md](../300_Cording/325_NextJS_ServerActions.md) - Server Actions
+- [326_NextJS_DataFetching.md](../300_Cording/326_NextJS_DataFetching.md) - データフェッチング
+- [327_NextJS_AsyncAPIs.md](../300_Cording/327_NextJS_AsyncAPIs.md) - 非同期 API の活用
+- [328_NextJS_ErrorHandling.md](../300_Cording/328_NextJS_ErrorHandling.md) - エラーハンドリング
+- [329_NextJS_Performance.md](../300_Cording/329_NextJS_Performance.md) - パフォーマンス最適化
+- [330_NextJS_BestPractices.md](../300_Cording/330_NextJS_BestPractices.md) - その他のベストプラクティス
 
 ---
 

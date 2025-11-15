@@ -247,8 +247,8 @@ const nextConfig = {
 ---
 
 **関連ドキュメント:**
-- [基本設計書](./100_BasicDesign.md)
-- [Next.js 16 実装方針（概要）](./211_NextJS_Implementation_Overview.md)
-- [キャッシング戦略](./223_NextJS_Caching.md)
-- [非機能要件](./210_DetailedDesign_NonFunctional.md)
+- [基本設計書](../100_BasicDesign/100_BasicDesign.md)
+- [Next.js 16 実装方針（概要）](./321_NextJS_Implementation_Overview.md)
+- [キャッシング戦略](./323_NextJS_Caching.md)
+- [非機能要件](../202_DetailedDesign/210_DetailedDesign_NonFunctional.md)
 

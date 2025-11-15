@@ -206,7 +206,7 @@ import { ServerComponent } from '@/components/ServerComponent'; // エラー
 ---
 
 **関連ドキュメント:**
-- [基本設計書](./100_BasicDesign.md)
-- [Next.js 16 実装方針（概要）](./211_NextJS_Implementation_Overview.md)
-- [コンポーネント設計](./207_DetailedDesign_Components.md)
+- [基本設計書](../100_BasicDesign/100_BasicDesign.md)
+- [Next.js 16 実装方針（概要）](./321_NextJS_Implementation_Overview.md)
+- [コンポーネント設計](../202_DetailedDesign/207_DetailedDesign_Components.md)
 
