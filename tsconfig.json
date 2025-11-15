@@ -29,9 +29,9 @@
     },
     "types": [
       "./cloudflare-env.d.ts",
-      "./cloudflare-env.d.ts",
       "node",
-      "node"
+      "vitest/globals",
+      "@testing-library/jest-dom"
     ]
   },
   "include": [
