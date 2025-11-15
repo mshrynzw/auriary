@@ -93,11 +93,18 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 
 詳細は [205_DetailedDesign_Table_Definition.md](./205_DetailedDesign_Table_Definition.md) を参照してください。
 
+### 5.4 Supabase 高度な機能
+
+Supabase の高度な機能（Edge Functions、View、RLS ポリシー詳細、トリガー、ストアドプロシージャ）については、以下のドキュメントを参照してください。
+
+→ [205_DetailedDesign_Supabase_Advanced.md](./205_DetailedDesign_Supabase_Advanced.md)
+
 ---
 
 **関連ドキュメント:**
 - [基本設計書](./100_BasicDesign.md)
 - [205_DetailedDesign_ER_Diagram.md](./205_DetailedDesign_ER_Diagram.md)
 - [205_DetailedDesign_Table_Definition.md](./205_DetailedDesign_Table_Definition.md)
+- [205_DetailedDesign_Supabase_Advanced.md](./205_DetailedDesign_Supabase_Advanced.md)
 - [セキュリティ設計](./208_DetailedDesign_08_Security.md)
 

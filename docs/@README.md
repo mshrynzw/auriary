@@ -104,6 +104,11 @@
   - ER図（Mermaid形式）
 - [205_DetailedDesign_Table_Definition.md](./202_DetailedDesign/205_DetailedDesign_Table_Definition.md)
   - 全テーブルの詳細定義
+- [205_DetailedDesign_Supabase_Advanced.md](./202_DetailedDesign/205_DetailedDesign_Supabase_Advanced.md)
+  - Supabase Edge Functions
+  - データベース View
+  - RLS ポリシー詳細
+  - トリガー、ストアドプロシージャ
 
 #### API設計
 - [206_DetailedDesign_API.md](./202_DetailedDesign/206_DetailedDesign_API.md)
@@ -273,6 +278,7 @@
 | **UI** | [203_DetailedDesign_UI.md](./202_DetailedDesign/203_DetailedDesign_UI.md) | 画面一覧 |
 | **機能** | [204_DetailedDesign_Functions.md](./202_DetailedDesign/204_DetailedDesign_Functions.md) | 機能設計 |
 | **DB** | [205_DetailedDesign_Database.md](./202_DetailedDesign/205_DetailedDesign_Database.md) | データベース設計 |
+| **Supabase** | [205_DetailedDesign_Supabase_Advanced.md](./202_DetailedDesign/205_DetailedDesign_Supabase_Advanced.md) | Supabase 高度な機能 |
 | **API** | [206_DetailedDesign_API.md](./202_DetailedDesign/206_DetailedDesign_API.md) | API設計 |
 | **コンポーネント** | [207_DetailedDesign_Components.md](./202_DetailedDesign/207_DetailedDesign_Components.md) | コンポーネント設計 |
 | **セキュリティ** | [208_DetailedDesign_08_Security.md](./202_DetailedDesign/208_DetailedDesign_08_Security.md) | セキュリティ設計 |
