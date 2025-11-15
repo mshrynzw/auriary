@@ -12,7 +12,7 @@ AI と連携して日々の記録を楽に・美しく残せる次世代の日�
 
 | カテゴリ | 技術スタック |
 |---------|------------|
-| フレームワーク | **Next.js 15.5.6**（App Router / Server Components / Cache Components） |
+| フレームワーク | **Next.js 16**（App Router / Server Components / Cache Components） |
 | データベース | **Supabase（PostgreSQL + RLS）** |
 | ホスティング | **Cloudflare Pages**（@opennextjs/cloudflare を使用） |
 | UI フレームワーク | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント） |

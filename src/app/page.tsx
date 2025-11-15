@@ -1,25 +1,61 @@
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { getAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { LogIn, UserPlus, BookOpen } from 'lucide-react';
 
 export default async function HomePage() {
-  const supabase = createSupabaseServerClient();
+  const { user, userProfile } = await getAuth();
 
-  const { data: { user } = {} } = await supabase.auth.getUser();
+  if (user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">auriary へようこそ</CardTitle>
+            <CardDescription>
+              {userProfile?.display_name || user.email} さん、おかえりなさい
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Link href="/diary" className="block">
+                <Button className="w-full" size="lg">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  日記を始める
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background">
+    <main className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">
-            Next.js 16 + Cloudflare + Supabase + Tailwind v4 + shadcn/ui
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">auriary</CardTitle>
+          <CardDescription>
+            AI と連携して日々の記録を楽に・美しく残せる次世代の日記アプリ
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {user ? `ログインユーザー: ${user.email}` : 'まだログインしていません。'}
-          </p>
-          <Button size="lg">shadcn/ui の Button です</Button>
+          <div className="space-y-2">
+            <Link href="/login" className="block">
+              <Button className="w-full" size="lg">
+                <LogIn className="mr-2 h-4 w-4" />
+                ログイン
+              </Button>
+            </Link>
+            <Link href="/register" className="block">
+              <Button className="w-full" variant="outline" size="lg">
+                <UserPlus className="mr-2 h-4 w-4" />
+                新規登録
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </main>
