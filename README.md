@@ -1,47 +1,194 @@
-# OpenNext Starter
+# auriary — AI Diary App  
+**Next.js 16 + Supabase + Tailwind CSS v4 + shadcn/ui + Cloudflare**
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+auriary（オーリアリー）は、**AI と連携して日々の記録を楽に・美しく残せる次世代の日記アプリ**です。  
+ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自動生成などを自動化します。
 
-## Getting Started
+---
 
-Read the documentation at https://opennext.js.org/cloudflare.
+## 🌟 Features
 
-## Develop
+### ✏️ スマート日記作成
+- リッチテキストエディタ（shadcn/ui + TipTap）
+- AI による文章補完・推敲
+- 自動タグ / 自動カテゴリ分類
 
-Run the Next.js development server:
+### 🔐 セキュア認証
+- Supabase Auth（Email / OAuth）
+- RLS（Row Level Security）対応
 
-```bash
-npm run dev
-# or similar package manager command
+### 📅 カレンダー管理
+- 月/週/日ビュー切替
+- フィルタリング（気分・タグ・期間）
+
+### 📊 感情・傾向分析
+- AI による sentiment / topic 分析
+- 過去30日間の感情シーケンスを可視化
+
+### ☁️ クロスデバイス同期
+- Supabase を利用したリアルタイム同期
+- Cloudflare Pages / KV / Cache に最適化
+
+---
+
+## 🏗️ Tech Stack
+
+| Category | Technology |
+|---------|------------|
+| Framework | **Next.js 16**（App Router / Server Components / Cache Components） |
+| Database | **Supabase（PostgreSQL + RLS）** |
+| Hosting | **Cloudflare Pages**（Vercel 互換ビルド） |
+| UI | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント） |
+| Auth | Supabase Auth |
+| AI | OpenAI / ChatGPT API |
+| Tools | ESLint + Prettier, GitHub Actions |
+
+---
+
+## 📦 Project Structure
+
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+auriary/
+├─ app/
+│  ├─ (dashboard)/
+│  ├─ diary/
+│  ├─ api/
+│  └─ layout.tsx
+├─ components/
+├─ lib/
+│  ├─ supabase.ts
+│  ├─ validators/
+│  └─ ai/
+├─ styles/
+├─ supabase/
+│  ├─ migrations/
+│  ├─ seeds/
+│  └─ config.toml
+└─ README.md
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-## Preview
-
-Preview the application locally on the Cloudflare runtime:
-
-```bash
-npm run preview
-# or similar package manager command
 ```
 
-## Deploy
+---
 
-Deploy the application to Cloudflare:
+## 🗄️ Database Schema (概要)
 
-```bash
-npm run deploy
-# or similar package manager command
+主要テーブル（Mermaid ER 図は DB/設計資料に準拠）：
+
+### **m_users（ユーザーマスタ）**
+- id / auth_user_id（UUID）
+- display_name  
+- email  
+- created_at / updated_at / deleted_at  
+- created_by / updated_by / deleted_by  
+
+### **t_diaries（日記）**
+- id  
+- user_id  
+- title  
+- body  
+- mood（感情スコア）  
+- ai_summary  
+- ai_topics  
+- created_at / updated_at / deleted_at  
+
+### **t_diary_tags（タグ紐付け）**
+
+Supabase の RLS により、ユーザー自身のみ参照可能。
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone
+
 ```
 
-## Learn More
+git clone [https://github.com/yourname/auriary.git](https://github.com/yourname/auriary.git)
+cd auriary
 
-To learn more about Next.js, take a look at the following resources:
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+
+pnpm install
+
+```
+
+### 3. Supabase Setup
+
+```
+
+supabase start
+supabase db push
+supabase gen types typescript --project-id "local" > lib/types/supabase.ts
+
+```
+
+.env.local を設定：
+
+```
+
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+OPENAI_API_KEY=...
+
+```
+
+### 4. Dev Server
+
+```
+
+pnpm dev
+
+```
+
+### 5. Cloudflare Deploy
+
+```
+
+pnpm run build
+
+```
+
+Cloudflare Pages にて Next.js プロジェクトとしてデプロイ。
+
+---
+
+## 🧪 Lint & Format
+
+```
+
+pnpm lint
+pnpm format
+
+```
+
+- ESLint + Prettier を完全統合
+- shadcn/ui のコードスタイルに準拠
+
+---
+
+## 🔮 Future Plans
+
+- モバイルアプリ（Expo / React Native）
+- AI の感情スコア可視化強化
+- 音声入力 → AI による自動文字起こし
+- ホログラム UI（ユーザーの要望より）
+
+---
+
+## 📄 License
+
+This project is licensed under the **AGPL-3.0**.  
+商用利用・フォークは自由ですが、派生物の公開が必要です。
+
+---
+
+## 👤 Author
+
+**auriary Project Team**  
+Lead Developer: *mshr ynzw*  
