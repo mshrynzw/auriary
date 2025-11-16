@@ -12,8 +12,7 @@
 	],
 	"pages_build_output_dir": ".open-next",
 	"assets": {
-		"directory": ".open-next/assets",
-		"binding": "ASSETS"
+		"directory": ".open-next/assets"
 	},
 	"observability": {
 		"enabled": true
