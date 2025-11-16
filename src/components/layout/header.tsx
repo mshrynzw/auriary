@@ -31,13 +31,15 @@ export async function Header() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <BookOpen className="h-8 w-8" />
-              <span
-                className="text-2xl font-semibold tracking-wider animate-dimlight box-reflect group-data-[collapsible=icon]:hidden aurawork-logo"
+              <div
+                className="flex items-center gap-2 text-2xl font-semibold tracking-wider animate-dimlight box-reflect group-data-[collapsible=icon]:hidden aurawork-logo"
                 data-text="aurawork"
               >
+                <span className="inline-block">
+                  <BookOpen className="h-8 w-8" />
+                </span>
                 aurawork
-              </span>
+              </div>
             </Link>
             {user && (
               <nav className="hidden md:flex items-center gap-4">

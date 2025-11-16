@@ -47,6 +47,9 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 - `appetite_level`：食欲レベル（SMALLINT, 1-5, NULL）
 - `sleep_desire_level`：睡眠欲レベル（SMALLINT, 1-5, NULL）
 - `has_od`：OD発生フラグ（BOOLEAN, NULL）
+- `od_times`：OD情報配列（JSONB, NULL）
+  - 各ODの時刻・薬情報・量・単位・メモを配列で保持
+  - 各要素は `{occurred_at, medication_id, medication_name, amount, amount_unit, context_memo, source_id}` の形式
 
 **将来拡張:**
 - `ai_summary`：AI 生成要約（TEXT, NULL）
@@ -126,17 +129,50 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 **RLS ポリシー:**
 - ユーザーは自身の通知・設定・購読情報のみ参照・更新可能
 
-#### 5.3.6 その他のテーブル
+#### 5.3.6 r_diary_overdoses（日記とODの関連）
+
+`t_diaries` と `t_overdoses` を関連付けるリレーションテーブル。
+1つの日記に複数のOD記録を紐付けることが可能。
+
+**主要カラム:**
+- `id`：関連ID（BIGINT, PK）
+- `diary_id`：日記ID（BIGINT, FK → t_diaries.id）
+- `overdose_id`：OD記録ID（BIGINT, FK → t_overdoses.id）
+
+**RLS ポリシー:**
+- ユーザーは自身の日記に関連するOD記録のみ参照・更新可能
+
+#### 5.3.7 その他のテーブル
 
 - **m_medications**：薬マスタ
 - **r_user_medications**：ユーザー別処方
 - **r_user_ext_accounts**：外部アカウント連携（Google / LINE など）
-- **t_overdoses**：OD記録
+- **t_overdoses**：OD記録（時系列での詳細記録）
 - **t_medication_intakes**：服薬実績
 
 詳細は [205_DetailedDesign_Table_Definition.md](./205_DetailedDesign_Table_Definition.md) を参照してください。
 
-### 5.4 Supabase 高度な機能
+### 5.4 データベース変更履歴
+
+#### 2025-01-16: OD記録機能の追加
+
+**変更内容:**
+- `t_diaries`テーブルに`od_times`列（JSONB）を追加
+  - 各ODの時刻・薬情報・量・単位・メモを配列で保持
+  - 各要素は `{occurred_at, medication_id, medication_name, amount, amount_unit, context_memo, source_id}` の形式
+- `r_diary_overdoses`テーブルを新規作成
+  - `t_diaries`と`t_overdoses`を関連付けるリレーションテーブル
+  - 将来の拡張用（現在は`od_times`で直接管理）
+
+**マイグレーションファイル:**
+- `supabase/migrations/20250116000003_add_od_times_and_relation.sql`
+
+**実装詳細:**
+- OD情報は日記テーブルに直接保存（1日単位での集約）
+- 薬マスタ（`m_medications`）との紐づけをサポート
+- 薬マスタにない薬は自由入力で記録可能
+
+### 5.5 Supabase 高度な機能
 
 Supabase の高度な機能（Edge Functions、View、RLS ポリシー詳細、トリガー、ストアドプロシージャ）については、以下のドキュメントを参照してください。
 

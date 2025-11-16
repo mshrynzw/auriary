@@ -141,13 +141,14 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 | 14 | sleep_desire_level | 睡眠欲レベル         | SMALLINT    | NULL     |    | 1〜5。                  |
 | 15 | note      | 日記本文（Markdown） | TEXT        | NULL     |    | 自由記述。Markdownで記録。     |
 | 16 | has_od             | OD発生フラグ        | BOOLEAN     | NULL     |    | その日に OD があったか。        |
-| 17 | source_id          | 元レコードID        | BIGINT      | NULL     |    | バージョン管理用。             |
-| 18 | created_at         | 作成日時           | TIMESTAMPTZ | NOT NULL |    |                       |
-| 19 | updated_at         | 更新日時           | TIMESTAMPTZ | NOT NULL |    |                       |
-| 20 | deleted_at         | 削除日時           | TIMESTAMPTZ | NULL     |    |                       |
-| 21 | created_by         | 作成者ユーザーUUID    | UUID        | NOT NULL |    |                       |
-| 22 | updated_by         | 更新者ユーザーUUID    | UUID        | NOT NULL |    |                       |
-| 23 | deleted_by         | 削除者ユーザーUUID    | UUID        | NULL     |    |                       |
+| 17 | od_times            | OD情報配列          | JSONB       | NULL     |    | ODの時刻・量・単位・メモを配列で保持。各要素は `{occurred_at, amount, amount_unit, context_memo, source_id}` の形式。 |
+| 18 | source_id          | 元レコードID        | BIGINT      | NULL     |    | バージョン管理用。             |
+| 19 | created_at         | 作成日時           | TIMESTAMPTZ | NOT NULL |    |                       |
+| 20 | updated_at         | 更新日時           | TIMESTAMPTZ | NOT NULL |    |                       |
+| 21 | deleted_at         | 削除日時           | TIMESTAMPTZ | NULL     |    |                       |
+| 22 | created_by         | 作成者ユーザーUUID    | UUID        | NOT NULL |    |                       |
+| 23 | updated_by         | 更新者ユーザーUUID    | UUID        | NOT NULL |    |                       |
+| 24 | deleted_by         | 削除者ユーザーUUID    | UUID        | NULL     |    |                       |
 
 ---
 
@@ -194,6 +195,26 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 | 13 | created_by      | 作成者ユーザーUUID | UUID        | NOT NULL |    |                                  |
 | 14 | updated_by      | 更新者ユーザーUUID | UUID        | NOT NULL |    |                                  |
 | 15 | deleted_by      | 削除者ユーザーUUID | UUID        | NULL     |    |                                  |
+
+---
+
+## r_diary_overdoses（日記とODの関連）
+
+`t_diaries` と `t_overdoses` を関連付けるリレーションテーブル。
+1つの日記に複数のOD記録を紐付けることが可能。
+
+| No | 物理名          | 論理名         | 型           | NULL     | キー | 説明                  |
+| -- | ------------ | ----------- | ----------- | -------- | -- | ------------------- |
+| 1  | id           | 関連ID        | BIGINT      | NOT NULL | PK | レコードID。             |
+| 2  | diary_id     | 日記ID        | BIGINT      | NOT NULL | FK | `t_diaries.id`。      |
+| 3  | overdose_id  | OD記録ID      | BIGINT      | NOT NULL | FK | `t_overdoses.id`。    |
+| 4  | source_id    | 元レコードID     | BIGINT      | NULL     |    | バージョン管理用。           |
+| 5  | created_at   | 作成日時        | TIMESTAMPTZ | NOT NULL |    |                     |
+| 6  | updated_at   | 更新日時        | TIMESTAMPTZ | NOT NULL |    |                     |
+| 7  | deleted_at   | 削除日時        | TIMESTAMPTZ | NULL     |    |                     |
+| 8  | created_by   | 作成者ユーザーUUID | UUID        | NOT NULL |    |                     |
+| 9  | updated_by   | 更新者ユーザーUUID | UUID        | NOT NULL |    |                     |
+| 10 | deleted_by   | 削除者ユーザーUUID | UUID        | NULL     |    |                     |
 
 ---
 

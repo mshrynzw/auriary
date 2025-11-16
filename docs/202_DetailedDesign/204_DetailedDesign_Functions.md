@@ -71,7 +71,42 @@ export function createSupabaseServerClient() {
 4. 保存成功後、AI Summary 生成をトリガー（非同期）
 ```
 
-#### 4.2.2 AI Summary 生成フロー
+#### 4.2.2 OD記録機能
+
+**実装方式:**
+- 日記編集画面でOD発生チェックボックスをONにすると、OD情報入力UIが表示
+- 複数のOD記録を「+」ボタンで追加、「-」ボタンで削除可能
+- 各OD記録には以下の情報を入力可能：
+  - 発生日時（必須）
+  - 薬（薬マスタから選択、または自由入力）
+  - 量（数値）
+  - 単位（テキスト、例：錠、mg）
+  - 状況メモ（テキスト）
+
+**データ構造:**
+- `t_diaries.od_times`（JSONB配列）に各OD情報を保存
+- 各要素は `{occurred_at, medication_id, medication_name, amount, amount_unit, context_memo, source_id}` の形式
+- `has_od`フラグは`od_times`の有無に基づいて自動設定
+
+**薬マスタ連携:**
+- `m_medications`テーブルから薬一覧を取得
+- 薬マスタから選択した場合：`medication_id`と`medication_name`の両方を設定
+- 自由入力を選択した場合：`medication_id`はnull、`medication_name`のみ設定
+
+**関連テーブル:**
+- `r_diary_overdoses`：日記と`t_overdoses`テーブルの関連付け（将来の拡張用）
+
+**フロー:**
+```
+1. ユーザーがOD発生チェックボックスをON
+2. OD情報入力UIが表示
+3. 「追加」ボタンでOD記録を追加
+4. 各OD記録の情報を入力（発生日時、薬、量、単位、メモ）
+5. 日記保存時に`od_times`配列として保存
+6. `has_od`フラグが自動設定
+```
+
+#### 4.2.3 AI Summary 生成フロー
 
 **実装方式:**
 - 日記保存後にバックグラウンドで OpenAI API を呼び出し

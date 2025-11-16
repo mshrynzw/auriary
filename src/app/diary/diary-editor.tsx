@@ -12,6 +12,7 @@ import {
   type UserDailyDefaults,
 } from '@/schemas';
 import { createDiaryAction, updateDiaryAction } from '@/app/actions/diary';
+import { getMedicationsAction } from '@/app/actions/medication';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,8 +25,17 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import { Info, Plus, Minus } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import type { OdTimeFormItem } from '@/schemas/forms/diary-form';
+import type { MedicationRow } from '@/schemas';
 
 // デフォルト設定の必要なフィールドのみを抽出
 type DailyDefaults = Pick<
@@ -52,6 +62,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [medications, setMedications] = useState<MedicationRow[]>([]);
   const isEdit = !!diary;
 
   const {
@@ -76,6 +87,17 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           appetite_level: diary.appetite_level || undefined,
           sleep_desire_level: diary.sleep_desire_level || undefined,
           has_od: diary.has_od || false,
+          od_times: diary.od_times
+            ? diary.od_times.map((item) => ({
+                occurred_at: format(new Date(item.occurred_at), "yyyy-MM-dd'T'HH:mm"),
+                medication_id: item.medication_id ?? null,
+                medication_name: item.medication_name ?? null,
+                amount: item.amount ?? null,
+                amount_unit: item.amount_unit ?? null,
+                context_memo: item.context_memo ?? null,
+                source_id: item.source_id ?? null,
+              }))
+            : [],
           // 既存の時刻がある場合はそのまま使用、ない場合はデフォルト時刻を適用
           sleep_start_at: diary.sleep_start_at
             ? format(new Date(diary.sleep_start_at), "yyyy-MM-dd'T'HH:mm")
@@ -108,6 +130,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           med_adherence_level: defaults?.med_adherence_level_default,
           appetite_level: defaults?.appetite_level_default,
           sleep_desire_level: defaults?.sleep_desire_level_default,
+          od_times: [],
           // 時刻フィールドはuseEffectでクライアント側でのみ設定
           sleep_start_at: undefined,
           sleep_end_at: undefined,
@@ -125,8 +148,20 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
   const appetiteLevel = watch('appetite_level') ?? defaults?.appetite_level_default ?? 3;
   const sleepDesireLevel = watch('sleep_desire_level') ?? defaults?.sleep_desire_level_default ?? 3;
   const hasOd = watch('has_od') ?? false;
+  const odTimes = watch('od_times') ?? [];
 
   const journalDate = watch('journal_date');
+
+  // 薬マスタを取得
+  useEffect(() => {
+    const fetchMedications = async () => {
+      const result = await getMedicationsAction();
+      if (result?.medications) {
+        setMedications(result.medications);
+      }
+    };
+    fetchMedications();
+  }, []);
 
   // 新規作成時、初期値とjournal_dateが変更されたときに時刻フィールドの日付を設定
   useEffect(() => {
@@ -191,6 +226,18 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
         sleep_end_at: data.sleep_end_at ? new Date(data.sleep_end_at).toISOString() : undefined,
         bath_start_at: data.bath_start_at ? new Date(data.bath_start_at).toISOString() : undefined,
         bath_end_at: data.bath_end_at ? new Date(data.bath_end_at).toISOString() : undefined,
+        // od_timesをISO8601形式に変換
+        od_times: data.od_times
+          ? data.od_times.map((item) => ({
+              occurred_at: new Date(item.occurred_at).toISOString(),
+              medication_id: item.medication_id ?? null,
+              medication_name: item.medication_name ?? null,
+              amount: item.amount ?? null,
+              amount_unit: item.amount_unit ?? null,
+              context_memo: item.context_memo ?? null,
+              source_id: item.source_id ?? null,
+            }))
+          : undefined,
       };
 
       if (isEdit) {
@@ -502,12 +549,34 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="has_od"
                   checked={hasOd}
-                  onCheckedChange={(checked) => setValue('has_od', checked === true)}
+                  onCheckedChange={(checked) => {
+                    const isChecked = checked === true;
+                    setValue('has_od', isChecked);
+                    // OD発生をONにしたとき、od_timesが空なら初期エントリを追加
+                    if (isChecked && odTimes.length === 0) {
+                      const currentDate = journalDate || format(new Date(), 'yyyy-MM-dd');
+                      setValue('od_times', [
+                        {
+                          occurred_at: `${currentDate}T00:00`,
+                          medication_id: null,
+                          medication_name: null,
+                          amount: null,
+                          amount_unit: null,
+                          context_memo: null,
+                          source_id: null,
+                        },
+                      ]);
+                    }
+                    // OD発生をOFFにしたとき、od_timesをクリア
+                    if (!isChecked) {
+                      setValue('od_times', []);
+                    }
+                  }}
                   disabled={isLoading}
                 />
                 <Label htmlFor="has_od" className="cursor-pointer">
@@ -524,6 +593,229 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   </Tooltip>
                 </TooltipProvider>
               </div>
+
+              {/* OD情報入力UI */}
+              {hasOd && (
+                <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold">OD記録</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentDate = journalDate || format(new Date(), 'yyyy-MM-dd');
+                        const currentOdTimes = getValues('od_times') ?? [];
+                        setValue('od_times', [
+                          ...currentOdTimes,
+                          {
+                            occurred_at: `${currentDate}T00:00`,
+                            amount: null,
+                            amount_unit: null,
+                            context_memo: null,
+                            source_id: null,
+                          },
+                        ]);
+                      }}
+                      disabled={isLoading}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      追加
+                    </Button>
+                  </div>
+
+                  {odTimes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      「追加」ボタンをクリックしてOD記録を追加してください
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {odTimes.map((_, index) => (
+                        <div key={index} className="space-y-3 border rounded-md p-4 bg-background">
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-sm font-medium">OD記録 #{index + 1}</Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const currentOdTimes = getValues('od_times') ?? [];
+                                setValue(
+                                  'od_times',
+                                  currentOdTimes.filter((_, i) => i !== index),
+                                );
+                                // 最後のエントリを削除した場合、has_odもOFFにする
+                                if (currentOdTimes.length === 1) {
+                                  setValue('has_od', false);
+                                }
+                              }}
+                              disabled={isLoading}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Minus className="h-4 w-4 mr-1" />
+                              削除
+                            </Button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`od_occurred_at_${index}`}>
+                                  発生日時 <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                  id={`od_occurred_at_${index}`}
+                                  type="datetime-local"
+                                  value={odTimes[index]?.occurred_at || ''}
+                                  onChange={(e) => {
+                                    const currentOdTimes = [...(getValues('od_times') ?? [])];
+                                    currentOdTimes[index] = {
+                                      ...currentOdTimes[index],
+                                      occurred_at: e.target.value,
+                                    };
+                                    setValue('od_times', currentOdTimes);
+                                  }}
+                                  disabled={isLoading}
+                                  required
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor={`od_medication_${index}`}>薬</Label>
+                                <Select
+                                  value={
+                                    odTimes[index]?.medication_id
+                                      ? String(odTimes[index].medication_id)
+                                      : 'custom'
+                                  }
+                                  onValueChange={(value) => {
+                                    const currentOdTimes = [...(getValues('od_times') ?? [])];
+                                    if (value === 'custom') {
+                                      currentOdTimes[index] = {
+                                        ...currentOdTimes[index],
+                                        medication_id: null,
+                                        medication_name:
+                                          currentOdTimes[index]?.medication_name || '',
+                                      };
+                                    } else {
+                                      const medication = medications.find(
+                                        (m) => m.id === Number(value),
+                                      );
+                                      currentOdTimes[index] = {
+                                        ...currentOdTimes[index],
+                                        medication_id: medication ? medication.id : null,
+                                        medication_name: medication ? medication.name : null,
+                                      };
+                                    }
+                                    setValue('od_times', currentOdTimes);
+                                  }}
+                                  disabled={isLoading}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="薬を選択" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="custom">自由入力</SelectItem>
+                                    {medications.map((medication) => (
+                                      <SelectItem key={medication.id} value={String(medication.id)}>
+                                        {medication.name}
+                                        {medication.generic_name && (
+                                          <span className="text-muted-foreground ml-2">
+                                            ({medication.generic_name})
+                                          </span>
+                                        )}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {(!odTimes[index]?.medication_id ||
+                                  odTimes[index]?.medication_id === null) && (
+                                  <Input
+                                    id={`od_medication_name_${index}`}
+                                    type="text"
+                                    placeholder="薬名を入力（例: ロラタジン）"
+                                    value={odTimes[index]?.medication_name ?? ''}
+                                    onChange={(e) => {
+                                      const currentOdTimes = [...(getValues('od_times') ?? [])];
+                                      currentOdTimes[index] = {
+                                        ...currentOdTimes[index],
+                                        medication_name: e.target.value || null,
+                                      };
+                                      setValue('od_times', currentOdTimes);
+                                    }}
+                                    disabled={isLoading}
+                                  />
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor={`od_amount_${index}`}>量</Label>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      id={`od_amount_${index}`}
+                                      type="number"
+                                      step="0.1"
+                                      placeholder="例: 10"
+                                      value={odTimes[index]?.amount ?? ''}
+                                      onChange={(e) => {
+                                        const currentOdTimes = [...(getValues('od_times') ?? [])];
+                                        currentOdTimes[index] = {
+                                          ...currentOdTimes[index],
+                                          amount: e.target.value
+                                            ? parseFloat(e.target.value)
+                                            : null,
+                                        };
+                                        setValue('od_times', currentOdTimes);
+                                      }}
+                                      disabled={isLoading}
+                                    />
+                                    <Input
+                                      id={`od_amount_unit_${index}`}
+                                      type="text"
+                                      placeholder="例: 錠、mg"
+                                      value={odTimes[index]?.amount_unit ?? ''}
+                                      onChange={(e) => {
+                                        const currentOdTimes = [...(getValues('od_times') ?? [])];
+                                        currentOdTimes[index] = {
+                                          ...currentOdTimes[index],
+                                          amount_unit: e.target.value || null,
+                                        };
+                                        setValue('od_times', currentOdTimes);
+                                      }}
+                                      disabled={isLoading}
+                                      className="w-24"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`od_context_memo_${index}`}>状況メモ</Label>
+                            <Textarea
+                              id={`od_context_memo_${index}`}
+                              placeholder="きっかけや状況などを記録..."
+                              rows={2}
+                              value={odTimes[index]?.context_memo ?? ''}
+                              onChange={(e) => {
+                                const currentOdTimes = [...(getValues('od_times') ?? [])];
+                                currentOdTimes[index] = {
+                                  ...currentOdTimes[index],
+                                  context_memo: e.target.value || null,
+                                };
+                                setValue('od_times', currentOdTimes);
+                              }}
+                              disabled={isLoading}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

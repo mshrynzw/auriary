@@ -121,6 +121,31 @@
   }
 }
 
+/* ネオンライトアニメーション（呼吸するような演出） */
+@keyframes dimlight {
+  0%,
+  100% {
+    color: rgba(255, 255, 255, 0.4);
+    text-shadow:
+      0 0 5px rgba(3, 188, 244, 0.3),
+      0 0 10px rgba(3, 188, 244, 0.2),
+      0 0 15px rgba(3, 188, 244, 0.1);
+    opacity: 0.6;
+  }
+  50% {
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow:
+      0 0 10px rgba(3, 188, 244, 0.6),
+      0 0 20px rgba(3, 188, 244, 0.5),
+      0 0 30px rgba(3, 188, 244, 0.4),
+      0 0 40px rgba(3, 188, 244, 0.2);
+    opacity: 1;
+  }
+}
+.animate-dimlight {
+  animation: dimlight 12s ease-in-out infinite;
+}
+
 /* ロゴとフォント */
 .aurawork-logo {
   font-family: 'Modern Antiqua', serif;

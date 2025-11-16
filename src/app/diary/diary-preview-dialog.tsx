@@ -173,7 +173,7 @@ export function DiaryPreviewDialog({ diary, open, onOpenChange }: DiaryPreviewDi
           {/* OD発生フラグ */}
           {diary.has_od !== null && (
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg">OD発生</h3>
+              <h3 className="font-bold text-lg">OD発生</h3>
               <div className="flex items-center gap-2">
                 {diary.has_od ? (
                   <>

@@ -105,6 +105,7 @@ erDiagram
 		SMALLINT sleep_desire_level  "NULL [1-5]"  
 		TEXT note  "NULL"  
 		BOOLEAN has_od  "NULL"  
+		JSONB od_times  "NULL"  
 		BIGINT source_id  "NULL"  
 		TIMESTAMPTZ created_at  "NOT NULL"  
 		TIMESTAMPTZ updated_at  "NOT NULL"  
@@ -130,15 +131,25 @@ erDiagram
 		UUID deleted_by  "NULL"  
 	}
 
+	r_diary_overdoses {
+		BIGINT id PK "NOT NULL"  
+		BIGINT diary_id FK "NOT NULL"  
+		BIGINT overdose_id FK "NOT NULL"  
+		BIGINT source_id  "NULL"  
+		TIMESTAMPTZ created_at  "NOT NULL"  
+		TIMESTAMPTZ updated_at  "NOT NULL"  
+		TIMESTAMPTZ deleted_at  "NULL"  
+		UUID created_by  "NOT NULL"  
+		UUID updated_by  "NOT NULL"  
+		UUID deleted_by  "NULL"  
+	}
+
 	t_overdoses {
 		BIGINT id PK "NOT NULL"  
 		BIGINT user_id FK "NOT NULL"  
 		TIMESTAMPTZ occurred_at  "NOT NULL"  
 		BIGINT medication_id FK "NULL"  
 		TEXT medication_name  "NULL"  
-		NUMERIC amount  "NULL"  
-		TEXT amount_unit  "NULL"  
-		TEXT context_note  "NULL"  
 		BIGINT source_id  "NULL"  
 		TIMESTAMPTZ created_at  "NOT NULL"  
 		TIMESTAMPTZ updated_at  "NOT NULL"  
@@ -173,12 +184,15 @@ erDiagram
 	m_medications||--o{r_user_medications:"medication_id"
 	r_user_medications||--o{t_medication_intakes:"user_medication_id"
 	t_diaries||--o{t_diary_attachments:"diary_id"
+	t_diaries||--o{r_diary_overdoses:"diary_id"
+	t_overdoses||--o{r_diary_overdoses:"overdose_id"
 
 	style m_users stroke:#D50000,fill:#FFFFFF
 	style m_user_daily_defaults fill:#FFFFFF,stroke:#D50000
 	style m_medications fill:#FFFFFF,stroke:#D50000
 	style r_user_medications fill:#FFFFFF,stroke:#AA00FF
 	style r_user_ext_accounts fill:#FFFFFF,stroke:#2962FF
+	style r_diary_overdoses fill:#FFFFFF,stroke:#AA00FF
 	style t_diaries fill:#FFFFFF,stroke:#2962FF
 	style t_diary_attachments fill:#FFFFFF,stroke:#2962FF
 	style t_overdoses fill:#FFFFFF,stroke:#2962FF

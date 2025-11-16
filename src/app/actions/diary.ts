@@ -26,6 +26,9 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
     };
   }
 
+  // od_timesが存在する場合、has_odを自動設定
+  const hasOd = validated.data.has_od || (validated.data.od_times && validated.data.od_times.length > 0);
+
   // 日記を作成
   const { data, error } = await supabase
     .from('t_diaries')
@@ -40,7 +43,8 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       med_adherence_level: validated.data.med_adherence_level,
       appetite_level: validated.data.appetite_level,
       sleep_desire_level: validated.data.sleep_desire_level,
-      has_od: validated.data.has_od || false,
+      has_od: hasOd,
+      od_times: validated.data.od_times && validated.data.od_times.length > 0 ? validated.data.od_times : null,
       sleep_start_at: validated.data.sleep_start_at,
       sleep_end_at: validated.data.sleep_end_at,
       bath_start_at: validated.data.bath_start_at,
@@ -108,11 +112,24 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
     };
   }
 
+  // od_timesが存在する場合、has_odを自動設定
+  const updateData: any = { ...validated.data };
+  if (updateData.od_times !== undefined) {
+    updateData.has_od = updateData.od_times && updateData.od_times.length > 0;
+    // od_timesが空の場合はnullに設定
+    if (!updateData.od_times || updateData.od_times.length === 0) {
+      updateData.od_times = null;
+    }
+  } else if (updateData.has_od !== undefined && !updateData.has_od) {
+    // has_odがfalseに設定された場合、od_timesもクリア
+    updateData.od_times = null;
+  }
+
   // 日記を更新
   const { data, error } = await supabase
     .from('t_diaries')
     .update({
-      ...validated.data,
+      ...updateData,
       updated_by: user.id,
     })
     .eq('id', id)
