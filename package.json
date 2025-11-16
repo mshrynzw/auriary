@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
-		"build:cloudflare": "opennextjs-cloudflare build",
+		"build:cloudflare": "opennextjs-cloudflare build && node scripts/resolve-symlinks.js",
 		"start": "next start",
 		"lint": "next lint",
 		"format": "prettier \"src/**/*.{ts,tsx,js,jsx,css,md}\" --write",
