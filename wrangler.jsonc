@@ -12,10 +12,6 @@
 		"global_fetch_strictly_public"
 	],
 	"pages_build_output_dir": ".open-next",
-	"assets": {
-		"binding": "STATIC_ASSETS",
-		"directory": ".open-next/assets"
-	},
 	"observability": {
 		"enabled": true
 	}
