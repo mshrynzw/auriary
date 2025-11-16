@@ -493,9 +493,37 @@ OpenNext.js Cloudflareが静的ファイルを正しく配信していない可�
 - Cloudflare Pagesが静的ファイルを正しく認識していない
 - `_worker.js`が静的ファイルのリクエストを正しく処理していない
 
+**追加の確認事項**:
+
+8. **ビルドログの詳細確認**
+   - ビルドログで「✨ Success! Uploaded XXX files」が表示されているか確認
+   - アップロードされたファイル数が0でないことを確認
+   - ビルドログで「Bundling static assets...」が表示されているか確認
+
+9. **Cloudflare Pagesのデプロイメント詳細確認**
+   - Cloudflare Dashboard → Deployments → 最新のデプロイメント
+   - 「**Functions**」タブで`_worker.js`が正しくアップロードされているか確認
+   - 「**Assets uploaded**」タブで静的ファイルの一覧を確認
+   - 静的ファイルのパスが`/_next/static/...`の形式になっているか確認
+
+10. **OpenNext.js Cloudflareのバージョン確認と更新**
+    - ビルドログで`@opennextjs/cloudflare version: 1.12.0`が表示されていることを確認
+    - 最新バージョンに更新してみる：
+      ```bash
+      pnpm update @opennextjs/cloudflare
+      ```
+    - 更新後、再度ビルドとデプロイを実行
+
+11. **静的ファイルのパス問題の可能性**
+    - OpenNext.js Cloudflareは、静的ファイルを`.open-next/assets`ディレクトリに配置します
+    - `_worker.js`が`/_next/static/...`パスでリクエストされた静的ファイルを`.open-next/assets`から配信する必要があります
+    - もし`_worker.js`が静的ファイルを正しく配信できていない場合、OpenNext.js Cloudflareのバグの可能性があります
+
 **注意**: 
 - 環境変数の問題が解決された後も静的ファイルの404エラーが続く場合は、上記の手順を確認してください
 - OpenNext.js Cloudflareは静的ファイルを自動的に配信しますが、設定が正しくない場合、404エラーが発生する可能性があります
+- ビルドログで「✨ Success! Uploaded XXX files」が表示されているにもかかわらず404エラーが発生する場合、`_worker.js`が静的ファイルを正しく配信できていない可能性が高いです
+- この場合、OpenNext.js Cloudflareのバージョンを更新するか、GitHubのIssuesで既知の問題がないか確認してください
 
 ---
 
