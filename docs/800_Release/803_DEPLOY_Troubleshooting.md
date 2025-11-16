@@ -1,0 +1,241 @@
+# トラブルシューティング
+
+このドキュメントでは、Cloudflare Pagesへのデプロイ時に発生する可能性のある問題とその解決方法を説明します。
+
+---
+
+## Workers & Pagesが見つからない場合
+
+**問題**: Cloudflare Dashboardで「Workers & Pages」が見つからない
+
+**解決方法**:
+
+### 方法1: Compute & AIセクションからアクセス
+
+1. 左サイドバーの「**Compute & AI**」セクションを展開
+2. 「**Workers & Pages**」をクリック
+
+### 方法2: 直接URLでアクセス（推奨）
+
+以下のURLに直接アクセスしてください：
+
+- [Cloudflare Pages](https://dash.cloudflare.com/?to=/:account/pages)
+
+このURLを使用すると、直接Cloudflare Pagesのページに移動できます。
+
+### 方法3: 検索機能を使用
+
+1. Cloudflare Dashboardの上部にある検索バーを使用
+2. 「Pages」または「Workers & Pages」と入力
+3. 検索結果から選択
+
+---
+
+## Create applicationボタンが見つからない場合
+
+**問題**: 「Create application」ボタンが表示されない
+
+**解決方法**:
+
+### 重要なポイント
+
+Cloudflare Pagesには「Create application」というボタンはありません。代わりに、以下のオプションが表示されます：
+
+1. 「**Import an existing Git repository**」- GitHubからインポート（こちらを使用）
+2. 「**Drag and drop your files**」- ファイルを直接アップロード
+
+### 手順
+
+1. [Cloudflare Pages](https://dash.cloudflare.com/?to=/:account/pages) にアクセス
+2. ページ上部に「**Workers**」と「**Pages**」の2つのタブがあることを確認
+3. 「**Pages**」タブをクリック（「Workers」タブの隣）
+4. 「**Import an existing Git repository**」の「**Get started**」ボタンをクリック
+
+**注意**: 
+- 「Get started」ボタンは「Import an existing Git repository」の右側にあります
+- もし「Pages」タブが見つからない場合は、直接URLを使用してください：
+  - [Cloudflare Pages](https://dash.cloudflare.com/?to=/:account/pages)
+
+---
+
+## ビルドエラーが発生する場合
+
+### Node.jsバージョンの確認
+
+**問題**: Node.jsのバージョンが適切でない
+
+**解決方法**:
+- Cloudflare PagesはNode.js 18以上を推奨
+- プロジェクトルートに`.nvmrc`ファイルを作成してNode.jsバージョンを指定
+- 例: `.nvmrc`に`20`と記載
+
+### 依存関係のインストール
+
+**問題**: `pnpm install`が失敗する
+
+**解決方法**:
+1. ローカルで`pnpm install`が正常に実行されることを確認
+2. `package.json`の依存関係が正しいことを確認
+3. `pnpm-lock.yaml`が最新であることを確認
+4. ビルドコマンドに`pnpm install`が含まれていることを確認
+
+### ビルドログの確認
+
+**問題**: ビルドが失敗するが原因が不明
+
+**解決方法**:
+1. Cloudflare Dashboardの「**Deployments**」タブでビルドログを確認
+2. エラーメッセージを確認して問題を特定
+3. ローカルで同じビルドコマンドを実行して再現するか確認
+
+```bash
+# ローカルでビルドをテスト
+pnpm run build:cloudflare
+```
+
+---
+
+## 環境変数が読み込まれない場合
+
+### 変数名の確認
+
+**問題**: 環境変数がアプリケーションで読み込まれない
+
+**解決方法**:
+1. **クライアントサイドで使用する変数**
+   - `NEXT_PUBLIC_`で始まる必要がある
+   - 例: `NEXT_PUBLIC_SUPABASE_URL`
+
+2. **サーバーサイドのみで使用する変数**
+   - `NEXT_PUBLIC_`を付けない
+   - Cloudflare Pagesの環境変数として設定
+
+3. **変数名のスペルチェック**
+   - 大文字小文字を正確に一致させる
+   - アンダースコアの位置を確認
+
+### 再デプロイ
+
+**問題**: 環境変数を変更したが反映されない
+
+**解決方法**:
+- 環境変数を変更した後は、再デプロイが必要です
+- GitHub連携を使用している場合:
+  - 新しいコミットをプッシュする
+  - または、Cloudflare Dashboardで手動で再デプロイをトリガー
+
+---
+
+## Supabase接続エラー
+
+### CORS設定の確認
+
+**問題**: Supabaseへの接続がCORSエラーで失敗する
+
+**解決方法**:
+1. Supabase Dashboardで、Cloudflare PagesのURLを許可リストに追加
+2. 「**Settings**」→「**API**」→「**CORS**」で設定
+3. ワイルドカード（`*`）を使用する場合は、本番環境では推奨されません
+
+### RLS（Row Level Security）の確認
+
+**問題**: データベースへのアクセスが拒否される
+
+**解決方法**:
+1. SupabaseのRLSポリシーが正しく設定されているか確認
+2. 認証トークンが正しく送信されているか確認
+3. サーバーサイドでService Role Keyを使用する必要がある場合は、環境変数として設定（`NEXT_PUBLIC_`を付けない）
+
+---
+
+## デプロイが完了しない場合
+
+### ビルドタイムアウト
+
+**問題**: ビルドがタイムアウトする
+
+**解決方法**:
+1. ビルド時間を短縮する
+   - 不要な依存関係を削除
+   - ビルドキャッシュを活用
+2. Cloudflare Pagesの無料プランにはビルド時間の制限があります
+3. 必要に応じて有料プランへのアップグレードを検討
+
+### ネットワークエラー
+
+**問題**: デプロイ中にネットワークエラーが発生する
+
+**解決方法**:
+1. インターネット接続を確認
+2. しばらく待ってから再試行
+3. Cloudflareのステータスページを確認
+
+---
+
+## パフォーマンスの問題
+
+### 初回ロードが遅い
+
+**問題**: アプリケーションの初回ロードが遅い
+
+**解決方法**:
+1. ビルド出力を確認（`.open-next`ディレクトリ）
+2. 静的アセットが正しく生成されているか確認
+3. Cloudflareのキャッシュ設定を確認
+
+### 404エラー
+
+**問題**: 特定のページが404エラーになる
+
+**解決方法**:
+1. ルーティング設定を確認
+2. `next.config.ts`の設定を確認
+3. ビルド出力に該当ファイルが含まれているか確認
+
+---
+
+## よくあるエラーメッセージ
+
+### "Build failed: Command failed"
+
+**原因**: ビルドコマンドが失敗している
+
+**解決方法**:
+- ビルドログを確認して具体的なエラーを特定
+- ローカルで同じコマンドを実行して再現
+
+### "Environment variable not found"
+
+**原因**: 環境変数が設定されていない
+
+**解決方法**:
+- Cloudflare Dashboardで環境変数が正しく設定されているか確認
+- 変数名のスペルを確認
+
+### "Module not found"
+
+**原因**: 依存関係がインストールされていない
+
+**解決方法**:
+- `pnpm install`がビルドコマンドに含まれているか確認
+- `package.json`の依存関係を確認
+
+---
+
+## サポート
+
+問題が解決しない場合は、以下を参照してください：
+
+- [Cloudflare Pages ドキュメント](https://developers.cloudflare.com/pages/)
+- [OpenNext.js Cloudflare アダプター](https://opennext.js.org/cloudflare)
+- [Wrangler CLI ドキュメント](https://developers.cloudflare.com/workers/wrangler/)
+
+---
+
+## 関連ドキュメント
+
+- [メインデプロイ手順書](./800_DEPLOY.md)
+- [GitHub連携デプロイ](./801_DEPLOY_GitHub.md)
+- [Wrangler CLIデプロイ](./802_DEPLOY_Wrangler.md)
+- [デプロイ前チェックリスト](./804_DEPLOY_Checklist.md)
+
