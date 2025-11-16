@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: 'auriary',
   description: '日々の記録を楽に・幻想的に残せる次世代の日記アプリ',
   manifest: '/manifest.json',
-  themeColor: '#000000',
+  themeColor: '#B1B1B4',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -33,6 +33,7 @@ export const metadata: Metadata = {
       { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
+    apple: [{ url: '/apple-icon-180x180.png', sizes: '180x180', type: 'image/png' }],
   },
 };
 
@@ -46,12 +47,15 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" type="image/x-icon"></link>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <PwaScript />
         <OfflineIndicator />
         <WireframeTerrainBackground />
         <Header />
-        {children}
+        <div className="mt-[48px]">{children}</div>
         <Toaster />
         <InstallPrompt />
       </body>

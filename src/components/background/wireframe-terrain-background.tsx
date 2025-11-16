@@ -324,10 +324,13 @@ export function WireframeTerrainBackground() {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(Date.now());
+  const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // クライアント側でのみ時刻を設定（ハイドレーションミスマッチを防ぐ）
+    startTimeRef.current = Date.now();
 
     const container = containerRef.current;
     const width = container.clientWidth;
@@ -558,6 +561,7 @@ export function WireframeTerrainBackground() {
 
     // Animation loop (見本に合わせてミリ秒単位でelapsedを計算)
     const animate = () => {
+      if (!startTimeRef.current) return;
       const elapsed = Date.now() - startTimeRef.current; // ミリ秒単位
       terrainMaterial.uniforms.elapsed.value = elapsed;
       particleMaterial.uniforms.elapsed.value = elapsed;

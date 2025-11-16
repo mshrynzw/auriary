@@ -59,7 +59,9 @@ function openDB(): Promise<IDBDatabase> {
 /**
  * 下書きを保存
  */
-export async function saveDraft(draft: Omit<DiaryDraft, 'id' | 'created_at' | 'updated_at'>): Promise<number> {
+export async function saveDraft(
+  draft: Omit<DiaryDraft, 'id' | 'created_at' | 'updated_at'>,
+): Promise<number> {
   const db = await openDB();
   const transaction = db.transaction([STORE_NAME], 'readwrite');
   const store = transaction.objectStore(STORE_NAME);
@@ -193,4 +195,3 @@ export async function clearAllDrafts(): Promise<void> {
     };
   });
 }
-

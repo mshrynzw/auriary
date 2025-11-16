@@ -15,9 +15,7 @@ export default async function HomePage() {
         <Card className="w-full max-w-md border-destructive">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-destructive">設定エラー</CardTitle>
-            <CardDescription>
-              Supabaseの環境変数が正しく設定されていません。
-            </CardDescription>
+            <CardDescription>Supabaseの環境変数が正しく設定されていません。</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
@@ -63,9 +61,7 @@ export default async function HomePage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">auriary</CardTitle>
-          <CardDescription>
-            日々の記録を楽に・幻想的に残せる次世代の日記アプリ
-          </CardDescription>
+          <CardDescription>日々の記録を楽に・幻想的に残せる次世代の日記アプリ</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

@@ -23,7 +23,9 @@ export default function Error({
         <CardHeader>
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-destructive" />
-            <CardTitle className="text-2xl font-bold text-destructive">エラーが発生しました</CardTitle>
+            <CardTitle className="text-2xl font-bold text-destructive">
+              エラーが発生しました
+            </CardTitle>
           </div>
           <CardDescription>
             予期しないエラーが発生しました。しばらくしてから再度お試しください。
@@ -51,4 +53,3 @@ export default function Error({
     </main>
   );
 }
-
