@@ -60,6 +60,36 @@ Cloudflare Pagesには「Create application」というボタンはありませ�
 
 ## ビルドエラーが発生する場合
 
+### build:cloudflareスクリプトが見つからない
+
+**問題**: `ERR_PNPM_NO_SCRIPT Missing script: build:cloudflare`というエラーが発生する
+
+**解決方法**:
+
+1. **最新のコミットがプッシュされているか確認**
+   ```bash
+   git log --oneline -3
+   git show HEAD:package.json | grep build:cloudflare
+   ```
+   `build:cloudflare`スクリプトが含まれていることを確認してください。
+
+2. **Cloudflare Pagesのビルド設定を確認**
+   - Cloudflare Dashboard → プロジェクト → Settings → Builds & deployments
+   - **Build command**が`pnpm install && pnpm run build:cloudflare`になっているか確認
+   - **Production branch**が正しいブランチ（`master`または`main`）になっているか確認
+
+3. **再デプロイを実行**
+   - Cloudflare Dashboardで「**Retry deployment**」をクリック
+   - または、新しい空のコミットを作成してプッシュ：
+     ```bash
+     git commit --allow-empty -m "trigger rebuild"
+     git push
+     ```
+
+4. **ビルドコマンドを直接指定する方法（代替）**
+   - Build commandを`pnpm install && npx opennextjs-cloudflare build`に変更
+   - これにより、`package.json`のスクリプトに依存せずに直接コマンドを実行できます
+
 ### Node.jsバージョンの確認
 
 **問題**: Node.jsのバージョンが適切でない
@@ -219,6 +249,25 @@ pnpm run build:cloudflare
 **解決方法**:
 - `pnpm install`がビルドコマンドに含まれているか確認
 - `package.json`の依存関係を確認
+
+### シンボリックリンクエラー
+
+**問題**: `Failed: build output directory contains links to files that can't be accessed`
+
+**原因**: OpenNext.jsのビルド出力にシンボリックリンクが含まれており、Cloudflare Pagesがそれを処理できない
+
+**解決方法**:
+1. **自動解決（推奨）**
+   - `package.json`の`build:cloudflare`スクリプトに`resolve-symlinks.js`が含まれていることを確認
+   - ビルド後に自動的にシンボリックリンクが解決されます
+
+2. **手動確認**
+   - ビルドログで「Resolving symlinks in .open-next directory...」というメッセージが表示されることを確認
+   - エラーが続く場合は、`.open-next`ディレクトリの構造を確認
+
+3. **代替方法**
+   - ビルドコマンドを`pnpm install && pnpm run build:cloudflare`から変更しないでください
+   - `resolve-symlinks.js`スクリプトが正しく実行されるようにしてください
 
 ---
 
