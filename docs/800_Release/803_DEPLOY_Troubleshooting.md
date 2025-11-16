@@ -278,7 +278,7 @@ pnpm run build:cloudflare
 
 ### 2. Cloudflare Pagesのログを確認
 
-**方法**:
+**方法A: デプロイメントログから確認**
 
 1. Cloudflare Dashboardでプロジェクトを開く
 2. 「**Deployments**」タブを選択
@@ -286,10 +286,26 @@ pnpm run build:cloudflare
 4. 「**Functions**」タブまたは「**Logs**」タブでエラーログを確認
 5. エラーメッセージを確認して原因を特定
 
+**方法B: リアルタイムログを確認（推奨）**
+
+1. Cloudflare Dashboardでプロジェクトを開く
+2. 左サイドバーから「**Observability**」を選択
+3. 「**Real-time Logs**」または「**Logs**」をクリック
+4. サイトにアクセスしてエラーを再現
+5. リアルタイムでエラーログを確認
+
+**方法C: Wrangler CLIでログを確認**
+
+```bash
+# プロジェクトディレクトリで実行
+wrangler pages deployment tail
+```
+
 **よくあるエラーメッセージ**:
 - `Missing Supabase environment variables`: 環境変数が設定されていない
 - `Error: Failed to fetch`: Supabaseへの接続エラー
 - `TypeError: Cannot read property 'x' of undefined`: アプリケーションコードの問題
+- `ReferenceError: process is not defined`: 環境変数の読み込みエラー
 
 ### 3. Supabase接続の確認
 
