@@ -286,9 +286,22 @@ pnpm run build:cloudflare
    - または、新しいコミットをプッシュして自動デプロイをトリガー
 
 5. **環境変数の確認方法**
-   - Cloudflare Dashboard → Observability → Real-time Logs でログを確認
-   - エラーログに「Missing Supabase environment variables」が表示されていないか確認
-   - デバッグログが有効な場合、環境変数の読み込み状況が表示されます
+   - Cloudflare Dashboard → Observability → Overview → Events でログを確認
+   - 「**Live**」ボタンをクリックしてリアルタイムログを有効化
+   - サイトにアクセスしてエラーを再現
+   - ログで以下を確認：
+     - `Environment variables check:` のログ
+     - `hasUrl` と `hasKey` の値（`true`になっている必要がある）
+     - `allEnvKeys` に `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` が含まれているか
+     - `Missing Supabase environment variables` のエラーメッセージ
+
+6. **環境変数が設定されているのに読み込まれない場合**
+   - **重要**: Cloudflare Pagesでは、環境変数は実行時にWorkerに渡されます
+   - しかし、`NEXT_PUBLIC_`で始まる変数はクライアントサイドでも使用されるため、特別な処理が必要な場合があります
+   - 環境変数が「**Production**」環境に設定されていることを確認
+   - 環境変数の値に余分なスペースや改行が含まれていないことを確認
+   - 環境変数を削除して再追加してみる
+   - 再デプロイを実行する
 
 ### 2. Cloudflare Pagesのログを確認
 
@@ -304,9 +317,18 @@ pnpm run build:cloudflare
 
 1. Cloudflare Dashboardでプロジェクトを開く
 2. 左サイドバーから「**Observability**」を選択
-3. 「**Real-time Logs**」または「**Logs**」をクリック
-4. サイトにアクセスしてエラーを再現
-5. リアルタイムでエラーログを確認
+3. 「**Overview**」タブを選択（デフォルト）
+4. サブタブで「**Events**」を選択
+5. 右上の「**Live**」ボタンをクリック（リアルタイムログを有効化）
+6. 別のタブでサイト（`https://6362f759.auriary.pages.dev`）にアクセスしてエラーを再現
+7. Observabilityの画面でリアルタイムでログを確認
+8. 以下を確認：
+   - `Environment variables check:` のログが表示されているか
+   - `hasUrl` と `hasKey` の値
+   - `allEnvKeys` の内容
+   - エラーメッセージの有無
+
+**注意**: ログが表示されるまで数秒かかる場合があります。また、「Live」ボタンをクリックしないとリアルタイムログが表示されません。
 
 **方法C: Wrangler CLIでログを確認**
 
