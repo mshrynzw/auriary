@@ -558,10 +558,16 @@ Wrangler CLIのログで静的ファイルが「Ok」と表示されているに
 
 5. **Cloudflare Pagesの「Assets uploaded」タブで確認**
    - Cloudflare Dashboard → Deployments → 最新のデプロイメント → 「**Assets uploaded**」タブ
-   - 静的ファイルの一覧を確認
-   - **重要**: 静的ファイルのパスが`/_next/static/...`の形式になっているか確認
-   - 静的ファイルがアップロードされていない場合、ビルドプロセスに問題がある可能性があります
-   - 静的ファイルがアップロードされているが、パスが正しくない場合、OpenNext.js Cloudflareの設定に問題がある可能性があります
+   - **重要**: 「Assets uploaded」タブが表示されない場合、Cloudflare Pagesが静的ファイルを認識していない可能性があります
+   - この場合、OpenNext.js Cloudflareが静的ファイルを`.open-next/assets`ディレクトリに配置しているが、Cloudflare Pagesがそれを認識していない可能性があります
+   - **確認方法**:
+     - 「**Functions**」タブで`_worker.js`がアップロードされているか確認
+     - ビルドログで「✨ Success! Uploaded XXX files」が表示されているか確認
+     - Wrangler CLIログで静的ファイルが「Ok」と表示されているか確認
+   - **解決方法**:
+     - OpenNext.js Cloudflareは、静的ファイルを`.open-next/assets`ディレクトリに配置し、`_worker.js`がそれらを配信します
+     - 「Assets uploaded」タブが表示されなくても、`_worker.js`が静的ファイルを正しく配信していれば問題ありません
+     - しかし、ブラウザで404エラーが発生している場合、`_worker.js`が静的ファイルを正しく配信できていない可能性があります
 
 6. **Networkタブで404エラーの詳細確認**
    - デベロッパーツール → Networkタブで、404エラーが発生しているファイルをクリック
