@@ -249,6 +249,83 @@ pnpm run build:cloudflare
 
 ---
 
+## Internal Server Error（500エラー）
+
+**問題**: サイトが「Internal Server Error」を表示する
+
+**原因**: サーバー側でエラーが発生している。主な原因は以下の通りです：
+
+### 1. 環境変数が設定されていない（最も一般的）
+
+**症状**: ビルドは成功するが、サイトにアクセスすると「Internal Server Error」が表示される
+
+**解決方法**:
+
+1. **Cloudflare Pagesで環境変数を設定**
+   - Settings → Environment variables
+   - 以下の環境変数を追加：
+     - `NEXT_PUBLIC_SUPABASE_URL`: あなたのSupabaseプロジェクトURL
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: あなたのSupabase Anon Key
+
+2. **環境変数の確認**
+   - 変数名が正確であることを確認（`NEXT_PUBLIC_`で始まる必要がある）
+   - 値が正しく設定されていることを確認（スペースや改行が含まれていないか）
+
+3. **再デプロイ**
+   - 環境変数を設定した後は、必ず再デプロイが必要です
+   - Cloudflare Dashboardで「Retry deployment」をクリック
+   - または、新しいコミットをプッシュして自動デプロイをトリガー
+
+### 2. Cloudflare Pagesのログを確認
+
+**方法**:
+
+1. Cloudflare Dashboardでプロジェクトを開く
+2. 「**Deployments**」タブを選択
+3. 最新のデプロイメントをクリック
+4. 「**Functions**」タブまたは「**Logs**」タブでエラーログを確認
+5. エラーメッセージを確認して原因を特定
+
+**よくあるエラーメッセージ**:
+- `Missing Supabase environment variables`: 環境変数が設定されていない
+- `Error: Failed to fetch`: Supabaseへの接続エラー
+- `TypeError: Cannot read property 'x' of undefined`: アプリケーションコードの問題
+
+### 3. Supabase接続の確認
+
+**確認項目**:
+
+1. **Supabase URLとKeyが正しいか**
+   - Supabase Dashboard → Settings → API で確認
+   - URLは `https://xxxxx.supabase.co` の形式
+   - Anon Keyは長い文字列
+
+2. **CORS設定**
+   - Supabase Dashboard → Settings → API → CORS
+   - Cloudflare PagesのURL（`*.pages.dev`）が許可されているか確認
+   - または、`*`（すべてのオリジン）を許可
+
+3. **RLS（Row Level Security）設定**
+   - データベーステーブルのRLSが有効になっている場合、適切なポリシーが設定されているか確認
+
+### 4. アプリケーションコードの問題
+
+**確認項目**:
+
+1. **エラーハンドリング**
+   - サーバーコンポーネントでエラーが適切に処理されているか
+   - `try-catch`ブロックが適切に使用されているか
+
+2. **非同期処理**
+   - `await`が適切に使用されているか
+   - Promiseのエラーが適切に処理されているか
+
+3. **型エラー**
+   - TypeScriptの型エラーがないか確認
+   - `pnpm run types`を実行して確認
+
+---
+
 ## よくあるエラーメッセージ
 
 ### "Build failed: Command failed"
