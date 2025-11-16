@@ -48,17 +48,22 @@ export async function getAuth() {
       error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError) {
+    // Auth session missing! は未認証の正常な状態なので、エラーとして扱わない
+    // ただし、実際の接続エラー（CORS、ネットワークエラーなど）の場合はエラーとして扱う
+    if (authError && authError.message !== 'Auth session missing!') {
       console.error('Failed to get user from Supabase auth:', {
         message: authError.message,
         code: authError.code,
         // AuthErrorにはdetailsとhintプロパティがないため、削除
       });
+      // 実際の接続エラーの場合のみ、supabase: nullを返す
       return { user: null, userProfile: null, supabase: null };
     }
 
+    // Auth session missing! または user が null の場合は、未認証状態として扱う
+    // ただし、supabaseクライアント自体は有効なので返す
     if (!user) {
-      return { user: null, userProfile: null, supabase: null };
+      return { user: null, userProfile: null, supabase };
     }
 
     // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
