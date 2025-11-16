@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { commonColumnsSchema, userIdSchema, levelSchema, moodSchema, medicationIdSchema } from '../base';
+import {
+  commonColumnsSchema,
+  userIdSchema,
+  levelSchema,
+  moodSchema,
+  medicationIdSchema,
+} from '../base';
 
 /**
  * OD情報の個別スキーマ
@@ -54,10 +60,11 @@ export const diarySchema = diaryRowSchema.transform((data) => ({
   sleep_end_at: data.sleep_end_at ? new Date(data.sleep_end_at) : null,
   bath_start_at: data.bath_start_at ? new Date(data.bath_start_at) : null,
   bath_end_at: data.bath_end_at ? new Date(data.bath_end_at) : null,
-  od_times: data.od_times?.map((item) => ({
-    ...item,
-    occurred_at: new Date(item.occurred_at),
-  })) ?? null,
+  od_times:
+    data.od_times?.map((item) => ({
+      ...item,
+      occurred_at: new Date(item.occurred_at),
+    })) ?? null,
 }));
 
 export type Diary = z.infer<typeof diarySchema>;
