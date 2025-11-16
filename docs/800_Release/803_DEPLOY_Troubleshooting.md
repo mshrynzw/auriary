@@ -233,9 +233,14 @@ pnpm run build:cloudflare
 
 3. **ビルド出力の確認**
    - ビルドログで「Worker saved in `.open-next/worker.js`」というメッセージが表示されているか確認
-   - ビルドログで「Copied worker.js to _worker.js」というメッセージが表示されているか確認
+   - ビルドログで「Copied worker.js to _worker.js for Cloudflare Pages compatibility」というメッセージが表示されているか確認
    - `.open-next/worker.js`と`.open-next/_worker.js`ファイルが生成されているか確認
    - **重要**: Cloudflare Pagesは`_worker.js`を探すため、`resolve-symlinks.js`スクリプトが`worker.js`を`_worker.js`にコピーします
+   - **`_worker.js`がアップロードされない場合**:
+     - ビルドログで「Error: worker.js not found in .open-next directory」というエラーが表示されていないか確認
+     - このエラーが表示される場合、OpenNext.jsのビルドが失敗している可能性があります
+     - ビルドログで「Error: Failed to copy worker.js to _worker.js」というエラーが表示されていないか確認
+     - このエラーが表示される場合、ファイルのコピーに失敗しています（権限の問題など）
 
 4. **再デプロイ**
    - 設定を変更した後は、再デプロイが必要です

@@ -118,13 +118,19 @@ resolveSymlinks(openNextDir);
 const workerJs = path.join(openNextDir, 'worker.js');
 const workerJsUnderscore = path.join(openNextDir, '_worker.js');
 
-if (fs.existsSync(workerJs) && !fs.existsSync(workerJsUnderscore)) {
-  try {
-    fs.copyFileSync(workerJs, workerJsUnderscore);
-    console.log(`Copied worker.js to _worker.js for Cloudflare Pages compatibility`);
-  } catch (err) {
-    console.warn(`Warning: Failed to copy worker.js to _worker.js: ${err.message}`);
-  }
+if (!fs.existsSync(workerJs)) {
+  console.error('Error: worker.js not found in .open-next directory');
+  console.error('This usually means OpenNext.js build failed or did not complete successfully.');
+  process.exit(1);
+}
+
+// _worker.jsが既に存在する場合も上書きする（常に最新のworker.jsをコピー）
+try {
+  fs.copyFileSync(workerJs, workerJsUnderscore);
+  console.log(`Copied worker.js to _worker.js for Cloudflare Pages compatibility`);
+} catch (err) {
+  console.error(`Error: Failed to copy worker.js to _worker.js: ${err.message}`);
+  process.exit(1);
 }
 
 console.log('Done!');
