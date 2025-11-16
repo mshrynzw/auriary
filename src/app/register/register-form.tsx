@@ -63,7 +63,7 @@ export function RegisterForm() {
             <Input
               id="display_name"
               type="text"
-              placeholder="山田 太郎"
+              placeholder="m.yonezawa"
               {...register('display_name')}
               disabled={isLoading}
             />
