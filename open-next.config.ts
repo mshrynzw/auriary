@@ -1,9 +1,5 @@
-/** @type {import("open-next").OpenNextConfig} */
-const config = {
-  outputMode: 'export',
-  cloudflare: {
-    pages: true,
-  },
-};
+import { defineCloudflareConfig } from '@opennextjs/cloudflare';
 
-export default config;
+export default defineCloudflareConfig({
+  output: 'export',
+});
