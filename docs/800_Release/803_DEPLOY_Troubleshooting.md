@@ -366,17 +366,33 @@ pnpm run build:cloudflare
    wrangler pages deployment tail
    ```
 
-4. **別のタブでサイトにアクセス**
-   - ブラウザで `https://6362f759.auriary.pages.dev` にアクセス
-   - Wrangler CLIの画面でリアルタイムログが表示されます
+4. **別のタブでサイトにアクセス（重要）**
+   - ブラウザで最新のデプロイメントURLにアクセス
+   - Cloudflare Dashboard → Deployments → 最新のデプロイメントのURLを確認
+   - 例: `https://d24e7c49.auriary.pages.dev` または `https://auriary.pages.dev`
+   - **重要**: ログが表示されるには、サイトにアクセスしてリクエストを生成する必要があります
 
-5. **ログで以下を確認**:
+5. **ログが表示されない場合**:
+   - サイトにアクセスしているか確認
+   - 最新のデプロイメントIDを指定:
+     ```bash
+     wrangler pages deployment tail --deployment-id=<デプロイメントID>
+     ```
+   - デプロイメントIDは、Cloudflare Dashboard → Deployments → 最新のデプロイメントのURLから確認できます
+   - または、`wrangler pages deployment list` で一覧を確認
+
+6. **ログで以下を確認**:
    - `Environment variables check:` のログ
    - `hasUrl` と `hasKey` の値
    - `allEnvKeys` の内容
-   - エラーメッセージ
+   - `Supabase connection test: OK` またはエラーメッセージ
+   - `Failed to get user from Supabase auth:` のエラー
+   - `Failed to fetch user profile:` のエラー
 
-**注意**: Wrangler CLIは最も確実にログを確認できる方法です。Observabilityでログが表示されない場合、この方法を試してください。
+**注意**: 
+- Wrangler CLIは最も確実にログを確認できる方法です
+- ログが表示されない場合は、サイトにアクセスしてリクエストを生成してください
+- ログはリアルタイムで表示されるため、サイトにアクセスした直後に表示されます
 
 **よくあるエラーメッセージ**:
 - `Missing Supabase environment variables`: 環境変数が設定されていない
