@@ -42,11 +42,11 @@ export async function requireAuth() {
  */
 export async function getAuth() {
   try {
-    const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser();
 
     // Auth session missing! は未認証の正常な状態なので、エラーとして扱わない
     // ただし、実際の接続エラー（CORS、ネットワークエラーなど）の場合はエラーとして扱う
@@ -62,21 +62,21 @@ export async function getAuth() {
 
     // Auth session missing! または user が null の場合は、未認証状態として扱う
     // ただし、supabaseクライアント自体は有効なので返す
-    if (!user) {
-      return { user: null, userProfile: null, supabase };
-    }
+  if (!user) {
+    return { user: null, userProfile: null, supabase };
+  }
 
-    // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
-    const { data: userProfile, error } = await supabase
-      .from('m_users')
-      .select('id, display_name, email')
-      .eq('auth_user_id', user.id)
-      .eq('is_active', true)
-      .is('deleted_at', null)
-      .single();
+  // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
+  const { data: userProfile, error } = await supabase
+    .from('m_users')
+    .select('id, display_name, email')
+    .eq('auth_user_id', user.id)
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .single();
 
-    // エラーが発生した場合（テーブルが存在しない、RLSポリシーの問題など）はnullを返す
-    if (error) {
+  // エラーが発生した場合（テーブルが存在しない、RLSポリシーの問題など）はnullを返す
+  if (error) {
       console.warn('Failed to fetch user profile:', {
         message: error.message,
         code: error.code,
@@ -87,10 +87,10 @@ export async function getAuth() {
         // テーブルが存在しない可能性を確認
         isTableNotFound: error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist'),
       });
-      return { user, userProfile: null, supabase };
-    }
+    return { user, userProfile: null, supabase };
+  }
 
-    return { user, userProfile, supabase };
+  return { user, userProfile, supabase };
   } catch (error) {
     // 環境変数が設定されていない場合など、Supabaseクライアントの作成に失敗した場合
     console.error('Failed to create Supabase client in getAuth():', {

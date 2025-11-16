@@ -47,26 +47,26 @@ export async function createSupabaseServerClient() {
 
   try {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Cookie設定エラーは無視（Middlewareなどで既に設定されている場合）
-          }
-        },
-        remove(name: string, options: any) {
-          try {
-            cookieStore.set({ name, value: '', ...options });
-          } catch (error) {
-            // Cookie削除エラーは無視
-          }
-        },
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
       },
-    });
+      set(name: string, value: string, options: any) {
+        try {
+          cookieStore.set({ name, value, ...options });
+        } catch (error) {
+          // Cookie設定エラーは無視（Middlewareなどで既に設定されている場合）
+        }
+      },
+      remove(name: string, options: any) {
+        try {
+          cookieStore.set({ name, value: '', ...options });
+        } catch (error) {
+          // Cookie削除エラーは無視
+        }
+      },
+    },
+  });
 
     // Supabaseクライアントの作成後に接続テストを実行（認証APIのみ）
     // エラーが発生した場合、ログに出力して原因を特定
