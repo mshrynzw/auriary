@@ -52,8 +52,7 @@ export async function getAuth() {
       console.error('Failed to get user from Supabase auth:', {
         message: authError.message,
         code: authError.code,
-        details: authError.details,
-        hint: authError.hint,
+        // AuthErrorにはdetailsとhintプロパティがないため、削除
       });
       return { user: null, userProfile: null, supabase: null };
     }
