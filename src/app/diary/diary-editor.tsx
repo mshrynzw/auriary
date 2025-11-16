@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/select';
 import type { OdTimeFormItem } from '@/schemas/forms/diary-form';
 import type { MedicationRow } from '@/schemas';
+import { medicationIdSchema } from '@/schemas';
 
 // デフォルト設定の必要なフィールドのみを抽出
 type DailyDefaults = Pick<
@@ -703,7 +704,9 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                                       );
                                       currentOdTimes[index] = {
                                         ...currentOdTimes[index],
-                                        medication_id: medication ? medication.id : null,
+                                        medication_id: medication
+                                          ? medicationIdSchema.parse(medication.id)
+                                          : null,
                                         medication_name: medication ? medication.name : null,
                                       };
                                     }
