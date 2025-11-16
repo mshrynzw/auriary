@@ -1,8 +1,4 @@
-# <type>(<scope>): <subject>
-#
-# <body>
-#
-# <footer>
+<type>(<scope>): <subject>
 
 # Types:
 # feat:     A new feature
