@@ -27,7 +27,8 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
   }
 
   // od_timesが存在する場合、has_odを自動設定
-  const hasOd = validated.data.has_od || (validated.data.od_times && validated.data.od_times.length > 0);
+  const hasOd =
+    validated.data.has_od || (validated.data.od_times && validated.data.od_times.length > 0);
 
   // 日記を作成
   const { data, error } = await supabase
@@ -44,7 +45,10 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       appetite_level: validated.data.appetite_level,
       sleep_desire_level: validated.data.sleep_desire_level,
       has_od: hasOd,
-      od_times: validated.data.od_times && validated.data.od_times.length > 0 ? validated.data.od_times : null,
+      od_times:
+        validated.data.od_times && validated.data.od_times.length > 0
+          ? validated.data.od_times
+          : null,
       sleep_start_at: validated.data.sleep_start_at,
       sleep_end_at: validated.data.sleep_end_at,
       bath_start_at: validated.data.bath_start_at,

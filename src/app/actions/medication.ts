@@ -25,4 +25,3 @@ export async function getMedicationsAction() {
 
   return { medications: data || [] };
 }
-
