@@ -76,8 +76,7 @@ export async function createSupabaseServerClient() {
         console.error('Supabase auth connection test failed:', {
           message: authTestError.message,
           code: authTestError.code,
-          details: authTestError.details,
-          hint: authTestError.hint,
+          // AuthErrorにはdetailsとhintプロパティがないため、削除
         });
       } else {
         console.log('Supabase connection test: OK (auth endpoint accessible)');
