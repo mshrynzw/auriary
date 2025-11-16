@@ -5,7 +5,33 @@ import Link from 'next/link';
 import { LogIn, UserPlus, BookOpen } from 'lucide-react';
 
 export default async function HomePage() {
-  const { user, userProfile } = await getAuth();
+  const authResult = await getAuth();
+  const { user, userProfile } = authResult;
+
+  // 環境変数が設定されていない場合のエラーメッセージ
+  if (!authResult.supabase) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-destructive">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-destructive">設定エラー</CardTitle>
+            <CardDescription>
+              Supabaseの環境変数が正しく設定されていません。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Cloudflare Pagesの設定で、以下の環境変数が設定されているか確認してください：
+            </p>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li>• NEXT_PUBLIC_SUPABASE_URL</li>
+              <li>• NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+            </ul>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   if (user) {
     return (

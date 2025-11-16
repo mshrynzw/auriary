@@ -41,29 +41,35 @@ export async function requireAuth() {
  * 認証状態を取得（リダイレクトしない）
  */
 export async function getAuth() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { user: null, userProfile: null, supabase };
+    if (!user) {
+      return { user: null, userProfile: null, supabase: null };
+    }
+
+    // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
+    const { data: userProfile, error } = await supabase
+      .from('m_users')
+      .select('id, display_name, email')
+      .eq('auth_user_id', user.id)
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .single();
+
+    // エラーが発生した場合（テーブルが存在しない、RLSポリシーの問題など）はnullを返す
+    if (error) {
+      console.warn('Failed to fetch user profile:', error.message);
+      return { user, userProfile: null, supabase };
+    }
+
+    return { user, userProfile, supabase };
+  } catch (error) {
+    // 環境変数が設定されていない場合など、Supabaseクライアントの作成に失敗した場合
+    console.error('Failed to create Supabase client:', error);
+    return { user: null, userProfile: null, supabase: null };
   }
-
-  // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
-  const { data: userProfile, error } = await supabase
-    .from('m_users')
-    .select('id, display_name, email')
-    .eq('auth_user_id', user.id)
-    .eq('is_active', true)
-    .is('deleted_at', null)
-    .single();
-
-  // エラーが発生した場合（テーブルが存在しない、RLSポリシーの問題など）はnullを返す
-  if (error) {
-    console.warn('Failed to fetch user profile:', error.message);
-    return { user, userProfile: null, supabase };
-  }
-
-  return { user, userProfile, supabase };
 }
