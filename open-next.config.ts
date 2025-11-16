@@ -1,6 +1,5 @@
-import { defineCloudflareConfig } from '@opennextjs/cloudflare';
+import { defineCloudflareConfig } from '@opennextjs/cloudflare/config';
 
 export default defineCloudflareConfig({
-  // Cloudflare固有の設定をここに追加できます
-  // 例: incrementalCache, tagCache, queue など
+  // 必要に応じて設定追加可能
 });

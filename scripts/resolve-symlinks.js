@@ -1,8 +1,16 @@
 #!/usr/bin/env node
 
 /**
+ * ⚠️ 注意: このスクリプトは Cloudflare Workers 環境では使用しません
+ * 
  * OpenNext.jsのビルド出力内のシンボリックリンクを解決するスクリプト
  * Cloudflare Pagesはシンボリックリンクをサポートしていないため、実際のファイルにコピーする
+ * 
+ * Cloudflare Workers 環境では、OpenNext v2 が生成する .open-next/worker.js と
+ * .open-next/assets を直接使用するため、このスクリプトは不要です。
+ * このスクリプトを実行すると、OpenNext v2 の生成物を破壊する可能性があります。
+ * 
+ * 現在のプロジェクトは Cloudflare Workers 構成のため、このスクリプトは使用されていません。
  */
 
 const fs = require('fs');
