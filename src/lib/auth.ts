@@ -45,7 +45,18 @@ export async function getAuth() {
     const supabase = await createSupabaseServerClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
+
+    if (authError) {
+      console.error('Failed to get user from Supabase auth:', {
+        message: authError.message,
+        code: authError.code,
+        details: authError.details,
+        hint: authError.hint,
+      });
+      return { user: null, userProfile: null, supabase: null };
+    }
 
     if (!user) {
       return { user: null, userProfile: null, supabase: null };
@@ -62,14 +73,26 @@ export async function getAuth() {
 
     // エラーが発生した場合（テーブルが存在しない、RLSポリシーの問題など）はnullを返す
     if (error) {
-      console.warn('Failed to fetch user profile:', error.message);
+      console.warn('Failed to fetch user profile:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        // RLSエラーの可能性を確認
+        isRLSError: error.code === 'PGRST301' || error.message?.includes('RLS'),
+        // テーブルが存在しない可能性を確認
+        isTableNotFound: error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist'),
+      });
       return { user, userProfile: null, supabase };
     }
 
     return { user, userProfile, supabase };
   } catch (error) {
     // 環境変数が設定されていない場合など、Supabaseクライアントの作成に失敗した場合
-    console.error('Failed to create Supabase client:', error);
+    console.error('Failed to create Supabase client in getAuth():', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return { user: null, userProfile: null, supabase: null };
   }
 }

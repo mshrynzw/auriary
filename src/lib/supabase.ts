@@ -45,25 +45,59 @@ export async function createSupabaseServerClient() {
     throw new Error(errorMessage);
   }
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // Cookie設定エラーは無視（Middlewareなどで既に設定されている場合）
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({ name, value: '', ...options });
+          } catch (error) {
+            // Cookie削除エラーは無視
+          }
+        },
       },
-      set(name: string, value: string, options: any) {
-        try {
-          cookieStore.set({ name, value, ...options });
-        } catch (error) {
-          // Cookie設定エラーは無視（Middlewareなどで既に設定されている場合）
-        }
-      },
-      remove(name: string, options: any) {
-        try {
-          cookieStore.set({ name, value: '', ...options });
-        } catch (error) {
-          // Cookie削除エラーは無視
-        }
-      },
-    },
-  });
+    });
+
+    // Supabaseクライアントの作成後に接続テストを実行（認証APIのみ）
+    // エラーが発生した場合、ログに出力して原因を特定
+    try {
+      const { error: authTestError } = await supabase.auth.getUser();
+      if (authTestError) {
+        console.error('Supabase auth connection test failed:', {
+          message: authTestError.message,
+          code: authTestError.code,
+          details: authTestError.details,
+          hint: authTestError.hint,
+        });
+      } else {
+        console.log('Supabase connection test: OK (auth endpoint accessible)');
+      }
+    } catch (testError) {
+      // 接続テストのエラーは無視（クライアント自体は返す）
+      console.warn('Supabase connection test error (non-fatal):', {
+        error: testError instanceof Error ? testError.message : String(testError),
+      });
+    }
+
+    return supabase;
+  } catch (error) {
+    // Supabaseクライアントの作成に失敗した場合
+    console.error('Failed to create Supabase client:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      supabaseUrl: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'MISSING',
+      supabaseAnonKey: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MISSING',
+    });
+    throw error;
+  }
 }
