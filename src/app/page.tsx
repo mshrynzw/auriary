@@ -64,7 +64,7 @@ export default async function HomePage() {
         <CardHeader>
           <CardTitle className="text-2xl font-bold">auriary</CardTitle>
           <CardDescription>
-            AI と連携して日々の記録を楽に・美しく残せる次世代の日記アプリ
+            日々の記録を楽に・幻想的に残せる次世代の日記アプリ
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

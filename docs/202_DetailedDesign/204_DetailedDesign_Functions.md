@@ -411,7 +411,7 @@ export async function createNotification(
 {
   "name": "auriary - AI Diary App",
   "short_name": "auriary",
-  "description": "AI と連携して日々の記録を楽に・美しく残せる日記アプリ",
+  "description": "日々の記録を楽に・幻想的に残せる日記アプリ",
   "start_url": "/",
   "display": "standalone",  // ブラウザUIを非表示にしてネイティブアプリのように起動
   "background_color": "#ffffff",  // スプラッシュスクリーンの背景色

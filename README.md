@@ -1,7 +1,7 @@
 # auriary — AI Diary App  
 **Next.js 16 + Supabase + Tailwind CSS v4 + shadcn/ui + Cloudflare**
 
-auriary（オーリアリー）は、**AI と連携して日々の記録を楽に・美しく残せる次世代の日記アプリ**です。  
+auriary（オーリアリー）は、**日々の記録を楽に・幻想的に残せる次世代の日記アプリ**です。  
 ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自動生成などを自動化します。
 
 <img width="1093" height="870" alt="image" src="https://github.com/user-attachments/assets/7dcc19da-f407-4e86-957c-d134f8ee1f96" />

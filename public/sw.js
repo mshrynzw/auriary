@@ -12,9 +12,8 @@ self.addEventListener('install', (event) => {
         '/',
         '/diary',
         '/manifest.json',
-        // アイコンは後で追加
-        // '/icon-192x192.png',
-        // '/icon-512x512.png',
+        '/icon-192x192.png',
+        '/icon-512x512.png',
       ]);
     })
   );

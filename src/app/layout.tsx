@@ -20,13 +20,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'auriary',
-  description: '日々の記録を楽に・美しく残せる次世代の日記アプリ',
+  description: '日々の記録を楽に・幻想的に残せる次世代の日記アプリ',
   manifest: '/manifest.json',
   themeColor: '#000000',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'auriary',
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
   },
 };
 
@@ -38,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon"></link>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <PwaScript />
