@@ -9,15 +9,15 @@ export async function createSupabaseServerClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // デバッグログ（本番環境では削除可能）
-  if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
-    console.log('Environment variables check:', {
-      hasUrl: !!supabaseUrl,
-      hasKey: !!supabaseAnonKey,
-      urlLength: supabaseUrl?.length || 0,
-      keyLength: supabaseAnonKey?.length || 0,
-    });
-  }
+  // デバッグログ（常に出力して環境変数の読み込み状況を確認）
+  console.log('Environment variables check:', {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseAnonKey,
+    urlLength: supabaseUrl?.length || 0,
+    keyLength: supabaseAnonKey?.length || 0,
+    nodeEnv: process.env.NODE_ENV,
+    allEnvKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE')),
+  });
 
   if (!supabaseUrl || !supabaseAnonKey) {
     const errorMessage = `Missing Supabase environment variables. URL: ${supabaseUrl ? 'OK' : 'MISSING'}, Key: ${supabaseAnonKey ? 'OK' : 'MISSING'}`;

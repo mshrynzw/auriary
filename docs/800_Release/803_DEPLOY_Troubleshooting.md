@@ -356,6 +356,47 @@ wrangler pages deployment tail
 
 ---
 
+## 静的ファイルの404エラー
+
+**問題**: Next.jsのチャンクファイル、CSS、フォントなどの静的ファイルが404エラーになる
+
+**症状**: 
+- ブラウザのコンソールに多数の404エラーが表示される
+- `/_next/static/chunks/...` や `/_next/static/media/...` などのファイルが見つからない
+- ページは表示されるが、スタイルが適用されない、またはJavaScriptが動作しない
+
+**原因**: 
+OpenNext.js Cloudflareが静的ファイルを正しく配信していない可能性があります。
+
+**解決方法**:
+
+1. **ビルド出力の確認**
+   - ビルドログで「Bundling static assets...」が表示されているか確認
+   - `.open-next/assets`ディレクトリが生成されているか確認
+
+2. **Cloudflare Pagesの設定確認**
+   - Settings → Builds & deployments
+   - **Build output directory**が`.open-next`になっているか確認
+   - `wrangler.jsonc`の`pages_build_output_dir`が`.open-next`になっているか確認
+
+3. **静的ファイルのパス確認**
+   - ブラウザの開発者ツールで、404エラーが発生しているリソースのパスを確認
+   - パスが`/_next/static/...`で始まっているか確認
+   - OpenNext.js Cloudflareは自動的に静的ファイルを配信しますが、パスが正しく設定されていない可能性があります
+
+4. **再デプロイ**
+   - 設定を変更した後は、再デプロイが必要です
+   - Cloudflare Dashboardで「Retry deployment」をクリック
+
+5. **環境変数の問題との関連**
+   - 環境変数が正しく設定されていない場合、静的ファイルの配信にも影響する可能性があります
+   - まず環境変数の問題を解決してから、静的ファイルの問題を確認してください
+
+**注意**: 
+静的ファイルの404エラーは、環境変数の問題が解決されれば解消される可能性があります。まず環境変数の設定を確認してください。
+
+---
+
 ## よくあるエラーメッセージ
 
 ### "Build failed: Command failed"
