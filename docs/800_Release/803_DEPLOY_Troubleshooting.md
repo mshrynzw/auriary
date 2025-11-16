@@ -556,6 +556,46 @@ Wrangler CLIのログで静的ファイルが「Ok」と表示されているに
      - 数分待ってから再度アクセス
      - デプロイメントが完全に完了していることを確認（Cloudflare Dashboardで「Success」と表示されているか）
 
+5. **Cloudflare Pagesの「Assets uploaded」タブで確認**
+   - Cloudflare Dashboard → Deployments → 最新のデプロイメント → 「**Assets uploaded**」タブ
+   - 静的ファイルの一覧を確認
+   - **重要**: 静的ファイルのパスが`/_next/static/...`の形式になっているか確認
+   - 静的ファイルがアップロードされていない場合、ビルドプロセスに問題がある可能性があります
+   - 静的ファイルがアップロードされているが、パスが正しくない場合、OpenNext.js Cloudflareの設定に問題がある可能性があります
+
+6. **Networkタブで404エラーの詳細確認**
+   - デベロッパーツール → Networkタブで、404エラーが発生しているファイルをクリック
+   - 「**Headers**」タブで以下を確認：
+     - **Request URL**: リクエストされたURLが正しいか（`/_next/static/...`の形式になっているか）
+     - **Response Headers**: 404エラーの場合、Cloudflare Pagesがファイルを見つけられていない
+     - **Status Code**: 404以外のエラーコードが表示されていないか
+   - 「**Preview**」タブで、エラーメッセージの内容を確認
+
+7. **OpenNext.js Cloudflareのバージョン確認と更新**
+   - 現在のバージョン: `@opennextjs/cloudflare 1.12.0`
+   - 最新バージョンに更新してみる：
+     ```bash
+     pnpm update @opennextjs/cloudflare
+     ```
+   - 更新後、再度ビルドとデプロイを実行
+   - OpenNext.js CloudflareのGitHub Issuesで既知の問題がないか確認：
+     - https://github.com/serverless-stack/open-next/issues
+
+8. **Cloudflare Pagesのキャッシュクリア**
+   - Cloudflare Dashboard → プロジェクト → Settings → Caching
+   - 「**Purge Everything**」をクリックしてキャッシュをクリア
+   - または、Cloudflare Dashboard → プロジェクト → Deployments → 最新のデプロイメント → 「**Purge cache**」をクリック
+
+9. **静的ファイルのパス不一致の可能性**
+   - ブラウザが`/_next/static/...`パスでリクエストしているが、実際のファイルが別のパスに配置されている可能性があります
+   - **確認方法**:
+     - Cloudflare Dashboard → Deployments → 最新のデプロイメント → 「**Assets uploaded**」タブ
+     - 静的ファイルのパスを確認
+     - ブラウザのNetworkタブでリクエストされたURLと比較
+   - **解決方法**:
+     - パスが一致していない場合、OpenNext.js Cloudflareの設定を確認
+     - または、OpenNext.js Cloudflareのバージョンを更新
+
 ---
 
 ## よくあるエラーメッセージ
