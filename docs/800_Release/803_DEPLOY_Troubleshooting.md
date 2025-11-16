@@ -227,12 +227,15 @@ pnpm run build:cloudflare
    - **Functions directory**が設定されていないことを確認（OpenNext.js Cloudflareは自動的にWorkerを認識します）
 
 2. **`wrangler.jsonc`の設定を確認**
-   - `main`が`.open-next/worker.js`になっているか確認
-   - `assets.directory`が`.open-next/assets`になっているか確認
+   - `pages_build_output_dir`が`.open-next`になっているか確認
+   - `main`が**設定されていない**ことを確認（Cloudflare Pagesでは`main`と`pages_build_output_dir`を同時に使用できません）
+   - `assets`セクションが**設定されていない**ことを確認（OpenNext.js Cloudflareが自動的に処理します）
 
 3. **ビルド出力の確認**
    - ビルドログで「Worker saved in `.open-next/worker.js`」というメッセージが表示されているか確認
-   - `.open-next/worker.js`ファイルが生成されているか確認
+   - ビルドログで「Copied worker.js to _worker.js」というメッセージが表示されているか確認
+   - `.open-next/worker.js`と`.open-next/_worker.js`ファイルが生成されているか確認
+   - **重要**: Cloudflare Pagesは`_worker.js`を探すため、`resolve-symlinks.js`スクリプトが`worker.js`を`_worker.js`にコピーします
 
 4. **再デプロイ**
    - 設定を変更した後は、再デプロイが必要です

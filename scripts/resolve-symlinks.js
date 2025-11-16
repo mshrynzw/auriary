@@ -112,5 +112,20 @@ if (!fs.existsSync(openNextDir)) {
 
 console.log('Resolving symlinks in .open-next directory...');
 resolveSymlinks(openNextDir);
+
+// Cloudflare Pagesは_worker.jsを探すが、OpenNext.jsはworker.jsを生成する
+// worker.jsを_worker.jsにコピーする
+const workerJs = path.join(openNextDir, 'worker.js');
+const workerJsUnderscore = path.join(openNextDir, '_worker.js');
+
+if (fs.existsSync(workerJs) && !fs.existsSync(workerJsUnderscore)) {
+  try {
+    fs.copyFileSync(workerJs, workerJsUnderscore);
+    console.log(`Copied worker.js to _worker.js for Cloudflare Pages compatibility`);
+  } catch (err) {
+    console.warn(`Warning: Failed to copy worker.js to _worker.js: ${err.message}`);
+  }
+}
+
 console.log('Done!');
 
