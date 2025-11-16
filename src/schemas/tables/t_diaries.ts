@@ -22,7 +22,7 @@ export const diaryRowSchema = commonColumnsSchema.extend({
   note: z.string().nullable(),
   has_od: z.boolean().nullable(),
   ai_summary: z.string().nullable(),
-  ai_topics: z.record(z.any()).nullable(), // JSONB
+  ai_topics: z.record(z.string(), z.any()).nullable(), // JSONB
   mood: moodSchema.nullable(),
 });
 
