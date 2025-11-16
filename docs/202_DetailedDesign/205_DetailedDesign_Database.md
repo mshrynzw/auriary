@@ -149,5 +149,5 @@ Supabase の高度な機能（Edge Functions、View、RLS ポリシー詳細、�
 - [205_DetailedDesign_ER_Diagram.md](./205_DetailedDesign_ER_Diagram.md)
 - [205_DetailedDesign_Table_Definition.md](./205_DetailedDesign_Table_Definition.md)
 - [205_DetailedDesign_Supabase_Advanced.md](./205_DetailedDesign_Supabase_Advanced.md)
-- [セキュリティ設計](./208_DetailedDesign_08_Security.md)
+- [セキュリティ設計](./208_DetailedDesign_Security.md)
 

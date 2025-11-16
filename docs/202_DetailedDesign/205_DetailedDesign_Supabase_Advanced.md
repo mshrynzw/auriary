@@ -757,7 +757,7 @@ REFRESH MATERIALIZED VIEW mv_monthly_statistics;
 **関連ドキュメント:**
 - [基本設計書](./100_BasicDesign.md)
 - [データベース設計](./205_DetailedDesign_Database.md)
-- [セキュリティ設計](./208_DetailedDesign_08_Security.md)
+- [セキュリティ設計](./208_DetailedDesign_Security.md)
 - [ER図](./205_DetailedDesign_ER_Diagram.md)
 - [テーブル定義書](./205_DetailedDesign_Table_Definition.md)
 

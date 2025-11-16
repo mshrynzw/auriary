@@ -64,7 +64,7 @@ AI と連携して日々の記録を楽に・美しく残せる次世代の日�
 → [207_DetailedDesign_Components.md](../202_DetailedDesign/207_DetailedDesign_Components.md)
 
 ### 8. セキュリティ設計
-→ [208_DetailedDesign_08_Security.md](../202_DetailedDesign/208_DetailedDesign_08_Security.md)
+→ [208_DetailedDesign_Security.md](../202_DetailedDesign/208_DetailedDesign_Security.md)
 
 ### 9. ログ・監査
 → [209_DetailedDesign_Logging.md](../202_DetailedDesign/209_DetailedDesign_Logging.md)

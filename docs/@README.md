@@ -50,7 +50,7 @@
 ### 設計レビュー時
 
 - 各詳細設計書を参照して実装が設計と一致しているか確認
-- **[セキュリティ設計](./202_DetailedDesign/208_DetailedDesign_08_Security.md)** でセキュリティ要件を確認
+- **[セキュリティ設計](./202_DetailedDesign/208_DetailedDesign_Security.md)** でセキュリティ要件を確認
 - **[非機能要件](./202_DetailedDesign/210_DetailedDesign_NonFunctional.md)** でパフォーマンス要件を確認
 
 ---
@@ -132,7 +132,7 @@
   - コンポーネント階層構造
 
 #### セキュリティ設計
-- [208_DetailedDesign_08_Security.md](./202_DetailedDesign/208_DetailedDesign_08_Security.md)
+- [208_DetailedDesign_Security.md](./202_DetailedDesign/208_DetailedDesign_Security.md)
   - Supabase RLS ポリシー
   - Auth Cookie
   - XSS / CSRF 対策
@@ -424,7 +424,7 @@
 | **Supabase** | [205_DetailedDesign_Supabase_Advanced.md](./202_DetailedDesign/205_DetailedDesign_Supabase_Advanced.md) | Supabase 高度な機能 |
 | **API** | [206_DetailedDesign_API.md](./202_DetailedDesign/206_DetailedDesign_API.md) | API設計 |
 | **コンポーネント** | [207_DetailedDesign_Components.md](./202_DetailedDesign/207_DetailedDesign_Components.md) | コンポーネント設計 |
-| **セキュリティ** | [208_DetailedDesign_08_Security.md](./202_DetailedDesign/208_DetailedDesign_08_Security.md) | セキュリティ設計 |
+| **セキュリティ** | [208_DetailedDesign_Security.md](./202_DetailedDesign/208_DetailedDesign_Security.md) | セキュリティ設計 |
 | **ログ** | [209_DetailedDesign_Logging.md](./202_DetailedDesign/209_DetailedDesign_Logging.md) | ログ・監査 |
 | **非機能** | [210_DetailedDesign_NonFunctional.md](./202_DetailedDesign/210_DetailedDesign_NonFunctional.md) | 非機能要件 |
 | **コーディング規約** | [301_CodingStandards.md](./300_Cording/301_CodingStandards.md) | コーディング規約（概要） |

@@ -237,5 +237,5 @@ export async function GET() {
 **関連ドキュメント:**
 - [基本設計書](./100_BasicDesign.md)
 - [機能設計](./204_DetailedDesign_Functions.md)
-- [セキュリティ設計](./208_DetailedDesign_08_Security.md)
+- [セキュリティ設計](./208_DetailedDesign_Security.md)
 

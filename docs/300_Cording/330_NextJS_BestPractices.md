@@ -279,6 +279,6 @@ const nextConfig = {
 **関連ドキュメント:**
 - [基本設計書](../100_BasicDesign/100_BasicDesign.md)
 - [Next.js 16 実装方針（概要）](./321_NextJS_Implementation_Overview.md)
-- [セキュリティ設計](../202_DetailedDesign/208_DetailedDesign_08_Security.md)
+- [セキュリティ設計](../202_DetailedDesign/208_DetailedDesign_Security.md)
 - [非機能要件](../202_DetailedDesign/210_DetailedDesign_NonFunctional.md)
 
