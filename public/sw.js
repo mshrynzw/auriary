@@ -8,14 +8,8 @@ self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/diary',
-        '/manifest.json',
-        '/icon-192x192.png',
-        '/icon-512x512.png',
-      ]);
-    })
+      return cache.addAll(['/diary', '/manifest.json', '/icon-192x192.png', '/icon-512x512.png']);
+    }),
   );
   self.skipWaiting();
 });
@@ -28,18 +22,14 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames
           .filter((name) => {
-            return (
-              name !== CACHE_NAME &&
-              name !== STATIC_CACHE &&
-              name !== API_CACHE
-            );
+            return name !== CACHE_NAME && name !== STATIC_CACHE && name !== API_CACHE;
           })
           .map((name) => {
             console.log('Service Worker: Deleting old cache', name);
             return caches.delete(name);
-          })
+          }),
       );
-    })
+    }),
   );
   self.clients.claim();
 });
@@ -62,17 +52,20 @@ self.addEventListener('fetch', (event) => {
   ) {
     event.respondWith(
       caches.match(request).then((response) => {
-        return response || fetch(request).then((fetchResponse) => {
-          // キャッシュに保存
-          if (fetchResponse.ok) {
-            const clone = fetchResponse.clone();
-            caches.open(STATIC_CACHE).then((cache) => {
-              cache.put(request, clone);
-            });
-          }
-          return fetchResponse;
-        });
-      })
+        return (
+          response ||
+          fetch(request).then((fetchResponse) => {
+            // キャッシュに保存
+            if (fetchResponse.ok) {
+              const clone = fetchResponse.clone();
+              caches.open(STATIC_CACHE).then((cache) => {
+                cache.put(request, clone);
+              });
+            }
+            return fetchResponse;
+          })
+        );
+      }),
     );
     return;
   }
@@ -98,15 +91,12 @@ self.addEventListener('fetch', (event) => {
               return response;
             }
             // キャッシュにもない場合はエラーレスポンス
-            return new Response(
-              JSON.stringify({ error: 'オフラインです' }),
-              {
-                status: 503,
-                headers: { 'Content-Type': 'application/json' },
-              }
-            );
+            return new Response(JSON.stringify({ error: 'オフラインです' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            });
           });
-        })
+        }),
     );
     return;
   }
@@ -131,7 +121,7 @@ self.addEventListener('fetch', (event) => {
           });
 
         return cachedResponse || fetchPromise;
-      })
+      }),
     );
     return;
   }
@@ -152,4 +142,3 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   // 将来実装
 });
-

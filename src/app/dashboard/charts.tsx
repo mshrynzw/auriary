@@ -40,6 +40,7 @@ type VisibilitySettings = {
   medAdherenceLevel: boolean;
   appetiteLevel: boolean;
   sleepDesireLevel: boolean;
+  odTimes: boolean;
 };
 
 const STORAGE_KEY = 'dashboard-chart-visibility';
@@ -54,6 +55,7 @@ const DEFAULT_VISIBILITY: VisibilitySettings = {
   medAdherenceLevel: false,
   appetiteLevel: false,
   sleepDesireLevel: false,
+  odTimes: false,
 };
 
 type PeriodOption = 'all' | '1month' | '3months' | '6months' | '1year';
@@ -156,6 +158,8 @@ export function UnifiedChart({ diaries }: ChartProps) {
     .map((d) => {
       const date = new Date(d.journal_date);
       const sleepHours = calculateSleepHours(d.sleep_start_at, d.sleep_end_at);
+      // OD回数を計算（od_times配列の長さ）
+      const odTimes = d.od_times && Array.isArray(d.od_times) ? d.od_times.length : null;
 
       return {
         date,
@@ -169,6 +173,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
         medAdherenceLevel: d.med_adherence_level,
         appetiteLevel: d.appetite_level,
         sleepDesireLevel: d.sleep_desire_level,
+        odTimes,
       };
     })
     .filter(
@@ -181,7 +186,8 @@ export function UnifiedChart({ diaries }: ChartProps) {
         d.preSleepLevel !== null ||
         d.medAdherenceLevel !== null ||
         d.appetiteLevel !== null ||
-        d.sleepDesireLevel !== null,
+        d.sleepDesireLevel !== null ||
+        d.odTimes !== null,
     )
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -212,6 +218,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
     medAdherenceLevel: '#10b981', // 緑
     appetiteLevel: '#ef4444', // 赤
     sleepDesireLevel: '#06b6d4', // シアン
+    odTimes: '#dc2626', // 赤（OD回数用）
   };
 
   // ハイドレーションエラーを防ぐため、マウント後にのみレンダリング
@@ -262,14 +269,14 @@ export function UnifiedChart({ diaries }: ChartProps) {
               yAxisId="left"
               domain={[0, 10]}
               tick={{ fontSize: 12 }}
-              label={{ value: 'スコア', angle: -90, position: 'insideLeft' }}
+              label={{ value: 'スコア', angle: -90, position: 'left', offset: -7.5 }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
               domain={[0, sleepYAxisMax]}
               tick={{ fontSize: 12 }}
-              label={{ value: '睡眠時間 (時間)', angle: 90, position: 'insideRight' }}
+              label={{ value: '睡眠時間 (時間)', angle: 90, position: 'right', offset: -7.5 }}
             />
             <RechartsTooltip
               content={({ active, payload }) => {
@@ -291,6 +298,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
                           const isLevel =
                             entry.dataKey?.toString().includes('Level') ||
                             entry.dataKey?.toString() === 'sleepQuality';
+                          const isOdTimes = entry.dataKey?.toString() === 'odTimes';
                           return (
                             <div key={index} className="flex flex-col">
                               <span className="text-[0.70rem] uppercase text-muted-foreground">
@@ -301,7 +309,9 @@ export function UnifiedChart({ diaries }: ChartProps) {
                                   ? `${entry.value}/5`
                                   : entry.dataKey === 'sleepHours'
                                     ? `${entry.value}時間`
-                                    : `${entry.value}/10`}
+                                    : isOdTimes
+                                      ? `${entry.value}回`
+                                      : `${entry.value}/10`}
                               </span>
                             </div>
                           );
@@ -422,6 +432,16 @@ export function UnifiedChart({ diaries }: ChartProps) {
                 name="睡眠欲レベル"
               />
             )}
+            {/* OD回数（棒グラフ） */}
+            {visibility.odTimes && (
+              <Bar
+                yAxisId="left"
+                dataKey="odTimes"
+                fill={colors.odTimes}
+                name="OD回数"
+                radius={[4, 4, 0, 0]}
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
         {/* 表示設定コントロール */}
@@ -520,6 +540,16 @@ export function UnifiedChart({ diaries }: ChartProps) {
               />
               <Label htmlFor="sleepDesireLevel" className="text-sm cursor-pointer">
                 睡眠欲レベル
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="odTimes"
+                checked={visibility.odTimes}
+                onCheckedChange={(checked) => updateVisibility('odTimes', checked === true)}
+              />
+              <Label htmlFor="odTimes" className="text-sm cursor-pointer">
+                OD回数
               </Label>
             </div>
           </div>
