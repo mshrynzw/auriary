@@ -58,7 +58,9 @@
 - **Project name**: `auriary`（任意の名前）
 - **Production branch**: `main`（または`master`）
 - **Build command**: `pnpm install && pnpm run build:cloudflare`
-- **Build output directory**: `.open-next`
+- **Build output directory**: `.open-next`（または空欄のまま - `wrangler.jsonc`の`pages_build_output_dir`が自動的に使用されます）
+
+**注意**: `wrangler.jsonc`に`pages_build_output_dir: ".open-next"`が設定されている場合、Cloudflare Pagesは自動的にこの設定を使用します。Build output directoryを空欄にしても動作します。
 
 **重要**: Cloudflare Pagesはデフォルトで`npm`を使用しますが、このプロジェクトは`pnpm`を使用しています。以下の手順で`pnpm`を有効化する必要があります。
 

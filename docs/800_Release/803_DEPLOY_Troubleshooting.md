@@ -215,9 +215,31 @@ pnpm run build:cloudflare
 
 ### 404エラー
 
-**問題**: 特定のページが404エラーになる
+**問題**: サイト全体が404エラーになる、または特定のページが404エラーになる
 
 **解決方法**:
+
+#### サイト全体が404エラーになる場合
+
+1. **Cloudflare Pagesの設定を確認**
+   - Settings → Builds & deployments
+   - **Build output directory**が`.open-next`になっているか確認
+   - **Functions directory**が設定されていないことを確認（OpenNext.js Cloudflareは自動的にWorkerを認識します）
+
+2. **`wrangler.jsonc`の設定を確認**
+   - `main`が`.open-next/worker.js`になっているか確認
+   - `assets.directory`が`.open-next/assets`になっているか確認
+
+3. **ビルド出力の確認**
+   - ビルドログで「Worker saved in `.open-next/worker.js`」というメッセージが表示されているか確認
+   - `.open-next/worker.js`ファイルが生成されているか確認
+
+4. **再デプロイ**
+   - 設定を変更した後は、再デプロイが必要です
+   - Cloudflare Dashboardで「Retry deployment」をクリック
+
+#### 特定のページが404エラーになる場合
+
 1. ルーティング設定を確認
 2. `next.config.ts`の設定を確認
 3. ビルド出力に該当ファイルが含まれているか確認
@@ -249,6 +271,29 @@ pnpm run build:cloudflare
 **解決方法**:
 - `pnpm install`がビルドコマンドに含まれているか確認
 - `package.json`の依存関係を確認
+
+### Build output directoryが見つからない
+
+**問題**: `Build output directory not found`というエラーが発生する
+
+**解決方法**:
+
+1. **`wrangler.jsonc`の設定を確認**
+   - `pages_build_output_dir: ".open-next"`が設定されているか確認
+   - 設定されていない場合は追加してください
+
+2. **Cloudflare Pagesの設定を確認**
+   - Settings → Builds & deployments
+   - **Build output directory**が`.open-next`になっているか確認
+   - または、空欄のままにしておく（`wrangler.jsonc`の設定が自動的に使用されます）
+
+3. **ビルドが成功しているか確認**
+   - ビルドログで「OpenNext build complete.」というメッセージが表示されているか確認
+   - `.open-next`ディレクトリが生成されているか確認
+
+4. **再デプロイ**
+   - 設定を変更した後は、再デプロイが必要です
+   - Cloudflare Dashboardで「Retry deployment」をクリック
 
 ### シンボリックリンクエラー
 
