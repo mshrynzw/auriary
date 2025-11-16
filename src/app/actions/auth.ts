@@ -76,7 +76,7 @@ export async function loginAction(formData: FormData) {
   }
 
   revalidatePath('/');
-  redirect('/dashboard');
+  redirect('/');
 }
 
 /**
@@ -150,7 +150,7 @@ export async function registerAction(formData: FormData) {
   }
 
   revalidatePath('/');
-  redirect('/diary');
+  redirect('/');
 }
 
 /**

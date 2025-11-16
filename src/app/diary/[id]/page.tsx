@@ -39,10 +39,10 @@ export default async function DiaryDetailPage({ params }: PageProps) {
   const diary = result.diary;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen ">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">日記詳細</h1>
+          <h1 className="text-3xl font-bold text-white/90">日記詳細</h1>
           <div className="flex items-center gap-2">
             <TooltipProvider>
               <Tooltip>

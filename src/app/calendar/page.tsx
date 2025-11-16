@@ -29,10 +29,10 @@ export default async function CalendarPage() {
   const diaries = result.diaries || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen ">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">カレンダー</h1>
+          <h1 className="text-3xl font-bold text-white/90">カレンダー</h1>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

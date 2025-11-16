@@ -48,13 +48,10 @@ export default async function DashboardPage() {
       : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen ">
       <div className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">ダッシュボード</h1>
-          <p className="text-muted-foreground">
-            {userProfile?.display_name || 'ユーザー'}さん、おかえりなさい
-          </p>
+          <h1 className="text-3xl font-bold mb-2 text-white/90">ダッシュボード</h1>
         </div>
 
         {/* 統計情報カード */}

@@ -1,6 +1,6 @@
 import { getAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, BookOpen, Calendar, BarChart3, Settings } from 'lucide-react';
+import { LogOut, BookOpen, Calendar, BarChart3, Settings, ChartArea } from 'lucide-react';
 import Link from 'next/link';
 import { logoutAction } from '@/app/actions/auth';
 import {
@@ -30,16 +30,23 @@ export async function Header() {
       .slice(0, 2);
 
     return (
-      <header className="border-b bg-background">
+      <header className="border-b bg-background/60 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <BookOpen className="h-6 w-6" />
               <span className="text-xl font-bold">auriary</span>
             </Link>
             <nav className="hidden md:flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <ChartArea className="mr-2 h-4 w-4" />
+                  ダッシュボード
+                </Button>
+              </Link>
               <Link href="/diary">
                 <Button variant="ghost" size="sm">
+                  <BookOpen className="mr-2 h-4 w-4" />
                   日記
                 </Button>
               </Link>

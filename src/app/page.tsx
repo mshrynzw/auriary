@@ -9,7 +9,7 @@ export default async function HomePage() {
 
   if (user) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background p-4">
+      <main className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl font-bold">auriary へようこそ</CardTitle>
@@ -33,7 +33,7 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background p-4">
+    <main className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">auriary</CardTitle>
