@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export', // 静的エクスポートを有効化
   // Next.js 16のmiddleware警告を抑制（middleware.tsは引き続き有効）
   experimental: {
     // middleware.tsは引き続きサポートされているため、警告を無視
