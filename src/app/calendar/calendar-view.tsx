@@ -31,7 +31,8 @@ export function CalendarView({ diaries }: CalendarViewProps) {
   // 選択された日付の日記を取得
   const selectedDiary = selectedDate
     ? diaries.find(
-        (d) => format(new Date(d.journal_date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'),
+        (d) =>
+          format(new Date(d.journal_date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'),
       )
     : null;
 
@@ -97,4 +98,3 @@ export function CalendarView({ diaries }: CalendarViewProps) {
     </div>
   );
 }
-

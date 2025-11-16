@@ -439,12 +439,12 @@ describe('POST /api/diaries', () => {
 
 ```typescript
 // src/__tests__/integration/api/diaries.test.ts
-import { createDiarySchema, diaryResponseSchema } from '@/lib/validators/diary';
+import { createDiaryFormSchema, diaryRowSchema } from '@/schemas';
 
 describe('POST /api/diaries', () => {
-  it('レスポンスが diaryResponseSchema に準拠している', async () => {
+  it('レスポンスが diaryRowSchema に準拠している', async () => {
     const request = await createTestRequest({
-      diary_date: '2025-01-10',
+      journal_date: '2025-01-10',
       note: 'Test note',
     });
 
@@ -452,9 +452,9 @@ describe('POST /api/diaries', () => {
     const data = await response.json();
 
     // Zod スキーマで検証
-    const validated = diaryResponseSchema.parse(data);
+    const validated = diaryRowSchema.parse(data);
     expect(validated).toBeDefined();
-    expect(validated.diary).toBeDefined();
+    expect(validated.journal_date).toBeDefined();
   });
 });
 ```
@@ -768,7 +768,7 @@ Cursor が結合テストを生成する際は、以下の情報を参照して�
 
 3. **実装コード**
    - `src/app/api/**/route.ts` - API Route Handler
-   - `src/lib/validators/**` - Zod スキーマ
+   - `src/schemas/**` - Zod スキーマ
    - `src/lib/supabase.ts` - Supabase クライアント
 
 ### 13.2 自動生成時の注意点

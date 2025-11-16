@@ -1,7 +1,7 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase';
-import { loginSchema, registerSchema } from '@/lib/validators/auth';
+import { loginFormSchema, registerFormSchema } from '@/schemas';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -15,7 +15,7 @@ export async function loginAction(formData: FormData) {
   };
 
   // バリデーション
-  const validated = loginSchema.safeParse(rawData);
+  const validated = loginFormSchema.safeParse(rawData);
   if (!validated.success) {
     return {
       error: {
@@ -35,9 +35,10 @@ export async function loginAction(formData: FormData) {
     return {
       error: {
         code: 'AUTH_ERROR',
-        message: error.message === 'Invalid login credentials' 
-          ? 'メールアドレスまたはパスワードが正しくありません'
-          : error.message,
+        message:
+          error.message === 'Invalid login credentials'
+            ? 'メールアドレスまたはパスワードが正しくありません'
+            : error.message,
       },
     };
   }
@@ -60,16 +61,14 @@ export async function loginAction(formData: FormData) {
 
   if (!existingUser) {
     // 新規ユーザーを作成
-    const { error: insertError } = await supabase
-      .from('m_users')
-      .insert({
-        auth_user_id: data.user.id,
-        display_name: data.user.email?.split('@')[0] || 'ユーザー',
-        email: data.user.email,
-        is_active: true,
-        created_by: data.user.id,
-        updated_by: data.user.id,
-      });
+    const { error: insertError } = await supabase.from('m_users').insert({
+      auth_user_id: data.user.id,
+      display_name: data.user.email?.split('@')[0] || 'ユーザー',
+      email: data.user.email,
+      is_active: true,
+      created_by: data.user.id,
+      updated_by: data.user.id,
+    });
 
     if (insertError) {
       console.error('Failed to create user profile:', insertError);
@@ -91,7 +90,7 @@ export async function registerAction(formData: FormData) {
   };
 
   // バリデーション
-  const validated = registerSchema.safeParse(rawData);
+  const validated = registerFormSchema.safeParse(rawData);
   if (!validated.success) {
     return {
       error: {
@@ -102,7 +101,7 @@ export async function registerAction(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
-  
+
   // Supabase Auth でユーザー作成
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: validated.data.email,
@@ -113,9 +112,10 @@ export async function registerAction(formData: FormData) {
     return {
       error: {
         code: 'AUTH_ERROR',
-        message: authError.message === 'User already registered'
-          ? 'このメールアドレスは既に登録されています'
-          : authError.message,
+        message:
+          authError.message === 'User already registered'
+            ? 'このメールアドレスは既に登録されています'
+            : authError.message,
       },
     };
   }
@@ -130,16 +130,14 @@ export async function registerAction(formData: FormData) {
   }
 
   // m_users テーブルにユーザープロフィールを作成
-  const { error: profileError } = await supabase
-    .from('m_users')
-    .insert({
-      auth_user_id: authData.user.id,
-      display_name: validated.data.display_name,
-      email: validated.data.email,
-      is_active: true,
-      created_by: authData.user.id,
-      updated_by: authData.user.id,
-    });
+  const { error: profileError } = await supabase.from('m_users').insert({
+    auth_user_id: authData.user.id,
+    display_name: validated.data.display_name,
+    email: validated.data.email,
+    is_active: true,
+    created_by: authData.user.id,
+    updated_by: authData.user.id,
+  });
 
   if (profileError) {
     console.error('Failed to create user profile:', profileError);
@@ -161,8 +159,7 @@ export async function registerAction(formData: FormData) {
 export async function logoutAction() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  
+
   revalidatePath('/');
   redirect('/login');
 }
-

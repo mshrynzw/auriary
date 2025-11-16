@@ -32,7 +32,7 @@ pnpm test:regression
 
 ```bash
 # 特定のファイルのみテスト
-pnpm test:unit src/lib/validators/diary.test.ts
+pnpm test:unit src/__tests__/unit/schemas/diary-form.test.ts
 
 # 特定のテストスイートを実行
 pnpm test:unit --testNamePattern="日記作成"

@@ -1,17 +1,22 @@
 'use server';
 
 import { requireAuth } from '@/lib/auth';
-import { createDiarySchema, updateDiarySchema, type CreateDiaryInput, type UpdateDiaryInput } from '@/lib/validators/diary';
+import {
+  createDiaryFormSchema,
+  updateDiaryFormSchema,
+  type CreateDiaryFormInput,
+  type UpdateDiaryFormInput,
+} from '@/schemas';
 import { revalidatePath } from 'next/cache';
 
 /**
  * 日記を作成
  */
-export async function createDiaryAction(input: CreateDiaryInput) {
+export async function createDiaryAction(input: CreateDiaryFormInput) {
   const { user, userProfile, supabase } = await requireAuth();
 
   // バリデーション
-  const validated = createDiarySchema.safeParse(input);
+  const validated = createDiaryFormSchema.safeParse(input);
   if (!validated.success) {
     return {
       error: {
@@ -71,11 +76,11 @@ export async function createDiaryAction(input: CreateDiaryInput) {
 /**
  * 日記を更新
  */
-export async function updateDiaryAction(id: number, input: UpdateDiaryInput) {
+export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput) {
   const { user, userProfile, supabase } = await requireAuth();
 
   // バリデーション
-  const validated = updateDiarySchema.safeParse(input);
+  const validated = updateDiaryFormSchema.safeParse(input);
   if (!validated.success) {
     return {
       error: {
@@ -245,4 +250,3 @@ export async function getDiaryAction(id: number) {
 
   return { diary: data };
 }
-

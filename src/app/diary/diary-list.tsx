@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Calendar } from 'lucide-react';
+import { Pencil, Trash2, Calendar, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -22,25 +23,17 @@ import { deleteDiaryAction } from '@/app/actions/diary';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-type Diary = {
-  id: number;
-  journal_date: string;
-  note: string | null;
-  sleep_quality: number | null;
-  wake_level: number | null;
-  daytime_level: number | null;
-  mood: number | null;
-  created_at: string;
-  updated_at: string;
-};
+import { DiaryPreviewDialog } from './diary-preview-dialog';
+import { type DiaryRow } from '@/schemas';
 
 type DiaryListProps = {
-  diaries: Diary[];
+  diaries: DiaryRow[];
 };
 
 export function DiaryList({ diaries }: DiaryListProps) {
   const router = useRouter();
+  const [previewDiary, setPreviewDiary] = useState<DiaryRow | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleDelete = async (id: number) => {
     const result = await deleteDiaryAction(id);
@@ -50,6 +43,11 @@ export function DiaryList({ diaries }: DiaryListProps) {
       toast.success('日記を削除しました');
       router.refresh();
     }
+  };
+
+  const handlePreview = (diary: DiaryRow) => {
+    setPreviewDiary(diary);
+    setIsPreviewOpen(true);
   };
 
   if (diaries.length === 0) {
@@ -66,84 +64,100 @@ export function DiaryList({ diaries }: DiaryListProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {diaries.map((diary) => (
-        <Card key={diary.id}>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg">
-                  {format(new Date(diary.journal_date), 'yyyy年M月d日 (E)', { locale: ja })}
-                </CardTitle>
-                <CardDescription className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {format(new Date(diary.journal_date), 'yyyy-MM-dd')}
-                </CardDescription>
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {diaries.map((diary) => (
+          <Card key={diary.id}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg">
+                    {format(new Date(diary.journal_date), 'yyyy年M月d日 (E)', { locale: ja })}
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {format(new Date(diary.journal_date), 'yyyy-MM-dd')}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-1">
+                  {diary.mood && <Badge variant="outline">感情: {diary.mood}/10</Badge>}
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                {diary.mood && (
-                  <Badge variant="outline">感情: {diary.mood}/10</Badge>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-              {diary.note || '本文なし'}
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link href={`/diary/${diary.id}/edit`}>
-                      <Button variant="outline" size="icon">
-                        <Pencil className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                {diary.note || '本文なし'}
+              </p>
+              <div className="flex items-center justify-end gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="icon" onClick={() => handlePreview(diary)}>
+                        <Eye className="h-4 w-4" />
                       </Button>
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>日記を編集</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>日記をプレビュー</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href={`/diary/${diary.id}/edit`}>
                         <Button variant="outline" size="icon">
-                          <Trash2 className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>日記を削除しますか？</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            この操作は取り消せません。日記が完全に削除されます。
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(diary.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            削除
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>日記を削除</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>日記を編集</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>日記を削除しますか？</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              この操作は取り消せません。日記が完全に削除されます。
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(diary.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              削除
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>日記を削除</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <DiaryPreviewDialog
+        diary={previewDiary}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+      />
+    </>
   );
 }
-

@@ -112,13 +112,16 @@ src/
 │   ├── ui/               # shadcn/ui コンポーネント
 │   ├── diary/            # 日記関連コンポーネント
 │   └── common/           # 共通コンポーネント
-├── lib/                   # ユーティリティ・ライブラリ
-│   ├── supabase.ts       # Supabase クライアント
-│   ├── utils.ts          # ユーティリティ関数
-│   ├── validators/       # Zod スキーマ
+├── schemas/              # Zod スキーマ（テーブル・フォーム用）
+│   ├── base.ts          # 共通スキーマ
+│   ├── tables/          # テーブルスキーマ（DB行用）
+│   ├── forms/           # フォームスキーマ（入力・更新用）
+│   └── index.ts         # エクスポート集約
+├── lib/                  # ユーティリティ・ライブラリ
+│   ├── supabase.ts      # Supabase クライアント
+│   ├── utils.ts         # ユーティリティ関数
 │   └── ai/              # AI 統合ロジック
 ├── hooks/                # カスタムフック
-├── types/                # 型定義
 └── styles/               # スタイルファイル
 ```
 

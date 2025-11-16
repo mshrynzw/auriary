@@ -41,34 +41,34 @@ auriary プロジェクトでは、以下の優先順位で単体テストを実
 #### 3.1.1 Zod スキーマ
 
 ```typescript
-// src/lib/validators/diary.test.ts
+// src/__tests__/unit/schemas/diary-form.test.ts
 import { describe, it, expect } from 'vitest';
-import { createDiarySchema } from './diary';
+import { createDiaryFormSchema } from '@/schemas';
 
-describe('createDiarySchema', () => {
+describe('createDiaryFormSchema', () => {
   it('有効な日記データを検証する', () => {
     const data = {
-      diary_date: '2025-01-10',
+      journal_date: '2025-01-10',
       note: 'Test note',
-      mood: 5,
+      sleep_quality: 5,
     };
-    expect(createDiarySchema.parse(data)).toEqual(data);
+    expect(createDiaryFormSchema.parse(data)).toEqual(data);
   });
 
   it('無効な日付形式を拒否する', () => {
     const data = {
-      diary_date: 'invalid-date',
+      journal_date: 'invalid-date',
       note: 'Test note',
     };
-    expect(() => createDiarySchema.parse(data)).toThrow();
+    expect(() => createDiaryFormSchema.parse(data)).toThrow();
   });
 
   it('note が 10000 文字を超える場合にエラーを投げる', () => {
     const data = {
-      diary_date: '2025-01-10',
+      journal_date: '2025-01-10',
       note: 'a'.repeat(10001),
     };
-    expect(() => createDiarySchema.parse(data)).toThrow();
+    expect(() => createDiaryFormSchema.parse(data)).toThrow();
   });
 });
 ```
@@ -184,7 +184,7 @@ export default defineConfig({
 - **パターン**: `<filename>.test.ts` または `<filename>.test.tsx`
 - **配置**: テスト対象ファイルと同じディレクトリ
 - **例**: 
-  - `src/lib/validators/diary.ts` → `src/lib/validators/diary.test.ts`
+  - `src/schemas/forms/diary-form.ts` → `src/__tests__/unit/schemas/diary-form.test.ts`
   - `src/lib/utils/date.ts` → `src/lib/utils/date.test.ts`
 
 ### 4.3 テストの構造
@@ -253,19 +253,17 @@ describe('formatDiaryDate with mocked Date', () => {
 ```
 
 ```typescript
-// src/lib/validators/diary.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { validateDiaryDate } from './diary';
+// src/__tests__/unit/schemas/diary-form.test.ts
+import { describe, it, expect } from 'vitest';
+import { createDiaryFormSchema } from '@/schemas';
 
-// 外部関数をモック化
-vi.mock('@/lib/supabase', () => ({
-  createSupabaseServerClient: vi.fn(),
-}));
-
-describe('validateDiaryDate', () => {
-  it('有効な日付を検証する', () => {
-    const result = validateDiaryDate('2025-01-10');
-    expect(result).toBe(true);
+describe('createDiaryFormSchema', () => {
+  it('有効な日記データを検証する', () => {
+    const data = {
+      journal_date: '2025-01-10',
+      note: 'Test note',
+    };
+    expect(createDiaryFormSchema.parse(data)).toEqual(data);
   });
 });
 ```
@@ -286,7 +284,7 @@ describe('validateDiaryDate', () => {
 
 - **パターン**: `describe('関数名またはモジュール名', () => { ... })`
 - **例**: 
-  - `describe('createDiarySchema', () => { ... })`
+  - `describe('createDiaryFormSchema', () => { ... })`
   - `describe('formatDiaryDate', () => { ... })`
 
 ### 6.3 テストケース名
@@ -302,10 +300,12 @@ describe('validateDiaryDate', () => {
 
 ```
 src/
+├── schemas/
+│   ├── forms/
+│   │   └── diary-form.ts
+│   └── tables/
+│       └── t_diaries.ts
 ├── lib/
-│   ├── validators/
-│   │   ├── diary.ts
-│   │   └── diary.test.ts          # 同じディレクトリ
 │   ├── utils/
 │   │   ├── date.ts
 │   │   ├── date.test.ts           # 同じディレクトリ
@@ -316,7 +316,10 @@ src/
 │   └── ui/
 │       ├── button.tsx
 │       └── button.test.tsx         # UI コンポーネントは最小限
-└── __tests__/                      # 統合テスト用（単体テストではない）
+└── __tests__/                      # テスト用
+    ├── unit/
+    │   └── schemas/
+    │       └── diary-form.test.ts  # スキーマテスト
     └── integration/
 ```
 
@@ -334,32 +337,32 @@ src/
 
 ```typescript
 // src/__tests__/fixtures/diary.ts
-import { z } from 'zod';
-import { createDiarySchema } from '@/lib/validators/diary';
+import { type CreateDiaryFormInput } from '@/schemas';
 
-export function createDiaryFixture(overrides?: Partial<z.infer<typeof createDiarySchema>>) {
+export function createDiaryFixture(overrides?: Partial<CreateDiaryFormInput>) {
   return {
-    diary_date: '2025-01-10',
+    journal_date: '2025-01-10',
     note: 'Test note',
-    mood: 5,
+    sleep_quality: 5,
     ...overrides,
   };
 }
 ```
 
 ```typescript
-// src/lib/validators/diary.test.ts
+// src/__tests__/unit/schemas/diary-form.test.ts
 import { createDiaryFixture } from '@/__tests__/fixtures/diary';
+import { createDiaryFormSchema } from '@/schemas';
 
-describe('createDiarySchema', () => {
+describe('createDiaryFormSchema', () => {
   it('有効な日記データを検証する', () => {
     const data = createDiaryFixture();
-    expect(createDiarySchema.parse(data)).toEqual(data);
+    expect(createDiaryFormSchema.parse(data)).toEqual(data);
   });
 
   it('無効な日付を拒否する', () => {
-    const data = createDiaryFixture({ diary_date: 'invalid' });
-    expect(() => createDiarySchema.parse(data)).toThrow();
+    const data = createDiaryFixture({ journal_date: 'invalid' });
+    expect(() => createDiaryFormSchema.parse(data)).toThrow();
   });
 });
 ```
@@ -392,47 +395,47 @@ open coverage/index.html
 ### 10.1 Zod スキーマのテスト
 
 ```typescript
-// src/lib/validators/diary.test.ts
+// src/__tests__/unit/schemas/diary-form.test.ts
 import { describe, it, expect } from 'vitest';
-import { createDiarySchema, updateDiarySchema } from './diary';
+import { createDiaryFormSchema, updateDiaryFormSchema } from '@/schemas';
 
-describe('createDiarySchema', () => {
+describe('createDiaryFormSchema', () => {
   it('有効な日記データを検証する', () => {
     const data = {
-      diary_date: '2025-01-10',
+      journal_date: '2025-01-10',
       note: 'Test note',
-      mood: 5,
+      sleep_quality: 5,
     };
-    expect(createDiarySchema.parse(data)).toEqual(data);
+    expect(createDiaryFormSchema.parse(data)).toEqual(data);
   });
 
-  it('diary_date が必須であることを検証する', () => {
+  it('journal_date が必須であることを検証する', () => {
     const data = {
       note: 'Test note',
     };
-    expect(() => createDiarySchema.parse(data)).toThrow();
+    expect(() => createDiaryFormSchema.parse(data)).toThrow();
   });
 
   it('note が 10000 文字を超える場合にエラーを投げる', () => {
     const data = {
-      diary_date: '2025-01-10',
+      journal_date: '2025-01-10',
       note: 'a'.repeat(10001),
     };
-    expect(() => createDiarySchema.parse(data)).toThrow();
+    expect(() => createDiaryFormSchema.parse(data)).toThrow();
   });
 
-  it('mood が 1-10 の範囲内であることを検証する', () => {
+  it('sleep_quality が 1-5 の範囲内であることを検証する', () => {
     const validData = {
-      diary_date: '2025-01-10',
-      mood: 5,
+      journal_date: '2025-01-10',
+      sleep_quality: 5,
     };
-    expect(createDiarySchema.parse(validData)).toEqual(validData);
+    expect(createDiaryFormSchema.parse(validData)).toEqual(validData);
 
     const invalidData = {
-      diary_date: '2025-01-10',
-      mood: 11,
+      journal_date: '2025-01-10',
+      sleep_quality: 6,
     };
-    expect(() => createDiarySchema.parse(invalidData)).toThrow();
+    expect(() => createDiaryFormSchema.parse(invalidData)).toThrow();
   });
 });
 ```

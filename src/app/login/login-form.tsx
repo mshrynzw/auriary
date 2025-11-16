@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginInput } from '@/lib/validators/auth';
+import { loginFormSchema, type LoginFormInput } from '@/schemas';
 import { loginAction } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,11 +21,11 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<LoginFormInput>({
+    resolver: zodResolver(loginFormSchema),
   });
 
-  const onSubmit = async (data: LoginInput) => {
+  const onSubmit = async (data: LoginFormInput) => {
     setIsLoading(true);
     setError(null);
 
@@ -46,9 +46,7 @@ export function LoginForm() {
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl font-bold">ログイン</CardTitle>
-        <CardDescription>
-          auriary にログインして、日記を始めましょう
-        </CardDescription>
+        <CardDescription>auriary にログインして、日記を始めましょう</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -68,9 +66,7 @@ export function LoginForm() {
               {...register('email')}
               disabled={isLoading}
             />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -102,4 +98,3 @@ export function LoginForm() {
     </Card>
   );
 }
-

@@ -51,7 +51,8 @@ test.describe('認証機能のE2Eテスト', () => {
     await page.click('button[type="submit"]');
 
     // エラーメッセージが表示されることを確認
-    await expect(page.locator('text=メールアドレスまたはパスワードが正しくありません')).toBeVisible();
+    await expect(
+      page.locator('text=メールアドレスまたはパスワードが正しくありません'),
+    ).toBeVisible();
   });
 });
-

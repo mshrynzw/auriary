@@ -43,9 +43,7 @@ export async function analyzeSentimentMock(text: string): Promise<AIAnalysisResu
   if (topics.length === 0) topics.push('日常');
 
   // 要約生成（モック）
-  const summary = text.length > 100 
-    ? text.substring(0, 100) + '...'
-    : text;
+  const summary = text.length > 100 ? text.substring(0, 100) + '...' : text;
 
   return {
     sentiment,
@@ -61,7 +59,7 @@ export async function analyzeSentimentMock(text: string): Promise<AIAnalysisResu
  */
 export async function completeTextMock(text: string): Promise<string> {
   // モック実装：テキストの最後の文に基づいて補完
-  const sentences = text.split(/[。！？\n]/).filter(s => s.trim());
+  const sentences = text.split(/[。！？\n]/).filter((s) => s.trim());
   const lastSentence = sentences[sentences.length - 1] || '';
 
   if (lastSentence.includes('今日')) {
@@ -89,4 +87,3 @@ export async function extractTopicsMock(text: string): Promise<string[]> {
   if (topics.length === 0) topics.push('日常');
   return topics;
 }
-

@@ -100,31 +100,74 @@
 
 ### 6.2 バリデーション（Zod）
 
-**実装予定スキーマ:**
+**スキーマ設計:**
+
+スキーマは `src/schemas/` 配下に配置され、以下の構造で管理されます：
+
+- **`tables/`**: データベーステーブルに対応するスキーマ（DB行用）
+- **`forms/`**: フォーム入力・更新用のスキーマ
+- **`base.ts`**: 共通スキーマ（共通カラム、レベル値など）
+
+**実装済みスキーマ:**
 
 ```typescript
-// src/lib/validators/diary.ts
+// src/schemas/forms/diary-form.ts
 import { z } from 'zod';
+import { levelSchema } from '../base';
 
-export const createDiarySchema = z.object({
-  diary_date: z.string().date(), // ISO8601 date string (e.g. "2025-01-10")
+export const createDiaryFormSchema = z.object({
+  journal_date: z.string().date(), // ISO8601 date string (e.g. "2025-01-10")
   note: z.string().max(10000).optional(),
-  sleep_quality: z.number().min(1).max(5).optional(),
-  wake_level: z.number().min(1).max(5).optional(),
-  daytime_level: z.number().min(1).max(5).optional(),
-  pre_sleep_level: z.number().min(1).max(5).optional(),
-  med_adherence_level: z.number().min(1).max(5).optional(),
-  appetite_level: z.number().min(1).max(5).optional(),
-  sleep_desire_level: z.number().min(1).max(5).optional(),
+  sleep_quality: levelSchema.optional(),
+  wake_level: levelSchema.optional(),
+  daytime_level: levelSchema.optional(),
+  pre_sleep_level: levelSchema.optional(),
+  med_adherence_level: levelSchema.optional(),
+  appetite_level: levelSchema.optional(),
+  sleep_desire_level: levelSchema.optional(),
   has_od: z.boolean().optional(),
+  sleep_start_at: z.string().optional(),
+  sleep_end_at: z.string().optional(),
+  bath_start_at: z.string().optional(),
+  bath_end_at: z.string().optional(),
 });
 
-export const updateDiarySchema = createDiarySchema.partial();
+export const updateDiaryFormSchema = createDiaryFormSchema.partial();
+
+export type CreateDiaryFormInput = z.infer<typeof createDiaryFormSchema>;
+export type UpdateDiaryFormInput = z.infer<typeof updateDiaryFormSchema>;
 ```
 
-**通知関連スキーマ:**
+**テーブルスキーマ:**
+
 ```typescript
-// src/lib/validators/notification.ts
+// src/schemas/tables/t_diaries.ts
+import { z } from 'zod';
+import { commonColumnsSchema, userIdSchema, levelSchema } from '../base';
+
+// データベース行スキーマ（Supabaseから取得した生データ用）
+export const diaryRowSchema = commonColumnsSchema.extend({
+  user_id: userIdSchema,
+  journal_date: z.string().date(),
+  // ... 他のフィールド
+});
+
+// アプリケーション用スキーマ（Dateオブジェクトに変換）
+export const diarySchema = diaryRowSchema.transform((data) => ({
+  ...data,
+  journal_date: new Date(data.journal_date),
+  // ...
+}));
+
+export type Diary = z.infer<typeof diarySchema>;
+export type DiaryRow = z.infer<typeof diaryRowSchema>;
+```
+
+詳細は [スキーマ設計](./300_Cording/311_SchemaDesign.md) を参照してください。
+
+**通知関連スキーマ（将来実装）:**
+```typescript
+// src/schemas/forms/notification-form.ts
 import { z } from 'zod';
 
 export const updateNotificationSchema = z.object({

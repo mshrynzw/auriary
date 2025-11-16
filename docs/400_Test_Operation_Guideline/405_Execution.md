@@ -9,7 +9,7 @@
 pnpm test:unit:watch
 
 # 特定のファイルのみテスト
-pnpm test:unit src/lib/validators/diary.test.ts
+pnpm test:unit src/__tests__/unit/schemas/diary-form.test.ts
 
 # 結合テストを実行（必要時）
 pnpm test:integration

@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 export default async function CalendarPage() {
   await requireAuth();
-  
+
   // 過去30日間の日記を取得
   const endDate = new Date();
   const startDate = new Date();
@@ -73,4 +73,3 @@ export default async function CalendarPage() {
     </div>
   );
 }
-

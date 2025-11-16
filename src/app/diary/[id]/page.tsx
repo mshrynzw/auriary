@@ -107,9 +107,7 @@ export default async function DiaryDetailPage({ params }: PageProps) {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                {diary.mood && (
-                  <Badge variant="outline">感情: {diary.mood}/10</Badge>
-                )}
+                {diary.mood && <Badge variant="outline">感情: {diary.mood}/10</Badge>}
               </div>
             </div>
           </CardHeader>
@@ -161,4 +159,3 @@ export default async function DiaryDetailPage({ params }: PageProps) {
     </div>
   );
 }
-

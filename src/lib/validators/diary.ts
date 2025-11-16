@@ -11,14 +11,14 @@ export const createDiarySchema = z.object({
   appetite_level: z.number().min(1).max(5).optional(),
   sleep_desire_level: z.number().min(1).max(5).optional(),
   has_od: z.boolean().optional(),
-  sleep_start_at: z.string().datetime().optional(),
-  sleep_end_at: z.string().datetime().optional(),
-  bath_start_at: z.string().datetime().optional(),
-  bath_end_at: z.string().datetime().optional(),
+  // datetime-local入力はブラウザが自動的に正しい形式を強制するため、バリデーション不要
+  sleep_start_at: z.string().optional(),
+  sleep_end_at: z.string().optional(),
+  bath_start_at: z.string().optional(),
+  bath_end_at: z.string().optional(),
 });
 
 export const updateDiarySchema = createDiarySchema.partial();
 
 export type CreateDiaryInput = z.infer<typeof createDiarySchema>;
 export type UpdateDiaryInput = z.infer<typeof updateDiarySchema>;
-

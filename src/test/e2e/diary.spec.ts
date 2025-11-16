@@ -41,7 +41,12 @@ test.describe('日記機能のE2Eテスト', () => {
     await page.waitForURL(/\/diary/, { timeout: 10000 });
 
     // 編集リンクをクリック（日記カード内の編集ボタン）
-    await page.locator('text=編集前の日記').locator('..').locator('a[href*="/edit"]').first().click();
+    await page
+      .locator('text=編集前の日記')
+      .locator('..')
+      .locator('a[href*="/edit"]')
+      .first()
+      .click();
     await page.waitForURL(/\/diary\/\d+\/edit/);
 
     // 日記を編集
@@ -69,7 +74,7 @@ test.describe('日記機能のE2Eテスト', () => {
     const diaryCard = page.locator('text=削除用の日記').locator('..').locator('..');
     const deleteButton = diaryCard.locator('button').last();
     await deleteButton.click();
-    
+
     // 確認ダイアログで削除を確認
     await page.waitForSelector('text=日記を削除しますか？', { timeout: 5000 });
     await page.click('button:has-text("削除"):not(:has-text("キャンセル"))');
@@ -78,4 +83,3 @@ test.describe('日記機能のE2Eテスト', () => {
     await expect(page.locator('text=削除用の日記')).not.toBeVisible({ timeout: 5000 });
   });
 });
-

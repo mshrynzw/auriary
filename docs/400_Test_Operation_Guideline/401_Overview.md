@@ -69,11 +69,11 @@ graph TD
 #### Step 1: 機能実装
 
 ```typescript
-// src/lib/validators/diary.ts
+// src/schemas/forms/diary-form.ts
 import { z } from 'zod';
 
-export const createDiarySchema = z.object({
-  diary_date: z.string().date(),
+export const createDiaryFormSchema = z.object({
+  journal_date: z.string().date(),
   note: z.string().max(10000).optional(),
   // ...
 });
@@ -82,16 +82,16 @@ export const createDiarySchema = z.object({
 #### Step 2: 単体テスト作成
 
 ```typescript
-// src/lib/validators/diary.test.ts
-import { createDiarySchema } from './diary';
+// src/__tests__/unit/schemas/diary-form.test.ts
+import { createDiaryFormSchema } from '@/schemas';
 
-describe('createDiarySchema', () => {
+describe('createDiaryFormSchema', () => {
   it('有効な日記データを検証する', () => {
     const data = {
-      diary_date: '2025-01-10',
+      journal_date: '2025-01-10',
       note: 'Test note',
     };
-    expect(createDiarySchema.parse(data)).toEqual(data);
+    expect(createDiaryFormSchema.parse(data)).toEqual(data);
   });
 });
 ```

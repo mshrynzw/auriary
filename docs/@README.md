@@ -36,6 +36,7 @@
 #### コーディング規約
 - **[コーディング規約（概要）](./300_Cording/301_CodingStandards.md)** で全体像を把握
 - **[TypeScript 規約](./300_Cording/302_TypeScript.md)** で型定義の書き方を確認
+- **[スキーマ設計](./300_Cording/311_SchemaDesign.md)** で Zod スキーマの設計原則を確認
 - **[命名規則](./300_Cording/303_NamingConventions.md)** でファイル・変数名の規則を確認
 - **[Git コミット規約](./300_Cording/304_GitConventions.md)** でコミットメッセージの書き方を確認
 
@@ -172,6 +173,10 @@
   - 型定義の書き方
   - any の使用禁止
   - 型ガードの使用
+- [311_SchemaDesign.md](./300_Cording/311_SchemaDesign.md)
+  - Zod スキーマ設計原則
+  - テーブルスキーマとフォームスキーマの使い分け
+  - Zod v4 の活用方法
 - [303_NamingConventions.md](./300_Cording/303_NamingConventions.md)
   - ファイル命名規則
   - ディレクトリ構造

@@ -7,7 +7,10 @@ import { redirect } from 'next/navigation';
  */
 export async function requireAuth() {
   const supabase = await createSupabaseServerClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
     redirect('/login');
@@ -39,7 +42,9 @@ export async function requireAuth() {
  */
 export async function getAuth() {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { user: null, userProfile: null, supabase };
@@ -62,4 +67,3 @@ export async function getAuth() {
 
   return { user, userProfile, supabase };
 }
-

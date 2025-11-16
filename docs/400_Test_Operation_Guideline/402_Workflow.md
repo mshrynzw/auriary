@@ -58,10 +58,10 @@ graph LR
 2. **単体テスト作成・実行**
    ```bash
    # 単体テストを作成
-   # src/lib/validators/diary.test.ts
+   # src/__tests__/unit/schemas/diary-form.test.ts
    
    # テスト実行
-   pnpm test:unit src/lib/validators/diary.test.ts
+   pnpm test:unit src/__tests__/unit/schemas/diary-form.test.ts
    ```
 
 3. **結合テスト作成・実行**

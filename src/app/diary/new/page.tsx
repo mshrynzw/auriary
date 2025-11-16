@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { DiaryEditor } from '../diary-editor';
+import { getDailyDefaultsAction } from '@/app/actions/daily-defaults';
 import { Info } from 'lucide-react';
 import {
   Dialog,
@@ -14,6 +15,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 export default async function NewDiaryPage() {
   await requireAuth();
+  const defaultsResult = await getDailyDefaultsAction();
+  const defaults = defaultsResult?.defaults;
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,9 +58,8 @@ export default async function NewDiaryPage() {
           </TooltipProvider>
         </div>
 
-        <DiaryEditor />
+        <DiaryEditor defaults={defaults} />
       </div>
     </div>
   );
 }
-

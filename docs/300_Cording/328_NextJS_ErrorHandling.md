@@ -122,8 +122,10 @@ export async function createDiary(data: DiaryData) {
 ```typescript
 'use server';
 
+import { createDiaryFormSchema } from '@/schemas';
+
 export async function createDiary(data: DiaryData) {
-  const validated = createDiarySchema.safeParse(data);
+  const validated = createDiaryFormSchema.safeParse(data);
   
   if (!validated.success) {
     throw new Error('バリデーションエラー: ' + validated.error.message);

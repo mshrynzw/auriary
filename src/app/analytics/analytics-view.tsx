@@ -2,7 +2,19 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
@@ -50,9 +62,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
   // 統計サマリー
   const avgMood =
     diaries.filter((d) => d.mood !== null).length > 0
-      ? diaries
-          .filter((d) => d.mood !== null)
-          .reduce((sum, d) => sum + (d.mood || 0), 0) /
+      ? diaries.filter((d) => d.mood !== null).reduce((sum, d) => sum + (d.mood || 0), 0) /
         diaries.filter((d) => d.mood !== null).length
       : 0;
 
@@ -92,9 +102,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  データがありません
-                </p>
+                <p className="text-center text-muted-foreground py-8">データがありません</p>
               )}
             </CardContent>
           </Card>
@@ -128,9 +136,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  データがありません
-                </p>
+                <p className="text-center text-muted-foreground py-8">データがありません</p>
               )}
             </CardContent>
           </Card>
@@ -171,4 +177,3 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
     </div>
   );
 }
-

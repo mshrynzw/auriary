@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { getDiaryAction } from '@/app/actions/diary';
+import { getDailyDefaultsAction } from '@/app/actions/daily-defaults';
 import { DiaryEditor } from '../../diary-editor';
 import { notFound } from 'next/navigation';
 import { Info } from 'lucide-react';
@@ -31,6 +32,10 @@ export default async function EditDiaryPage({ params }: PageProps) {
   if (result?.error || !result?.diary) {
     notFound();
   }
+
+  // デフォルト設定を取得
+  const defaultsResult = await getDailyDefaultsAction();
+  const defaults = defaultsResult?.defaults;
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,9 +77,8 @@ export default async function EditDiaryPage({ params }: PageProps) {
           </TooltipProvider>
         </div>
 
-        <DiaryEditor diary={result.diary} />
+        <DiaryEditor diary={result.diary} defaults={defaults} />
       </div>
     </div>
   );
 }
-

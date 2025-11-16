@@ -44,10 +44,14 @@ src/
 ├── app/                # Next.js App Router ページ
 ├── components/
 │   └── ui/            # shadcn/ui コンポーネント（50+ コンポーネント）
+├── schemas/           # Zod スキーマ（テーブル・フォーム用）
+│   ├── base.ts        # 共通スキーマ
+│   ├── tables/        # テーブルスキーマ（DB行用）
+│   ├── forms/         # フォームスキーマ（入力・更新用）
+│   └── index.ts       # エクスポート集約
 ├── lib/
 │   ├── supabase.ts    # Supabase クライアント生成
 │   ├── utils.ts       # ユーティリティ関数
-│   ├── validators/    # Zod スキーマ（将来実装）
 │   └── ai/            # AI 統合ロジック（将来実装）
 └── hooks/
     └── use-mobile.ts  # モバイル判定フック

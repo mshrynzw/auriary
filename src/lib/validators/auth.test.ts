@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loginSchema, registerSchema } from './auth';
+import { loginFormSchema, registerFormSchema } from '@/schemas';
 
 describe('loginSchema', () => {
   it('有効なログインデータを検証する', () => {
@@ -7,7 +7,7 @@ describe('loginSchema', () => {
       email: 'test@example.com',
       password: 'password123',
     };
-    expect(loginSchema.parse(data)).toEqual(data);
+    expect(loginFormSchema.parse(data)).toEqual(data);
   });
 
   it('無効なメールアドレスを拒否する', () => {
@@ -15,7 +15,7 @@ describe('loginSchema', () => {
       email: 'invalid-email',
       password: 'password123',
     };
-    expect(() => loginSchema.parse(data)).toThrow();
+    expect(() => loginFormSchema.parse(data)).toThrow();
   });
 
   it('パスワードが6文字未満の場合にエラーを投げる', () => {
@@ -23,7 +23,7 @@ describe('loginSchema', () => {
       email: 'test@example.com',
       password: '12345', // 6文字未満
     };
-    expect(() => loginSchema.parse(data)).toThrow();
+    expect(() => loginFormSchema.parse(data)).toThrow();
   });
 });
 
@@ -34,7 +34,7 @@ describe('registerSchema', () => {
       password: 'password123',
       display_name: 'Test User',
     };
-    expect(registerSchema.parse(data)).toEqual(data);
+    expect(registerFormSchema.parse(data)).toEqual(data);
   });
 
   it('display_name が空の場合にエラーを投げる', () => {
@@ -43,7 +43,7 @@ describe('registerSchema', () => {
       password: 'password123',
       display_name: '',
     };
-    expect(() => registerSchema.parse(data)).toThrow();
+    expect(() => registerFormSchema.parse(data)).toThrow();
   });
 
   it('display_name が50文字を超える場合にエラーを投げる', () => {
@@ -52,7 +52,6 @@ describe('registerSchema', () => {
       password: 'password123',
       display_name: 'a'.repeat(51),
     };
-    expect(() => registerSchema.parse(data)).toThrow();
+    expect(() => registerFormSchema.parse(data)).toThrow();
   });
 });
-

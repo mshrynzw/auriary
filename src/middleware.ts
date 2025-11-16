@@ -60,9 +60,7 @@ export async function middleware(request: NextRequest) {
 
   // 保護されたルート
   const protectedPaths = ['/diary', '/calendar', '/analytics', '/settings'];
-  const isProtectedPath = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path),
-  );
+  const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
   // 認証が必要なページに未認証でアクセスした場合
   if (isProtectedPath && !user) {
@@ -91,4 +89,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
-

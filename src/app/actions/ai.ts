@@ -77,4 +77,3 @@ export async function extractTopicsAction(text: string): Promise<{ topics: strin
 
   return { topics };
 }
-

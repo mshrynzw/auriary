@@ -22,6 +22,7 @@
 詳細なコーディング規約は以下のドキュメントを参照してください：
 
 - [302_TypeScript.md](./302_TypeScript.md) - TypeScript コーディング規約
+- [311_SchemaDesign.md](./311_SchemaDesign.md) - スキーマ設計（Zod）
 - [303_NamingConventions.md](./303_NamingConventions.md) - 命名規則・ファイル構造
 - [304_GitConventions.md](./304_GitConventions.md) - Git コミット規約
 - [305_ComponentDesign.md](./305_ComponentDesign.md) - コンポーネント設計原則

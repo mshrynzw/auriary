@@ -1,9 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createDiarySchema, updateDiarySchema, type CreateDiaryInput, type UpdateDiaryInput } from '@/lib/validators/diary';
+import {
+  createDiaryFormSchema,
+  updateDiaryFormSchema,
+  type CreateDiaryFormInput,
+  type UpdateDiaryFormInput,
+  type DiaryRow,
+  type UserDailyDefaults,
+} from '@/schemas';
 import { createDiaryAction, updateDiaryAction } from '@/app/actions/diary';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -18,30 +25,30 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
-type Diary = {
-  id: number;
-  journal_date: string;
-  note: string | null;
-  sleep_quality: number | null;
-  wake_level: number | null;
-  daytime_level: number | null;
-  pre_sleep_level: number | null;
-  med_adherence_level: number | null;
-  appetite_level: number | null;
-  sleep_desire_level: number | null;
-  has_od: boolean | null;
-  sleep_start_at: string | null;
-  sleep_end_at: string | null;
-  bath_start_at: string | null;
-  bath_end_at: string | null;
-};
+// デフォルト設定の必要なフィールドのみを抽出
+type DailyDefaults = Pick<
+  UserDailyDefaults,
+  | 'sleep_quality_default'
+  | 'wake_level_default'
+  | 'daytime_level_default'
+  | 'pre_sleep_level_default'
+  | 'med_adherence_level_default'
+  | 'appetite_level_default'
+  | 'sleep_desire_level_default'
+  | 'sleep_start_at_default'
+  | 'sleep_end_at_default'
+  | 'bath_start_at_default'
+  | 'bath_end_at_default'
+>;
 
 type DiaryEditorProps = {
-  diary?: Diary;
+  diary?: DiaryRow;
+  defaults?: DailyDefaults;
 };
 
-export function DiaryEditor({ diary }: DiaryEditorProps) {
+export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,9 +59,11 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
     handleSubmit,
     setValue,
     watch,
+    getValues,
+    trigger,
     formState: { errors },
-  } = useForm<CreateDiaryInput | UpdateDiaryInput>({
-    resolver: zodResolver(isEdit ? updateDiarySchema : createDiarySchema) as any,
+  } = useForm<CreateDiaryFormInput | UpdateDiaryFormInput>({
+    resolver: zodResolver(isEdit ? updateDiaryFormSchema : createDiaryFormSchema) as any,
     defaultValues: diary
       ? {
           journal_date: diary.journal_date,
@@ -67,23 +76,125 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
           appetite_level: diary.appetite_level || undefined,
           sleep_desire_level: diary.sleep_desire_level || undefined,
           has_od: diary.has_od || false,
+          // 既存の時刻がある場合はそのまま使用、ない場合はデフォルト時刻を適用
+          sleep_start_at: diary.sleep_start_at
+            ? format(new Date(diary.sleep_start_at), "yyyy-MM-dd'T'HH:mm")
+            : defaults?.sleep_start_at_default
+              ? `${diary.journal_date}T${defaults.sleep_start_at_default}`
+              : undefined,
+          sleep_end_at: diary.sleep_end_at
+            ? format(new Date(diary.sleep_end_at), "yyyy-MM-dd'T'HH:mm")
+            : defaults?.sleep_end_at_default
+              ? `${diary.journal_date}T${defaults.sleep_end_at_default}`
+              : undefined,
+          bath_start_at: diary.bath_start_at
+            ? format(new Date(diary.bath_start_at), "yyyy-MM-dd'T'HH:mm")
+            : defaults?.bath_start_at_default
+              ? `${diary.journal_date}T${defaults.bath_start_at_default}`
+              : undefined,
+          bath_end_at: diary.bath_end_at
+            ? format(new Date(diary.bath_end_at), "yyyy-MM-dd'T'HH:mm")
+            : defaults?.bath_end_at_default
+              ? `${diary.journal_date}T${defaults.bath_end_at_default}`
+              : undefined,
         }
       : {
-          journal_date: format(new Date(), 'yyyy-MM-dd'),
+          // 日付はuseEffectでクライアント側でのみ設定（ハイドレーションエラーを防ぐため）
+          journal_date: '',
+          sleep_quality: defaults?.sleep_quality_default,
+          wake_level: defaults?.wake_level_default,
+          daytime_level: defaults?.daytime_level_default,
+          pre_sleep_level: defaults?.pre_sleep_level_default,
+          med_adherence_level: defaults?.med_adherence_level_default,
+          appetite_level: defaults?.appetite_level_default,
+          sleep_desire_level: defaults?.sleep_desire_level_default,
+          // 時刻フィールドはuseEffectでクライアント側でのみ設定
+          sleep_start_at: undefined,
+          sleep_end_at: undefined,
+          bath_start_at: undefined,
+          bath_end_at: undefined,
         },
   });
 
-  const sleepQuality = watch('sleep_quality') ?? 3;
-  const wakeLevel = watch('wake_level') ?? 3;
-  const daytimeLevel = watch('daytime_level') ?? 3;
+  const sleepQuality = watch('sleep_quality') ?? defaults?.sleep_quality_default ?? 3;
+  const wakeLevel = watch('wake_level') ?? defaults?.wake_level_default ?? 3;
+  const daytimeLevel = watch('daytime_level') ?? defaults?.daytime_level_default ?? 3;
+  const preSleepLevel = watch('pre_sleep_level') ?? defaults?.pre_sleep_level_default ?? 3;
+  const medAdherenceLevel =
+    watch('med_adherence_level') ?? defaults?.med_adherence_level_default ?? 3;
+  const appetiteLevel = watch('appetite_level') ?? defaults?.appetite_level_default ?? 3;
+  const sleepDesireLevel = watch('sleep_desire_level') ?? defaults?.sleep_desire_level_default ?? 3;
+  const hasOd = watch('has_od') ?? false;
 
-  const onSubmit = async (data: CreateDiaryInput | UpdateDiaryInput) => {
+  const journalDate = watch('journal_date');
+
+  // 新規作成時、初期値とjournal_dateが変更されたときに時刻フィールドの日付を設定
+  useEffect(() => {
+    if (!isEdit) {
+      // 初期値として当日の日付を設定
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const currentJournalDate = journalDate || today;
+
+      // journal_dateが空の場合は設定
+      if (!journalDate) {
+        setValue('journal_date', today);
+      }
+
+      // 各時刻フィールドの現在の値を取得
+      const sleepStartAt = getValues('sleep_start_at');
+      const sleepEndAt = getValues('sleep_end_at');
+      const bathStartAt = getValues('bath_start_at');
+      const bathEndAt = getValues('bath_end_at');
+
+      // 日付部分を抽出して更新（時刻部分は保持）
+      const updateDateTime = (
+        currentValue: string | undefined,
+        defaultTime: string | null | undefined,
+      ) => {
+        // 現在の値がない、または日付が一致しない場合は更新
+        if (!currentValue || !currentValue.includes(currentJournalDate)) {
+          if (defaultTime) {
+            // defaultTimeは既にHH:mm形式（例: "21:00"）なので、そのまま使用
+            return `${currentJournalDate}T${defaultTime}`;
+          }
+          // defaultTimeがない場合はundefinedを返す（空のまま）
+          return undefined;
+        }
+        return currentValue;
+      };
+
+      // 各フィールドを更新（バリデーションをスキップして設定）
+      // 初期値設定時はバリデーションを実行しない（ユーザーが入力した時のみバリデーション）
+      const newSleepStartAt = updateDateTime(sleepStartAt, defaults?.sleep_start_at_default);
+      const newSleepEndAt = updateDateTime(sleepEndAt, defaults?.sleep_end_at_default);
+      const newBathStartAt = updateDateTime(bathStartAt, defaults?.bath_start_at_default);
+      const newBathEndAt = updateDateTime(bathEndAt, defaults?.bath_end_at_default);
+
+      setValue('sleep_start_at', newSleepStartAt, { shouldValidate: false });
+      setValue('sleep_end_at', newSleepEndAt, { shouldValidate: false });
+      setValue('bath_start_at', newBathStartAt, { shouldValidate: false });
+      setValue('bath_end_at', newBathEndAt, { shouldValidate: false });
+    }
+  }, [isEdit, journalDate, defaults, setValue, getValues]);
+
+  const onSubmit = async (data: CreateDiaryFormInput | UpdateDiaryFormInput) => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // 日時フィールドをISO8601形式に変換
+      const submitData = {
+        ...data,
+        sleep_start_at: data.sleep_start_at
+          ? new Date(data.sleep_start_at).toISOString()
+          : undefined,
+        sleep_end_at: data.sleep_end_at ? new Date(data.sleep_end_at).toISOString() : undefined,
+        bath_start_at: data.bath_start_at ? new Date(data.bath_start_at).toISOString() : undefined,
+        bath_end_at: data.bath_end_at ? new Date(data.bath_end_at).toISOString() : undefined,
+      };
+
       if (isEdit) {
-        const result = await updateDiaryAction(diary.id, data as UpdateDiaryInput);
+              const result = await updateDiaryAction(diary.id, submitData as UpdateDiaryFormInput);
         if (result?.error) {
           setError(result.error.message);
           toast.error(result.error.message);
@@ -92,7 +203,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
           router.push('/diary');
         }
       } else {
-        const result = await createDiaryAction(data as CreateDiaryInput);
+              const result = await createDiaryAction(submitData as CreateDiaryFormInput);
         if (result?.error) {
           setError(result.error.message);
           toast.error(result.error.message);
@@ -157,82 +268,262 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
               {...register('note')}
               disabled={isLoading}
             />
-            {errors.note && (
-              <p className="text-sm text-destructive">{errors.note.message}</p>
-            )}
+            {errors.note && <p className="text-sm text-destructive">{errors.note.message}</p>}
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label>睡眠の質: {sleepQuality}/5</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>1=とても悪い、5=とても良い</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">気分・体調</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>睡眠の質: {sleepQuality}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=とても悪い、5=とても良い</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[sleepQuality]}
+                    onValueChange={(value) => setValue('sleep_quality', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>起床時の気分: {wakeLevel}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=最悪、5=とても良い</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[wakeLevel]}
+                    onValueChange={(value) => setValue('wake_level', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>日中の気分: {daytimeLevel}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=最悪、5=とても良い</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[daytimeLevel]}
+                    onValueChange={(value) => setValue('daytime_level', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>就寝前の気分: {preSleepLevel}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=最悪、5=とても良い</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[preSleepLevel]}
+                    onValueChange={(value) => setValue('pre_sleep_level', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>服薬遵守度: {medAdherenceLevel}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=全く飲めず、5=全部飲めた</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[medAdherenceLevel]}
+                    onValueChange={(value) => setValue('med_adherence_level', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>食欲レベル: {appetiteLevel}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=ない、5=ある</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[appetiteLevel]}
+                    onValueChange={(value) => setValue('appetite_level', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>睡眠欲レベル: {sleepDesireLevel}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=ない、5=とてもある</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[sleepDesireLevel]}
+                    onValueChange={(value) => setValue('sleep_desire_level', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
-              <Slider
-                value={[sleepQuality]}
-                onValueChange={(value) => setValue('sleep_quality', value[0])}
-                min={1}
-                max={5}
-                step={1}
-                disabled={isLoading}
-              />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">時刻記録</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="sleep_end_at">起床時刻</Label>
+                  <Input
+                    id="sleep_end_at"
+                    type="datetime-local"
+                    value={watch('sleep_end_at') || ''}
+                    onChange={(e) => {
+                      setValue('sleep_end_at', e.target.value || undefined);
+                    }}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sleep_start_at">就寝時刻</Label>
+                  <Input
+                    id="sleep_start_at"
+                    type="datetime-local"
+                    value={watch('sleep_start_at') || ''}
+                    onChange={(e) => {
+                      setValue('sleep_start_at', e.target.value || undefined);
+                    }}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bath_start_at">入浴開始時刻</Label>
+                  <Input
+                    id="bath_start_at"
+                    type="datetime-local"
+                    value={watch('bath_start_at') || ''}
+                    onChange={(e) => {
+                      setValue('bath_start_at', e.target.value || undefined);
+                    }}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bath_end_at">入浴終了時刻</Label>
+                  <Input
+                    id="bath_end_at"
+                    type="datetime-local"
+                    value={watch('bath_end_at') || ''}
+                    onChange={(e) => {
+                      setValue('bath_end_at', e.target.value || undefined);
+                    }}
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label>起床時の気分: {wakeLevel}/5</Label>
+                <Checkbox
+                  id="has_od"
+                  checked={hasOd}
+                  onCheckedChange={(checked) => setValue('has_od', checked === true)}
+                  disabled={isLoading}
+                />
+                <Label htmlFor="has_od" className="cursor-pointer">
+                  OD発生
+                </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>1=最悪、5=とても良い</p>
+                      <p>その日にOD（過量服薬）があった場合にチェック</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <Slider
-                value={[wakeLevel]}
-                onValueChange={(value) => setValue('wake_level', value[0])}
-                min={1}
-                max={5}
-                step={1}
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label>日中の気分: {daytimeLevel}/5</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>1=最悪、5=とても良い</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Slider
-                value={[daytimeLevel]}
-                onValueChange={(value) => setValue('daytime_level', value[0])}
-                min={1}
-                max={5}
-                step={1}
-                disabled={isLoading}
-              />
             </div>
           </div>
 
@@ -254,4 +545,3 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
     </Card>
   );
 }
-

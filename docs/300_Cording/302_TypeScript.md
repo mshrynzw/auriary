@@ -241,19 +241,45 @@ const count = value || 0; // value が 0 の場合も 0 になる（意図通り
 
 ### 型定義の配置
 
-- プロジェクト固有の型：`src/types/` 配下
+- **Zod スキーマから生成される型**: `src/schemas/` 配下（推奨）
+- プロジェクト固有の型：`src/types/` 配下（必要に応じて）
 - コンポーネント固有の型：コンポーネントファイル内
-- 共通型：`src/types/common.ts`
+- 共通型：`src/schemas/base.ts` または `src/types/common.ts`
 
-### Supabase の型生成
+### Zod スキーマからの型生成（推奨）
+
+**スキーマ設計:**
+
+スキーマは `src/schemas/` 配下に配置され、以下の構造で管理されます：
+
+- **`tables/`**: データベーステーブルに対応するスキーマ（DB行用）
+- **`forms/`**: フォーム入力・更新用のスキーマ
+- **`base.ts`**: 共通スキーマ（共通カラム、レベル値など）
+
+```typescript
+// ✅ Good: Zod スキーマから型を生成
+import { Diary, DiaryRow, type CreateDiaryFormInput } from '@/schemas';
+
+// テーブルスキーマから型を取得
+const diary: DiaryRow = await supabase.from('t_diaries').select('*').single();
+
+// フォームスキーマから型を取得
+function handleSubmit(data: CreateDiaryFormInput) {
+  // ...
+}
+```
+
+詳細は [スキーマ設計](./311_SchemaDesign.md) を参照してください。
+
+### Supabase の型生成（補助的）
 
 ```bash
-# 型を生成
+# 型を生成（必要に応じて）
 supabase gen types typescript --project-id "local" > src/types/supabase.ts
 ```
 
 ```typescript
-// ✅ Good: Supabase の型を使用
+// ✅ Good: Supabase の型を使用（スキーマがない場合の補助）
 import { Database } from '@/types/supabase';
 
 type Diary = Database['public']['Tables']['t_diaries']['Row'];

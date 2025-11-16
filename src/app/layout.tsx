@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'auriary - AI Diary App',
-  description: 'AI と連携して日々の記録を楽に・美しく残せる次世代の日記アプリ',
+  title: 'auriary',
+  description: '日々の記録を楽に・美しく残せる次世代の日記アプリ',
 };
 
 export default function RootLayout({

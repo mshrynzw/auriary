@@ -2,7 +2,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
 describe('日記機能の結合テスト', () => {
   let supabase: ReturnType<typeof createClient>;
@@ -52,15 +54,9 @@ describe('日記機能の結合テスト', () => {
   afterAll(async () => {
     // テストデータのクリーンアップ
     if (userProfileId) {
-      await supabase
-        .from('t_diaries')
-        .delete()
-        .eq('user_id', userProfileId);
-      
-      await supabase
-        .from('m_users')
-        .delete()
-        .eq('id', userProfileId);
+      await supabase.from('t_diaries').delete().eq('user_id', userProfileId);
+
+      await supabase.from('m_users').delete().eq('id', userProfileId);
     }
   });
 
@@ -75,11 +71,7 @@ describe('日記機能の結合テスト', () => {
       updated_by: userId,
     };
 
-    const { data, error } = await supabase
-      .from('t_diaries')
-      .insert(diaryData)
-      .select()
-      .single();
+    const { data, error } = await supabase.from('t_diaries').insert(diaryData).select().single();
 
     expect(error).toBeNull();
     expect(data).toBeTruthy();
@@ -139,14 +131,9 @@ describe('日記機能の結合テスト', () => {
       updated_by: userId,
     };
 
-    const { data, error } = await supabase
-      .from('t_diaries')
-      .insert(diaryData)
-      .select()
-      .single();
+    const { data, error } = await supabase.from('t_diaries').insert(diaryData).select().single();
 
     expect(error).toBeTruthy();
     expect(data).toBeNull();
   });
 });
-

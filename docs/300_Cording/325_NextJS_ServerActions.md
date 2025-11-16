@@ -40,8 +40,7 @@ Next.js 16 の **Server Actions** を活用した実装方針を定めます。S
 
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { revalidateTag } from 'next/cache';
-import { z } from 'zod';
-import { createDiarySchema } from '@/lib/validators/diary';
+import { createDiaryFormSchema } from '@/schemas';
 
 export async function createDiary(formData: FormData) {
   // 認証チェック
@@ -54,12 +53,12 @@ export async function createDiary(formData: FormData) {
   
   // バリデーション
   const data = {
-    diary_date: formData.get('diary_date') as string,
+    journal_date: formData.get('journal_date') as string,
     note: formData.get('note') as string,
     // ...
   };
   
-  const validated = createDiarySchema.parse(data);
+  const validated = createDiaryFormSchema.parse(data);
   
   // データベースに保存
   const { error } = await supabase
@@ -83,18 +82,10 @@ export async function createDiary(formData: FormData) {
 ```typescript
 'use server';
 
-import { z } from 'zod';
+import { updateDiaryFormSchema, type UpdateDiaryFormInput } from '@/schemas';
 
-const updateDiarySchema = z.object({
-  id: z.string(),
-  note: z.string().max(10000).optional(),
-  // ...
-});
-
-export async function updateDiary(
-  input: z.infer<typeof updateDiarySchema>
-) {
-  const validated = updateDiarySchema.parse(input);
+export async function updateDiary(input: UpdateDiaryFormInput) {
+  const validated = updateDiaryFormSchema.parse(input);
   // ...
 }
 ```
