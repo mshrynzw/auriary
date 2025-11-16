@@ -396,10 +396,15 @@ export async function createNotification(
 
 #### 4.8.1 インストール可能（Installable）
 
+**目的:**
+スマートフォンでネイティブアプリのように使用できるように、ホーム画面にインストール可能にする機能。インストール後はブラウザのUI（アドレスバー、タブバーなど）が非表示となり、スタンドアロンモードで起動する。
+
 **実装方式:**
 - `manifest.json` を設定してPWAとして認識させる
 - インストールプロンプトを表示
 - ホーム画面に追加可能にする
+- スタンドアロンモード（`display: "standalone"`）で起動
+- ネイティブアプリと同様の起動体験を提供
 
 **manifest.json の設定:**
 ```json
@@ -408,9 +413,9 @@ export async function createNotification(
   "short_name": "auriary",
   "description": "AI と連携して日々の記録を楽に・美しく残せる日記アプリ",
   "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "display": "standalone",  // ブラウザUIを非表示にしてネイティブアプリのように起動
+  "background_color": "#ffffff",  // スプラッシュスクリーンの背景色
+  "theme_color": "#000000",  // ステータスバーの色（Android）
   "icons": [
     {
       "src": "/icon-192x192.png",

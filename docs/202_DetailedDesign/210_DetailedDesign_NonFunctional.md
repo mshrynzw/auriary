@@ -131,21 +131,7 @@ export const getCachedDiaries = unstable_cache(
 
 ### 10.10 PWA要件（将来実装）
 
-#### 10.10.1 インストール要件
-
-**実装方針:**
-- `manifest.json` を適切に設定
-- HTTPS 必須（Cloudflare Pages で自動対応）
-- Service Worker の登録
-- 適切なアイコンサイズ（192x192、512x512）
-
-**インストール可能条件:**
-- HTTPS で配信されている
-- `manifest.json` が存在し、適切に設定されている
-- Service Worker が登録されている
-- アイコンが設定されている
-
-#### 10.10.2 オフライン対応要件
+#### 10.10.1 オフライン対応要件
 
 **実装方針:**
 - Service Worker によるキャッシング
@@ -158,7 +144,7 @@ export const getCachedDiaries = unstable_cache(
 - オフラインインジケーターを表示
 - オフライン時は一部機能を制限
 
-#### 10.10.3 パフォーマンス要件（PWA）
+#### 10.10.2 パフォーマンス要件（PWA）
 
 **実装方針:**
 - Service Worker による静的アセットのキャッシング
@@ -170,10 +156,12 @@ export const getCachedDiaries = unstable_cache(
 - オフライン時のページ表示: 500ms 以内
 - キャッシュヒット率: 80% 以上
 
-#### 10.10.4 セキュリティ要件（PWA）
+#### 10.10.3 セキュリティ要件（PWA）
 
 **実装方針:**
 - HTTPS 必須（Cloudflare Pages で自動対応）
+  - PWAのインストールにはHTTPSが必須要件
+  - Service Worker の登録にもHTTPSが必要
 - Service Worker のスコープ制限
 - キャッシュデータの適切な管理
 - プッシュ通知の認証
