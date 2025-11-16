@@ -266,15 +266,29 @@ pnpm run build:cloudflare
    - 以下の環境変数を追加：
      - `NEXT_PUBLIC_SUPABASE_URL`: あなたのSupabaseプロジェクトURL
      - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: あなたのSupabase Anon Key
+   - **重要**: 環境変数は「**Production**」環境に設定してください
+   - プレビュー環境用に設定する場合は、「**Preview**」タブでも設定が必要です
 
 2. **環境変数の確認**
    - 変数名が正確であることを確認（`NEXT_PUBLIC_`で始まる必要がある）
    - 値が正しく設定されていることを確認（スペースや改行が含まれていないか）
+   - 値の前後に引用符（`"`や`'`）が含まれていないことを確認
+   - 「**Production**」環境に設定されていることを確認
 
-3. **再デプロイ**
+3. **ビルド時の環境変数**
+   - Cloudflare Pagesでは、環境変数は実行時にWorkerに渡されます
+   - ビルドログに「Build environment variables: (none found)」と表示されても、実行時の環境変数は別に設定されます
+   - ただし、`NEXT_PUBLIC_`で始まる変数はクライアントサイドでも使用されるため、正しく設定されている必要があります
+
+4. **再デプロイ**
    - 環境変数を設定した後は、必ず再デプロイが必要です
    - Cloudflare Dashboardで「Retry deployment」をクリック
    - または、新しいコミットをプッシュして自動デプロイをトリガー
+
+5. **環境変数の確認方法**
+   - Cloudflare Dashboard → Observability → Real-time Logs でログを確認
+   - エラーログに「Missing Supabase environment variables」が表示されていないか確認
+   - デバッグログが有効な場合、環境変数の読み込み状況が表示されます
 
 ### 2. Cloudflare Pagesのログを確認
 
