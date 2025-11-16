@@ -34,7 +34,7 @@
 - **[テーブル定義書](./202_DetailedDesign/205_DetailedDesign_Table_Definition.md)** で詳細なカラム定義を確認
 
 #### コーディング規約
-- **[コーディング規約（概要）](./300_Cording/301_CodingStandards.md)** で全体像を把握
+- **[コーディング規約（概要）](./300_Cording/301_CodingStandards.md)** で全体像を把握（ESLint設定のトラブルシューティングも含む）
 - **[TypeScript 規約](./300_Cording/302_TypeScript.md)** で型定義の書き方を確認
 - **[スキーマ設計](./300_Cording/311_SchemaDesign.md)** で Zod スキーマの設計原則を確認
 - **[命名規則](./300_Cording/303_NamingConventions.md)** でファイル・変数名の規則を確認

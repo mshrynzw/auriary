@@ -75,6 +75,161 @@
 - コード品質を自動チェック
 - プロジェクト全体で統一されたルールを適用
 
+**設定ファイル:**
+- `eslint.config.mjs` - ESLint 9のフラット設定形式を使用
+
+**主要な設定:**
+- TypeScriptファイル（`.ts`, `.tsx`）にはTypeScriptパーサーを使用
+- JavaScriptファイル（`.js`, `.jsx`）には標準パーサーを使用
+- ビルド生成ファイル（`.next/`, `.open-next/`, `public/sw.js`など）は除外
+
+**トラブルシューティング:**
+
+#### ESLint 9とNext.js 16の互換性問題
+
+**問題:**
+- `next lint`コマンドが`lint`ディレクトリを探すエラー
+- `FlatCompat`を使用した際の循環参照エラー
+- `.eslintrc.json`と`eslint.config.mjs`の併用エラー
+
+**解決方法:**
+
+1. **ESLint 9のフラット設定形式を使用**
+   - `eslint.config.mjs`を使用（`.eslintrc.json`は使用しない）
+   - `@typescript-eslint/eslint-plugin`と`@typescript-eslint/parser`をインストール
+
+2. **TypeScriptファイルとJavaScriptファイルを分離**
+   ```javascript
+   // eslint.config.mjs
+   {
+     files: ['**/*.{ts,tsx}'],
+     languageOptions: {
+       parser: typescriptParser,
+       parserOptions: {
+         project: './tsconfig.json',
+       },
+     },
+   },
+   {
+     files: ['**/*.{js,jsx}'],
+     // TypeScriptパーサーは使用しない
+   }
+   ```
+
+3. **ビルド生成ファイルを除外**
+   ```javascript
+   ignores: [
+     'node_modules/**',
+     '.next/**',
+     '.open-next/**',  // OpenNext.jsのビルド出力
+     'out/**',
+     'dist/**',
+     'build/**',
+     'coverage/**',
+     '*.config.{js,mjs,ts}',
+     'scripts/**',
+     'public/sw.js',  // Service Worker
+     'cloudflare-env.d.ts',  // 自動生成ファイル
+   ]
+   ```
+
+4. **ルールの調整**
+   - `no-console`: 開発中は`off`に設定（本番環境では`warn`推奨）
+   - `@typescript-eslint/no-explicit-any`: 必要に応じて`off`に設定
+   - `@typescript-eslint/no-unused-vars`: `argsIgnorePattern: '^_'`で未使用引数を許可
+
+**注意事項:**
+- ESLint 9では`.eslintrc.json`形式は非推奨（フラット設定形式のみ）
+- `next lint`コマンドはNext.js 16では削除されている可能性があるため、`eslint .`を直接使用
+- `FlatCompat`を使う場合は循環参照エラーに注意
+
+**推奨設定例:**
+
+```javascript
+// eslint.config.mjs
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
+
+/** @type {import('eslint').Linter.Config[]} */
+export default [
+  {
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      '.open-next/**',  // OpenNext.jsのビルド出力
+      'out/**',
+      'dist/**',
+      'build/**',
+      'coverage/**',
+      '*.config.{js,mjs,ts}',
+      'scripts/**',
+      'public/sw.js',  // Service Worker
+      'cloudflare-env.d.ts',  // 自動生成ファイル
+    ],
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: typescriptParser,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        project: './tsconfig.json',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-console': 'off', // 開発中はconsole.logを許可
+      'no-debugger': 'warn',
+    },
+  },
+  {
+    files: ['**/*.{js,jsx}'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      'no-debugger': 'warn',
+    },
+  },
+];
+```
+
+**必要な依存関係:**
+```json
+{
+  "devDependencies": {
+    "eslint": "^9",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "eslint-config-next": "^16.0.0"
+  }
+}
+```
+
+**package.jsonのlintスクリプト:**
+```json
+{
+  "scripts": {
+    "lint": "eslint ."
+  }
+}
+```
+
 ### Prettier
 
 - コードフォーマットを自動化
