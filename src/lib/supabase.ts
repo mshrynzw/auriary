@@ -10,14 +10,34 @@ export async function createSupabaseServerClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   // デバッグログ（常に出力して環境変数の読み込み状況を確認）
+  // Cloudflare Pagesでは、環境変数は実行時にWorkerに渡される
+  // process.envの全キーを確認（機密情報は含まれないように注意）
+  const allEnvKeys = Object.keys(process.env);
+  const supabaseEnvKeys = allEnvKeys.filter(key => key.includes('SUPABASE'));
+  
   console.log('Environment variables check:', {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
     urlLength: supabaseUrl?.length || 0,
     keyLength: supabaseAnonKey?.length || 0,
     nodeEnv: process.env.NODE_ENV,
-    allEnvKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE')),
+    supabaseEnvKeys: supabaseEnvKeys,
+    totalEnvKeys: allEnvKeys.length,
+    // デバッグ用：NEXT_PUBLIC_で始まる全てのキーを確認
+    nextPublicKeys: allEnvKeys.filter(key => key.startsWith('NEXT_PUBLIC_')),
   });
+  
+  // より詳細なデバッグ情報（環境変数が存在するが値が空の場合を検出）
+  if (supabaseEnvKeys.length > 0) {
+    console.log('Found Supabase environment variable keys:', supabaseEnvKeys);
+    supabaseEnvKeys.forEach(key => {
+      const value = process.env[key];
+      console.log(`  ${key}: ${value ? `exists (length: ${value.length})` : 'exists but is empty or undefined'}`);
+    });
+  } else {
+    console.warn('No Supabase environment variables found in process.env');
+    console.log('Available NEXT_PUBLIC_ keys:', allEnvKeys.filter(key => key.startsWith('NEXT_PUBLIC_')));
+  }
 
   if (!supabaseUrl || !supabaseAnonKey) {
     const errorMessage = `Missing Supabase environment variables. URL: ${supabaseUrl ? 'OK' : 'MISSING'}, Key: ${supabaseAnonKey ? 'OK' : 'MISSING'}`;
