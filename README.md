@@ -4,6 +4,13 @@
 auriary（オーリアリー）は、**AI と連携して日々の記録を楽に・美しく残せる次世代の日記アプリ**です。  
 ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自動生成などを自動化します。
 
+<img width="1093" height="870" alt="image" src="https://github.com/user-attachments/assets/7dcc19da-f407-4e86-957c-d134f8ee1f96" />
+
+<img width="1093" height="1320" alt="image" src="https://github.com/user-attachments/assets/6550f5af-b5af-4077-95c6-a9a57db60ab1" />
+
+<img width="378" height="820" alt="image" src="https://github.com/user-attachments/assets/e09e8f23-54b8-40e2-add0-94f97b841b54" />
+
+
 ---
 
 ## 🌟 Features
