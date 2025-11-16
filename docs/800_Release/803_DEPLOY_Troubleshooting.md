@@ -330,12 +330,53 @@ pnpm run build:cloudflare
 
 **注意**: ログが表示されるまで数秒かかる場合があります。また、「Live」ボタンをクリックしないとリアルタイムログが表示されません。
 
-**方法C: Wrangler CLIでログを確認**
+**Observabilityでログが表示されない場合**:
 
-```bash
-# プロジェクトディレクトリで実行
-wrangler pages deployment tail
-```
+1. **Observabilityが有効になっているか確認**
+   - `wrangler.jsonc`に`"observability": { "enabled": true }`が設定されているか確認
+   - 設定されていない場合は追加して再デプロイ
+
+2. **別の方法でログを確認**
+   - 方法A（デプロイメントログ）を試す
+   - 方法C（Wrangler CLI）を試す
+   - ブラウザの開発者ツール（F12）→ Consoleタブでエラーを確認
+
+3. **ログが出力される前にエラーが発生している可能性**
+   - サイトにアクセスして、ブラウザのコンソール（F12 → Console）でエラーを確認
+   - 「設定エラー」ページが表示されている場合、環境変数が読み込まれていません
+
+**方法C: Wrangler CLIでログを確認（最も確実）**
+
+1. **Wrangler CLIをインストール**（まだの場合）
+   ```bash
+   npm install -g wrangler
+   # または
+   pnpm add -g wrangler
+   ```
+
+2. **Cloudflareにログイン**
+   ```bash
+   wrangler login
+   ```
+
+3. **リアルタイムログを確認**
+   ```bash
+   # プロジェクトディレクトリで実行
+   cd D:\Code\auriary
+   wrangler pages deployment tail
+   ```
+
+4. **別のタブでサイトにアクセス**
+   - ブラウザで `https://6362f759.auriary.pages.dev` にアクセス
+   - Wrangler CLIの画面でリアルタイムログが表示されます
+
+5. **ログで以下を確認**:
+   - `Environment variables check:` のログ
+   - `hasUrl` と `hasKey` の値
+   - `allEnvKeys` の内容
+   - エラーメッセージ
+
+**注意**: Wrangler CLIは最も確実にログを確認できる方法です。Observabilityでログが表示されない場合、この方法を試してください。
 
 **よくあるエラーメッセージ**:
 - `Missing Supabase environment variables`: 環境変数が設定されていない
