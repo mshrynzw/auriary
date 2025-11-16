@@ -338,7 +338,8 @@ export function WireframeTerrainBackground() {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 10000);
-    camera.position.set(0, 0, 500);
+    const cameraDistance = 500;
+    camera.position.set(0, 0, cameraDistance);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
@@ -562,6 +563,13 @@ export function WireframeTerrainBackground() {
       particleMaterial.uniforms.elapsed.value = elapsed;
       snowMaterial.uniforms.elapsed.value = elapsed;
       auroraMaterial.uniforms.time.value = elapsed;
+
+      // カメラを中心に向かってゆっくり回転（非常に遅い速度）
+      const rotationSpeed = 0.00001; // 非常に遅い回転速度
+      const angle = elapsed * rotationSpeed;
+      camera.position.x = Math.sin(angle) * cameraDistance;
+      camera.position.z = Math.cos(angle) * cameraDistance;
+      camera.lookAt(0, 0, 0); // 常に中心を向く
 
       // オーロラをカメラの位置に追従させる
       aurora.position.copy(camera.position);
