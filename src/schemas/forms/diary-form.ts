@@ -29,4 +29,3 @@ export const updateDiaryFormSchema = createDiaryFormSchema.partial();
 
 export type CreateDiaryFormInput = z.infer<typeof createDiaryFormSchema>;
 export type UpdateDiaryFormInput = z.infer<typeof updateDiaryFormSchema>;
-

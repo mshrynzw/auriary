@@ -17,4 +17,3 @@ export const medicationSchema = medicationRowSchema;
 
 export type Medication = z.infer<typeof medicationSchema>;
 export type MedicationRow = z.infer<typeof medicationRowSchema>;
-

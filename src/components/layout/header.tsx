@@ -33,7 +33,7 @@ export async function Header() {
       <header className="border-b bg-background">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <Link href="/diary" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <BookOpen className="h-6 w-6" />
               <span className="text-xl font-bold">auriary</span>
             </Link>

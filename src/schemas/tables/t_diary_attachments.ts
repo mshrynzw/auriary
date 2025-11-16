@@ -19,4 +19,3 @@ export const diaryAttachmentSchema = diaryAttachmentRowSchema;
 
 export type DiaryAttachment = z.infer<typeof diaryAttachmentSchema>;
 export type DiaryAttachmentRow = z.infer<typeof diaryAttachmentRowSchema>;
-

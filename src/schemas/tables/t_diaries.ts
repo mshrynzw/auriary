@@ -41,4 +41,3 @@ export const diarySchema = diaryRowSchema.transform((data) => ({
 
 export type Diary = z.infer<typeof diarySchema>;
 export type DiaryRow = z.infer<typeof diaryRowSchema>;
-

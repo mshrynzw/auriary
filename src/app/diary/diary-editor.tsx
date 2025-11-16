@@ -194,7 +194,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
       };
 
       if (isEdit) {
-              const result = await updateDiaryAction(diary.id, submitData as UpdateDiaryFormInput);
+        const result = await updateDiaryAction(diary.id, submitData as UpdateDiaryFormInput);
         if (result?.error) {
           setError(result.error.message);
           toast.error(result.error.message);
@@ -203,7 +203,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           router.push('/diary');
         }
       } else {
-              const result = await createDiaryAction(submitData as CreateDiaryFormInput);
+        const result = await createDiaryAction(submitData as CreateDiaryFormInput);
         if (result?.error) {
           setError(result.error.message);
           toast.error(result.error.message);

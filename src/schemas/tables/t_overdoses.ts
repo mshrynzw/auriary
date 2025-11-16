@@ -24,4 +24,3 @@ export const overdoseSchema = overdoseRowSchema.transform((data) => ({
 
 export type Overdose = z.infer<typeof overdoseSchema>;
 export type OverdoseRow = z.infer<typeof overdoseRowSchema>;
-

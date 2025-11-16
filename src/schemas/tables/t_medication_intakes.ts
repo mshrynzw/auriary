@@ -22,4 +22,3 @@ export const medicationIntakeSchema = medicationIntakeRowSchema.transform((data)
 
 export type MedicationIntake = z.infer<typeof medicationIntakeSchema>;
 export type MedicationIntakeRow = z.infer<typeof medicationIntakeRowSchema>;
-

@@ -26,4 +26,3 @@ export const userMedicationSchema = userMedicationRowSchema.transform((data) => 
 
 export type UserMedication = z.infer<typeof userMedicationSchema>;
 export type UserMedicationRow = z.infer<typeof userMedicationRowSchema>;
-

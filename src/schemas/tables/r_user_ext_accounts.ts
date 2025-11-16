@@ -23,4 +23,3 @@ export const userExtAccountSchema = userExtAccountRowSchema.transform((data) => 
 
 export type UserExtAccount = z.infer<typeof userExtAccountSchema>;
 export type UserExtAccountRow = z.infer<typeof userExtAccountRowSchema>;
-

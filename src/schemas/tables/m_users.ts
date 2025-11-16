@@ -24,4 +24,3 @@ export const userSchema = userRowSchema;
 
 export type User = z.infer<typeof userSchema>;
 export type UserRow = z.infer<typeof userRowSchema>;
-

@@ -21,4 +21,3 @@ export * from './tables/t_medication_intakes';
 export * from './forms/diary-form';
 export * from './forms/auth-form';
 export * from './forms/settings-form';
-

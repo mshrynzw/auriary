@@ -26,4 +26,3 @@ export const userDailyDefaultsSchema = userDailyDefaultsRowSchema;
 
 export type UserDailyDefaults = z.infer<typeof userDailyDefaultsSchema>;
 export type UserDailyDefaultsRow = z.infer<typeof userDailyDefaultsRowSchema>;
-

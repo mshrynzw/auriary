@@ -22,4 +22,3 @@ export const registerFormSchema = z.object({
 
 export type LoginFormInput = z.infer<typeof loginFormSchema>;
 export type RegisterFormInput = z.infer<typeof registerFormSchema>;
-

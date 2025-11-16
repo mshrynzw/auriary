@@ -19,4 +19,3 @@ export const dailyDefaultsFormSchema = z.object({
 });
 
 export type DailyDefaultsFormInput = z.infer<typeof dailyDefaultsFormSchema>;
-

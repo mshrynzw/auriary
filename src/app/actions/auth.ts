@@ -76,7 +76,7 @@ export async function loginAction(formData: FormData) {
   }
 
   revalidatePath('/');
-  redirect('/diary');
+  redirect('/dashboard');
 }
 
 /**
