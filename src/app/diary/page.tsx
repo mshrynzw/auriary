@@ -32,8 +32,8 @@ export default async function DiaryPage() {
                 <TooltipTrigger asChild>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Info className="h-5 w-5" />
+                      <Button variant="ghost" size="icon" className="bg-white/15 hover:bg-white/25">
+                        <Info className="h-6 w-6 text-white hover:text-slate-700 transition-colors" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>

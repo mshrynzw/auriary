@@ -67,17 +67,21 @@ export function DiaryList({ diaries }: DiaryListProps) {
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {diaries.map((diary) => (
-          <Card key={diary.id}>
+          <Card
+            key={diary.id}
+            className="border-none hover:bg-muted/50 transition-colors cursor-pointer"
+            onClick={() => handlePreview(diary)}
+          >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <CardTitle className="text-lg">
                     {format(new Date(diary.journal_date), 'yyyy年M月d日 (E)', { locale: ja })}
                   </CardTitle>
-                  <CardDescription className="flex items-center gap-2">
+                  {/* <CardDescription className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     {format(new Date(diary.journal_date), 'yyyy-MM-dd')}
-                  </CardDescription>
+                  </CardDescription> */}
                 </div>
                 <div className="flex items-center gap-1">
                   {diary.mood && <Badge variant="outline">感情: {diary.mood}/10</Badge>}

@@ -75,13 +75,20 @@ export async function middleware(request: NextRequest) {
   if (isProtectedPath && !user) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    redirectResponse.headers.set('x-pathname', '/login');
+    return redirectResponse;
   }
 
   // ログイン/登録ページに認証済みでアクセスした場合
   if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register') && user) {
-    return NextResponse.redirect(new URL('/diary', request.url));
+    const redirectResponse = NextResponse.redirect(new URL('/diary', request.url));
+    redirectResponse.headers.set('x-pathname', '/diary');
+    return redirectResponse;
   }
+
+  // パス名をヘッダーに追加（ヘッダーコンポーネントで使用）
+  response.headers.set('x-pathname', request.nextUrl.pathname);
 
   return response;
 }

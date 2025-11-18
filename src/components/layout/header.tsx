@@ -1,6 +1,6 @@
 import { getAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LogOut, BookOpen, Calendar, BarChart3, Settings, ChartArea } from 'lucide-react';
+import { LogOut, BookOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { logoutAction } from '@/app/actions/auth';
 import {
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sidber } from './sidebar';
+import { NavMenu } from './nav-menu';
 
 export async function Header() {
   try {
@@ -41,34 +42,7 @@ export async function Header() {
                 aurialy
               </div>
             </Link>
-            {user && (
-              <nav className="hidden md:flex items-center gap-4">
-                <Link href="/dashboard">
-                  <Button variant="ghost" size="sm">
-                    <ChartArea className="mr-2 h-4 w-4" />
-                    ダッシュボード
-                  </Button>
-                </Link>
-                <Link href="/diary">
-                  <Button variant="ghost" size="sm">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    日記
-                  </Button>
-                </Link>
-                <Link href="/calendar">
-                  <Button variant="ghost" size="sm">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    カレンダー
-                  </Button>
-                </Link>
-                <Link href="/analytics">
-                  <Button variant="ghost" size="sm">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    分析
-                  </Button>
-                </Link>
-              </nav>
-            )}
+            {user && <NavMenu />}
           </div>
           {user && (
             <div className="flex items-center gap-4">
