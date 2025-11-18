@@ -89,7 +89,7 @@ export function DiaryList({ diaries }: DiaryListProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+              <p className="text-sm line-clamp-3 mb-4 animate-dimlight">
                 {diary.note || '本文なし'}
               </p>
               <div className="flex items-center justify-end gap-2">
