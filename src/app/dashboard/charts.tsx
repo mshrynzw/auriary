@@ -130,21 +130,27 @@ export function UnifiedChart({ diaries }: ChartProps) {
       return diaryDate >= cutoffDate;
     });
   };
-  // 睡眠時間を計算する関数
-  const calculateSleepHours = (
-    sleepStart: string | null,
-    sleepEnd: string | null,
-  ): number | null => {
+  // 睡眠時間を計算する関数（当日の就寝時間と起床時間を使用）
+  const calculateSleepHours = (currentDiary: DiaryRow): number | null => {
+    const sleepStart = currentDiary.sleep_start_at;
+    const sleepEnd = currentDiary.sleep_end_at;
+
+    // 就寝時間と起床時間の両方が必要
     if (!sleepStart || !sleepEnd) return null;
 
     const start = new Date(sleepStart);
-    const end = new Date(sleepEnd);
+    let end = new Date(sleepEnd);
 
-    // 日付をまたぐ場合を考慮（就寝が前日、起床が当日の場合）
+    // 起床時刻が就寝時刻より前の場合（日付をまたいでいる）、起床時刻を翌日に調整
+    if (end.getTime() < start.getTime()) {
+      end.setDate(end.getDate() + 1);
+    }
+
+    // 日付をまたぐ場合を考慮（就寝が当日の夜、起床が翌朝の場合）
     const diffMs = end.getTime() - start.getTime();
     const hours = diffMs / (1000 * 60 * 60);
 
-    // 負の値や異常に大きな値は除外
+    // 負の値や異常に大きな値は除外（24時間を超える場合は除外）
     if (hours < 0 || hours > 24) return null;
 
     return Math.round(hours * 10) / 10; // 小数点第1位まで
@@ -157,7 +163,8 @@ export function UnifiedChart({ diaries }: ChartProps) {
   const chartData = filteredDiaries
     .map((d) => {
       const date = new Date(d.journal_date);
-      const sleepHours = calculateSleepHours(d.sleep_start_at, d.sleep_end_at);
+      // 当日の就寝時間と起床時間を使って計算
+      const sleepHours = calculateSleepHours(d);
       // OD回数を計算（od_times配列の長さ）
       const odTimes = d.od_times && Array.isArray(d.od_times) ? d.od_times.length : null;
 
