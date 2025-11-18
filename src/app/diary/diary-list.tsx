@@ -49,6 +49,9 @@ export function DiaryList({ diaries }: DiaryListProps) {
     setPreviewDiary(diary);
     setIsPreviewOpen(true);
   };
+  const stopPropagation = (event: React.MouseEvent) => {
+    event.stopPropagation();
+  };
 
   if (diaries.length === 0) {
     return (
@@ -108,8 +111,8 @@ export function DiaryList({ diaries }: DiaryListProps) {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Link href={`/diary/${diary.id}/edit`}>
-                        <Button variant="outline" size="icon">
+                      <Link href={`/diary/${diary.id}/edit`} onClick={stopPropagation}>
+                        <Button variant="outline" size="icon" onClick={stopPropagation}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -124,7 +127,7 @@ export function DiaryList({ diaries }: DiaryListProps) {
                     <TooltipTrigger asChild>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="icon">
+                          <Button variant="outline" size="icon" onClick={stopPropagation}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
