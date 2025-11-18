@@ -40,13 +40,14 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 | 7  | med_adherence_level_default      | 服薬遵守度デフォルト   | SMALLINT    | NOT NULL |    | 1〜5。1=全く飲めず〜5=全部飲めた。                |
 | 8  | appetite_level_default     | 食欲レベルデフォルト   | SMALLINT    | NOT NULL |    | 1〜5。1=ない,2=あまりない,3=ふつう,4=ややある,5=ある。 |
 | 9  | sleep_desire_level_default | 睡眠欲レベルデフォルト  | SMALLINT    | NOT NULL |    | 1〜5。同上スケール。                         |
-| 10 | source_id                  | 元レコードID      | BIGINT      | NULL     |    | バージョン管理用。                           |
-| 11 | created_at                 | 作成日時         | TIMESTAMPTZ | NOT NULL |    | レコード作成日時。                           |
-| 12 | updated_at                 | 更新日時         | TIMESTAMPTZ | NOT NULL |    | レコード最終更新日時。                         |
-| 13 | deleted_at                 | 削除日時         | TIMESTAMPTZ | NULL     |    | ソフトデリート。                            |
-| 14 | created_by                 | 作成者ユーザーUUID  | UUID        | NOT NULL |    |                                     |
-| 15 | updated_by                 | 更新者ユーザーUUID  | UUID        | NOT NULL |    |                                     |
-| 16 | deleted_by                 | 削除者ユーザーUUID  | UUID        | NULL     |    |                                     |
+| 10 | exercise_level_default     | 運動レベルデフォルト   | SMALLINT    | NOT NULL |    | 1〜5。1=全くしない、5=たくさんする。デフォルト値は3。 |
+| 11 | source_id                  | 元レコードID      | BIGINT      | NULL     |    | バージョン管理用。                           |
+| 12 | created_at                 | 作成日時         | TIMESTAMPTZ | NOT NULL |    | レコード作成日時。                           |
+| 13 | updated_at                 | 更新日時         | TIMESTAMPTZ | NOT NULL |    | レコード最終更新日時。                         |
+| 14 | deleted_at                 | 削除日時         | TIMESTAMPTZ | NULL     |    | ソフトデリート。                            |
+| 15 | created_by                 | 作成者ユーザーUUID  | UUID        | NOT NULL |    |                                     |
+| 16 | updated_by                 | 更新者ユーザーUUID  | UUID        | NOT NULL |    |                                     |
+| 17 | deleted_by                 | 削除者ユーザーUUID  | UUID        | NULL     |    |                                     |
 
 ---
 
@@ -139,16 +140,17 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 | 12 | med_adherence_level      | 服薬遵守度          | SMALLINT    | NULL     |    | 1〜5。1=全く飲めず,5=全部飲めた。  |
 | 13 | appetite_level     | 食欲レベル          | SMALLINT    | NULL     |    | 1〜5。1=ない〜5=ある。        |
 | 14 | sleep_desire_level | 睡眠欲レベル         | SMALLINT    | NULL     |    | 1〜5。                  |
-| 15 | note      | 日記本文（Markdown） | TEXT        | NULL     |    | 自由記述。Markdownで記録。     |
-| 16 | has_od             | OD発生フラグ        | BOOLEAN     | NULL     |    | その日に OD があったか。        |
-| 17 | od_times            | OD情報配列          | JSONB       | NULL     |    | ODの時刻・量・単位・メモを配列で保持。各要素は `{occurred_at, amount, amount_unit, context_memo, source_id}` の形式。 |
-| 18 | source_id          | 元レコードID        | BIGINT      | NULL     |    | バージョン管理用。             |
-| 19 | created_at         | 作成日時           | TIMESTAMPTZ | NOT NULL |    |                       |
-| 20 | updated_at         | 更新日時           | TIMESTAMPTZ | NOT NULL |    |                       |
-| 21 | deleted_at         | 削除日時           | TIMESTAMPTZ | NULL     |    |                       |
-| 22 | created_by         | 作成者ユーザーUUID    | UUID        | NOT NULL |    |                       |
-| 23 | updated_by         | 更新者ユーザーUUID    | UUID        | NOT NULL |    |                       |
-| 24 | deleted_by         | 削除者ユーザーUUID    | UUID        | NULL     |    |                       |
+| 15 | exercise_level     | 運動レベル           | SMALLINT    | NULL     |    | 1〜5。1=全くしない、5=たくさんする。 |
+| 16 | note      | 日記本文（Markdown） | TEXT        | NULL     |    | 自由記述。Markdownで記録。     |
+| 17 | has_od             | OD発生フラグ        | BOOLEAN     | NULL     |    | その日に OD があったか。        |
+| 18 | od_times            | OD情報配列          | JSONB       | NULL     |    | ODの時刻・量・単位・メモを配列で保持。各要素は `{occurred_at, amount, amount_unit, context_memo, source_id}` の形式。 |
+| 19 | source_id          | 元レコードID        | BIGINT      | NULL     |    | バージョン管理用。             |
+| 20 | created_at         | 作成日時           | TIMESTAMPTZ | NOT NULL |    |                       |
+| 21 | updated_at         | 更新日時           | TIMESTAMPTZ | NOT NULL |    |                       |
+| 22 | deleted_at         | 削除日時           | TIMESTAMPTZ | NULL     |    |                       |
+| 23 | created_by         | 作成者ユーザーUUID    | UUID        | NOT NULL |    |                       |
+| 24 | updated_by         | 更新者ユーザーUUID    | UUID        | NOT NULL |    |                       |
+| 25 | deleted_by         | 削除者ユーザーUUID    | UUID        | NULL     |    |                       |
 
 ---
 

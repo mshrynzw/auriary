@@ -113,6 +113,8 @@ src/
 
 ### 2.6 デプロイ構成（Cloudflare Pages）
 
+**実装状況:** 実装済み
+
 ```mermaid
 graph LR
     Git[GitHub] -->|Push| CI[GitHub Actions]
@@ -124,10 +126,16 @@ graph LR
 ```
 
 **特徴：**
-- **@opennextjs/cloudflare**：Next.js を Cloudflare Pages に最適化
+- **@opennextjs/cloudflare**：Next.js を Cloudflare Pages に最適化（実装済み）
 - **Edge Network**：グローバル CDN による高速配信
 - **KV Storage**：セッション管理やキャッシュ（将来実装）
-- **PWA対応**：Service Worker と manifest.json を配信
+- **PWA対応**：Service Worker と manifest.json を配信（実装済み）
+
+**実装詳細:**
+- `open-next.config.ts`: Cloudflare設定ファイル
+- `package.json`: `build:cloudflare` スクリプトでビルド
+- `wrangler.jsonc`: Wrangler設定ファイル
+- デプロイ手順: [800_Release/800_Deploy.md](../800_Release/800_Deploy.md) を参照
 
 ---
 

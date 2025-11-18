@@ -71,7 +71,25 @@ export function createSupabaseServerClient() {
 4. 保存成功後、AI Summary 生成をトリガー（非同期）
 ```
 
-#### 4.2.2 OD記録機能
+#### 4.2.2 運動レベル記録機能
+
+**実装方式:**
+- 日記編集画面で運動レベルをスライダーで入力可能
+- 1〜5の5段階評価（1=全くしない、5=たくさんする）
+- 設定画面でデフォルト値を設定可能（`m_user_daily_defaults.exercise_level_default`）
+
+**データ構造:**
+- `t_diaries.exercise_level`（SMALLINT、1-5）に保存
+- デフォルト値は `m_user_daily_defaults.exercise_level_default` から取得
+
+**フロー:**
+```
+1. ユーザーが日記編集画面で運動レベルをスライダーで選択
+2. 日記保存時に`exercise_level`として保存
+3. ダッシュボードのグラフで運動レベルの推移を確認可能
+```
+
+#### 4.2.3 OD記録機能
 
 **実装方式:**
 - 日記編集画面でOD発生チェックボックスをONにすると、OD情報入力UIが表示
@@ -106,7 +124,7 @@ export function createSupabaseServerClient() {
 6. `has_od`フラグが自動設定
 ```
 
-#### 4.2.3 AI Summary 生成フロー
+#### 4.2.4 AI Summary 生成フロー
 
 **実装方式:**
 - 日記保存後にバックグラウンドで OpenAI API を呼び出し
@@ -183,6 +201,7 @@ export function createSupabaseServerClient() {
 - 服薬遵守度（0-5、折れ線グラフ）
 - 食欲レベル（0-5、折れ線グラフ）
 - 睡眠欲レベル（0-5、折れ線グラフ）
+- 運動レベル（1-5、折れ線グラフ）
 
 **機能:**
 - 表示項目の切り替え（チェックボックス）
@@ -427,19 +446,26 @@ export async function createNotification(
 - 日記リマインダーの時間設定
 - 日記未記入リマインダーの日数設定
 
-### 4.8 PWA機能（将来実装）
+### 4.8 PWA機能（実装済み）
 
 #### 4.8.1 インストール可能（Installable）
 
 **目的:**
 スマートフォンでネイティブアプリのように使用できるように、ホーム画面にインストール可能にする機能。インストール後はブラウザのUI（アドレスバー、タブバーなど）が非表示となり、スタンドアロンモードで起動する。
 
+**実装状況:** 実装済み
+
 **実装方式:**
 - `manifest.json` を設定してPWAとして認識させる
-- インストールプロンプトを表示
+- インストールプロンプトを表示（ログイン画面のみ）
 - ホーム画面に追加可能にする
 - スタンドアロンモード（`display: "standalone"`）で起動
 - ネイティブアプリと同様の起動体験を提供
+
+**実装詳細:**
+- `InstallPrompt` コンポーネントでログイン画面（`/login`）のみにインストールプロンプトを表示
+- 既にインストール済みの場合は表示しない
+- `beforeinstallprompt` イベントをキャッチしてプロンプトを表示
 
 **manifest.json の設定:**
 ```json
@@ -471,58 +497,24 @@ export async function createNotification(
 }
 ```
 
-**インストールプロンプト:**
-```typescript
-// src/components/pwa/InstallPrompt.tsx
-'use client';
-
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-
-export function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowPrompt(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setShowPrompt(false);
-    }
-    setDeferredPrompt(null);
-  };
-
-  if (!showPrompt) return null;
-
-  return (
-    <div className="fixed bottom-4 right-4 p-4 bg-white border rounded-lg shadow-lg">
-      <p>アプリをインストールして、より快適にご利用ください</p>
-      <Button onClick={handleInstall}>インストール</Button>
-    </div>
-  );
-}
-```
+**実装ファイル:**
+- `src/components/pwa/InstallPrompt.tsx`: インストールプロンプトコンポーネント
+- `public/manifest.json`: PWAマニフェストファイル
+- `src/components/pwa/PwaScript.tsx`: Service Worker登録スクリプト
 
 #### 4.8.2 オフライン対応
+
+**実装状況:** 実装済み
 
 **実装方式:**
 - Service Worker によるキャッシング戦略
 - IndexedDB によるオフラインストレージ
 - オンライン復帰時の自動同期
+
+**実装詳細:**
+- `public/sw.js`: Service Worker実装
+- `src/components/pwa/OfflineIndicator.tsx`: オフラインインジケーター（実装済み）
+- `src/lib/offline-storage.ts`: IndexedDB操作（実装済み）
 
 **キャッシング戦略:**
 - **Cache First**: 静的アセット（CSS、JS、画像）
