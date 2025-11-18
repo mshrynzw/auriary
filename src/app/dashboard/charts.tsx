@@ -222,6 +222,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
   const colors = {
     mood: '#3b82f6', // 青
     sleepHours: '#22c55e', // 緑
+    sleepHoursBar: 'rgba(34, 197, 94, 0.3)', // 緑（薄い、棒グラフ用）
     sleepQuality: '#8b5cf6', // 紫
     wakeLevel: '#f59e0b', // オレンジ
     daytimeLevel: '#3b82f6', // 青（moodと同じ）
@@ -231,6 +232,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
     sleepDesireLevel: '#06b6d4', // シアン
     exerciseLevel: '#14b8a6', // ティール
     odTimes: '#dc2626', // 赤（OD回数用）
+    odTimesBar: 'rgba(220, 38, 38, 0.3)', // 赤（薄い、棒グラフ用）
   };
 
   // ハイドレーションエラーを防ぐため、マウント後にのみレンダリング
@@ -269,10 +271,11 @@ export function UnifiedChart({ diaries }: ChartProps) {
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.129 0.042 264.695)" />
             <XAxis
               dataKey="dateLabel"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
+              stroke="oklch(0.129 0.042 264.695)"
               angle={-45}
               textAnchor="end"
               height={80}
@@ -280,15 +283,29 @@ export function UnifiedChart({ diaries }: ChartProps) {
             <YAxis
               yAxisId="left"
               domain={[0, 10]}
-              tick={{ fontSize: 12 }}
-              label={{ value: 'スコア', angle: -90, position: 'left', offset: -7.5 }}
+              tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
+              stroke="oklch(0.129 0.042 264.695)"
+              label={{
+                value: 'スコア',
+                angle: -90,
+                position: 'left',
+                offset: -7.5,
+                fill: 'oklch(0.129 0.042 264.695)',
+              }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
               domain={[0, sleepYAxisMax]}
-              tick={{ fontSize: 12 }}
-              label={{ value: '睡眠時間 (時間)', angle: 90, position: 'right', offset: -7.5 }}
+              tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
+              stroke="oklch(0.129 0.042 264.695)"
+              label={{
+                value: '睡眠時間 (時間)',
+                angle: 90,
+                position: 'right',
+                offset: -7.5,
+                fill: 'oklch(0.129 0.042 264.695)',
+              }}
             />
             <RechartsTooltip
               content={({ active, payload }) => {
@@ -298,7 +315,10 @@ export function UnifiedChart({ diaries }: ChartProps) {
                     <div className="rounded-lg border  p-2 shadow-sm">
                       <div className="grid gap-2">
                         <div className="flex flex-col">
-                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          <span
+                            className="text-[0.70rem] uppercase"
+                            style={{ color: 'oklch(0.129 0.042 264.695)' }}
+                          >
                             日付
                           </span>
                           <span className="font-bold">
@@ -313,7 +333,10 @@ export function UnifiedChart({ diaries }: ChartProps) {
                           const isOdTimes = entry.dataKey?.toString() === 'odTimes';
                           return (
                             <div key={index} className="flex flex-col">
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">
+                              <span
+                                className="text-[0.70rem] uppercase"
+                                style={{ color: 'oklch(0.129 0.042 264.695)' }}
+                              >
                                 {entry.name}
                               </span>
                               <span className="font-bold" style={{ color: entry.color }}>
@@ -341,7 +364,9 @@ export function UnifiedChart({ diaries }: ChartProps) {
               <Bar
                 yAxisId="right"
                 dataKey="sleepHours"
-                fill={colors.sleepHours}
+                fill={colors.sleepHoursBar}
+                stroke={colors.sleepHours}
+                strokeWidth={1}
                 name="睡眠時間"
                 radius={[4, 4, 0, 0]}
               />
@@ -461,7 +486,9 @@ export function UnifiedChart({ diaries }: ChartProps) {
               <Bar
                 yAxisId="left"
                 dataKey="odTimes"
-                fill={colors.odTimes}
+                fill={colors.odTimesBar}
+                stroke={colors.odTimes}
+                strokeWidth={1}
                 name="OD回数"
                 radius={[4, 4, 0, 0]}
               />
