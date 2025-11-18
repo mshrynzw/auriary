@@ -8,7 +8,7 @@ self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll(['/login', '/manifest.json', '/icon-192x192.png', '/icon-512x512.png']);
+      return cache.addAll(['/', '/manifest.json', '/icon-192x192.png', '/icon-512x512.png']);
     }),
   );
   self.skipWaiting();

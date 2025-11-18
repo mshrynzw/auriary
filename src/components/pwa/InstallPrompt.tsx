@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 
@@ -10,10 +11,16 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallPrompt() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
+    // ログインページ以外では表示しない
+    if (pathname !== '/login') {
+      return;
+    }
+
     // 既にインストールされている場合は表示しない
     if (window.matchMedia('(display-mode: standalone)').matches) {
       return;
@@ -30,7 +37,7 @@ export function InstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, []);
+  }, [pathname]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -57,7 +64,8 @@ export function InstallPrompt() {
     setDeferredPrompt(null);
   };
 
-  if (!showPrompt) return null;
+  // ログインページ以外では表示しない
+  if (pathname !== '/login' || !showPrompt) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm p-4 bg-background border border-border rounded-lg shadow-lg">

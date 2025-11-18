@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/header';
@@ -22,7 +22,6 @@ export const metadata: Metadata = {
   title: 'auriary',
   description: '日々の記録を楽に・幻想的に残せる次世代の日記アプリ',
   manifest: '/manifest.json',
-  themeColor: '#B1B1B4',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -35,6 +34,10 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: '/apple-icon-180x180.png', sizes: '180x180', type: 'image/png' }],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#B1B1B4',
 };
 
 export default function RootLayout({

@@ -75,14 +75,18 @@ export async function createSupabaseServerClient() {
 
     // Supabaseクライアントの作成後に接続テストを実行（認証APIのみ）
     // エラーが発生した場合、ログに出力して原因を特定
+    // ただし、セッションがない（未ログイン）場合は正常なのでログを出さない
     try {
       const { error: authTestError } = await supabase.auth.getUser();
       if (authTestError) {
-        console.error('Supabase auth connection test failed:', {
-          message: authTestError.message,
-          code: authTestError.code,
-          // AuthErrorにはdetailsとhintプロパティがないため、削除
-        });
+        // セッションがない場合は正常（未ログイン状態）なのでログを出さない
+        if (authTestError.message !== 'Auth session missing!') {
+          console.error('Supabase auth connection test failed:', {
+            message: authTestError.message,
+            code: authTestError.code,
+            // AuthErrorにはdetailsとhintプロパティがないため、削除
+          });
+        }
       } else {
         console.log('Supabase connection test: OK (auth endpoint accessible)');
       }
