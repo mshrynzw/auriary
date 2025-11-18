@@ -43,7 +43,7 @@ export default async function HomePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Link href="/diary" className="block">
+              <Link href="/diary/new" className="block">
                 <Button className="w-full" size="lg">
                   <BookOpen className="mr-2 h-4 w-4" />
                   日記を始める

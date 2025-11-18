@@ -633,12 +633,14 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const currentDate = journalDate || format(new Date(), 'yyyy-MM-dd');
+                        const now = new Date();
                         const currentOdTimes = getValues('od_times') ?? [];
                         setValue('od_times', [
                           ...currentOdTimes,
                           {
-                            occurred_at: `${currentDate}T00:00`,
+                            occurred_at: format(now, "yyyy-MM-dd'T'HH:mm"),
+                            medication_id: null,
+                            medication_name: null,
                             amount: null,
                             amount_unit: null,
                             context_memo: null,
