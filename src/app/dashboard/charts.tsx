@@ -40,6 +40,7 @@ type VisibilitySettings = {
   medAdherenceLevel: boolean;
   appetiteLevel: boolean;
   sleepDesireLevel: boolean;
+  exerciseLevel: boolean;
   odTimes: boolean;
 };
 
@@ -55,6 +56,7 @@ const DEFAULT_VISIBILITY: VisibilitySettings = {
   medAdherenceLevel: false,
   appetiteLevel: false,
   sleepDesireLevel: false,
+  exerciseLevel: false,
   odTimes: false,
 };
 
@@ -180,6 +182,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
         medAdherenceLevel: d.med_adherence_level,
         appetiteLevel: d.appetite_level,
         sleepDesireLevel: d.sleep_desire_level,
+        exerciseLevel: d.exercise_level,
         odTimes,
       };
     })
@@ -194,6 +197,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
         d.medAdherenceLevel !== null ||
         d.appetiteLevel !== null ||
         d.sleepDesireLevel !== null ||
+        d.exerciseLevel !== null ||
         d.odTimes !== null,
     )
     .sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -225,6 +229,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
     medAdherenceLevel: '#10b981', // 緑
     appetiteLevel: '#ef4444', // 赤
     sleepDesireLevel: '#06b6d4', // シアン
+    exerciseLevel: '#14b8a6', // ティール
     odTimes: '#dc2626', // 赤（OD回数用）
   };
 
@@ -439,6 +444,18 @@ export function UnifiedChart({ diaries }: ChartProps) {
                 name="睡眠欲レベル"
               />
             )}
+            {visibility.exerciseLevel && (
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="exerciseLevel"
+                stroke={colors.exerciseLevel}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 6 }}
+                name="運動レベル"
+              />
+            )}
             {/* OD回数（棒グラフ） */}
             {visibility.odTimes && (
               <Bar
@@ -547,6 +564,16 @@ export function UnifiedChart({ diaries }: ChartProps) {
               />
               <Label htmlFor="sleepDesireLevel" className="text-sm cursor-pointer">
                 睡眠欲レベル
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="exerciseLevel"
+                checked={visibility.exerciseLevel}
+                onCheckedChange={(checked) => updateVisibility('exerciseLevel', checked === true)}
+              />
+              <Label htmlFor="exerciseLevel" className="text-sm cursor-pointer">
+                運動レベル
               </Label>
             </div>
             <div className="flex items-center space-x-2">

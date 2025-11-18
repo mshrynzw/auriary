@@ -44,6 +44,7 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       med_adherence_level: validated.data.med_adherence_level,
       appetite_level: validated.data.appetite_level,
       sleep_desire_level: validated.data.sleep_desire_level,
+      exercise_level: validated.data.exercise_level,
       has_od: hasOd,
       od_times:
         validated.data.od_times && validated.data.od_times.length > 0

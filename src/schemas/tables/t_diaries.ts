@@ -41,6 +41,7 @@ export const diaryRowSchema = commonColumnsSchema.extend({
   med_adherence_level: levelSchema.nullable(),
   appetite_level: levelSchema.nullable(),
   sleep_desire_level: levelSchema.nullable(),
+  exercise_level: levelSchema.nullable(),
   note: z.string().nullable(),
   has_od: z.boolean().nullable(),
   od_times: z.array(odTimeItemSchema).nullable(), // JSONB配列

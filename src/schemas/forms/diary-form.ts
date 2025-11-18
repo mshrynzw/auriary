@@ -30,6 +30,7 @@ export const createDiaryFormSchema = z.object({
   med_adherence_level: levelSchema.optional(),
   appetite_level: levelSchema.optional(),
   sleep_desire_level: levelSchema.optional(),
+  exercise_level: levelSchema.optional(),
   has_od: z.boolean().optional(),
   od_times: z.array(odTimeFormItemSchema).optional(),
   // datetime-local入力はブラウザが自動的に正しい形式を強制するため、バリデーション不要

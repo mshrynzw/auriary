@@ -48,6 +48,7 @@ type DailyDefaults = Pick<
   | 'med_adherence_level_default'
   | 'appetite_level_default'
   | 'sleep_desire_level_default'
+  | 'exercise_level_default'
   | 'sleep_start_at_default'
   | 'sleep_end_at_default'
   | 'bath_start_at_default'
@@ -87,6 +88,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           med_adherence_level: diary.med_adherence_level || undefined,
           appetite_level: diary.appetite_level || undefined,
           sleep_desire_level: diary.sleep_desire_level || undefined,
+          exercise_level: diary.exercise_level || undefined,
           has_od: diary.has_od || false,
           od_times: diary.od_times
             ? diary.od_times.map((item) => ({
@@ -131,6 +133,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           med_adherence_level: defaults?.med_adherence_level_default,
           appetite_level: defaults?.appetite_level_default,
           sleep_desire_level: defaults?.sleep_desire_level_default,
+          exercise_level: defaults?.exercise_level_default,
           od_times: [],
           // 時刻フィールドはuseEffectでクライアント側でのみ設定
           sleep_start_at: undefined,
@@ -148,6 +151,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
     watch('med_adherence_level') ?? defaults?.med_adherence_level_default ?? 3;
   const appetiteLevel = watch('appetite_level') ?? defaults?.appetite_level_default ?? 3;
   const sleepDesireLevel = watch('sleep_desire_level') ?? defaults?.sleep_desire_level_default ?? 3;
+  const exerciseLevel = watch('exercise_level') ?? defaults?.exercise_level_default ?? 3;
   const hasOd = watch('has_od') ?? false;
   const odTimes = watch('od_times') ?? [];
 
@@ -484,6 +488,30 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[sleepDesireLevel]}
                     onValueChange={(value) => setValue('sleep_desire_level', value[0])}
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>運動レベル: {exerciseLevel}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=全くしない、5=たくさんする</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[exerciseLevel]}
+                    onValueChange={(value) => setValue('exercise_level', value[0])}
                     min={1}
                     max={5}
                     step={1}

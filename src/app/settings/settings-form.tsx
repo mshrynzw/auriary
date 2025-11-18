@@ -32,6 +32,7 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
     med_adherence_level_default: 3,
     appetite_level_default: 3,
     sleep_desire_level_default: 3,
+    exercise_level_default: 3,
     sleep_start_at_default: null as string | null,
     sleep_end_at_default: null as string | null,
     bath_start_at_default: null as string | null,
@@ -51,6 +52,7 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
           med_adherence_level_default: result.defaults.med_adherence_level_default || 3,
           appetite_level_default: result.defaults.appetite_level_default || 3,
           sleep_desire_level_default: result.defaults.sleep_desire_level_default || 3,
+          exercise_level_default: result.defaults.exercise_level_default || 3,
           sleep_start_at_default: result.defaults.sleep_start_at_default || null,
           sleep_end_at_default: result.defaults.sleep_end_at_default || null,
           bath_start_at_default: result.defaults.bath_start_at_default || null,
@@ -320,6 +322,32 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
                     value={[defaults.sleep_desire_level_default]}
                     onValueChange={(value) =>
                       setDefaults({ ...defaults, sleep_desire_level_default: value[0] })
+                    }
+                    min={1}
+                    max={5}
+                    step={1}
+                    disabled={isSavingDefaults}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>運動レベル: {defaults.exercise_level_default}/5</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>1=全くしない、5=たくさんする</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[defaults.exercise_level_default]}
+                    onValueChange={(value) =>
+                      setDefaults({ ...defaults, exercise_level_default: value[0] })
                     }
                     min={1}
                     max={5}

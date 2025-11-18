@@ -24,6 +24,7 @@ export const dailyDefaultsSchema = z.object({
   med_adherence_level_default: z.number().min(1).max(5),
   appetite_level_default: z.number().min(1).max(5),
   sleep_desire_level_default: z.number().min(1).max(5),
+  exercise_level_default: z.number().min(1).max(5),
   sleep_start_at_default: timeFieldSchema,
   sleep_end_at_default: timeFieldSchema,
   bath_start_at_default: timeFieldSchema,

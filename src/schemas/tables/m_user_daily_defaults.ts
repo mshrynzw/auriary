@@ -13,6 +13,7 @@ export const userDailyDefaultsRowSchema = commonColumnsSchema.extend({
   med_adherence_level_default: levelSchema,
   appetite_level_default: levelSchema,
   sleep_desire_level_default: levelSchema,
+  exercise_level_default: levelSchema,
   sleep_start_at_default: timeStringSchema,
   sleep_end_at_default: timeStringSchema,
   bath_start_at_default: timeStringSchema,
