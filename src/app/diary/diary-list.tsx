@@ -69,7 +69,7 @@ export function DiaryList({ diaries }: DiaryListProps) {
         {diaries.map((diary) => (
           <Card
             key={diary.id}
-            className="border-none hover:bg-muted/50 transition-colors cursor-pointer"
+            className="border-none bg-muted/50 hover:bg-muted/70 transition-colors cursor-pointer"
             onClick={() => handlePreview(diary)}
           >
             <CardHeader>

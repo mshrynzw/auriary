@@ -224,7 +224,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
   // ハイドレーションエラーを防ぐため、マウント後にのみレンダリング
   if (!isMounted) {
     return (
-      <Card>
+      <Card className="border-none bg-muted/50">
         <CardHeader>
           <CardTitle>データ推移</CardTitle>
         </CardHeader>
@@ -236,7 +236,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
   }
 
   return (
-    <Card>
+    <Card className="border-none bg-muted/50">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>データ推移</CardTitle>
