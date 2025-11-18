@@ -93,7 +93,7 @@ export function DiaryList({ diaries }: DiaryListProps) {
                 {diary.note || '本文なし'}
               </p>
               <div className="flex items-center justify-end gap-2">
-                <TooltipProvider>
+                {/* <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="icon" onClick={() => handlePreview(diary)}>
@@ -104,7 +104,7 @@ export function DiaryList({ diaries }: DiaryListProps) {
                       <p>日記をプレビュー</p>
                     </TooltipContent>
                   </Tooltip>
-                </TooltipProvider>
+                </TooltipProvider> */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
