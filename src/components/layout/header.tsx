@@ -31,7 +31,7 @@ export async function Header() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/60 backdrop-blur-s">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <div
                 className="flex items-center gap-2 text-2xl font-semibold tracking-wider animate-dimlight box-reflect group-data-[collapsible=icon]:hidden aurialy-logo"
                 data-text="aurialy"
