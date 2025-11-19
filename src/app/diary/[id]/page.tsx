@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth';
+import { getAuth } from '@/lib/auth';
 import { getDiaryAction } from '@/app/actions/diary';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,7 @@ type PageProps = {
 };
 
 export default async function DiaryDetailPage({ params }: PageProps) {
-  await requireAuth();
+  const { userProfile } = await getAuth();
   const { id } = await params;
   const diaryId = parseInt(id, 10);
 
@@ -37,9 +37,10 @@ export default async function DiaryDetailPage({ params }: PageProps) {
   }
 
   const diary = result.diary;
+  const isAuthenticated = !!userProfile;
 
   return (
-    <div className="min-h-screen ">
+    <div className="aurialy ">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-white/90">日記詳細</h1>
@@ -76,21 +77,23 @@ export default async function DiaryDetailPage({ params }: PageProps) {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link href={`/diary/${diaryId}/edit`}>
-                    <Button>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      編集
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>日記を編集</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {isAuthenticated && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href={`/diary/${diaryId}/edit`}>
+                      <Button>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        編集
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>日記を編集</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
 

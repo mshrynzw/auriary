@@ -19,7 +19,7 @@ export default async function NewDiaryPage() {
   const defaults = defaultsResult?.defaults;
 
   return (
-    <div className="min-h-screen ">
+    <div className="aurialy ">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-white/90">新しい日記</h1>

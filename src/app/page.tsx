@@ -11,7 +11,7 @@ export default async function HomePage() {
   // 環境変数が設定されていない場合のエラーメッセージ
   if (!authResult.supabase) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-4">
+      <main className="aurialy flex items-center justify-center p-4">
         <Card className="w-full max-w-md border-destructive">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-destructive">設定エラー</CardTitle>

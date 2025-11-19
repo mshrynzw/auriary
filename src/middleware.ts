@@ -67,12 +67,17 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 保護されたルート
-  const protectedPaths = ['/diary', '/calendar', '/analytics', '/settings'];
+  // 保護されたルート（/diaryと/dashboardは未認証でも閲覧可能）
+  const protectedPaths = ['/calendar', '/analytics', '/settings'];
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
+  // 編集・削除ページは認証が必要
+  const isEditPath =
+    request.nextUrl.pathname === '/diary/new' ||
+    /^\/diary\/\d+\/edit$/.test(request.nextUrl.pathname);
+
   // 認証が必要なページに未認証でアクセスした場合
-  if (isProtectedPath && !user) {
+  if ((isProtectedPath || isEditPath) && !user) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
     const redirectResponse = NextResponse.redirect(redirectUrl);

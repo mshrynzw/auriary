@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth';
+import { getAuth } from '@/lib/auth';
 import { getDiariesAction } from '@/app/actions/diary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { type DiaryRow } from '@/schemas';
 import { UnifiedChart } from './charts';
 
 export default async function DashboardPage() {
-  const { userProfile } = await requireAuth();
+  const { userProfile } = await getAuth();
 
   // 全期間の日記を取得（統計用）
   const allDiariesResult = await getDiariesAction();
@@ -48,14 +48,10 @@ export default async function DashboardPage() {
       : null;
 
   return (
-    <div className="min-h-screen ">
+    <div className="aurialy ">
       <div className="container mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-white/90">ダッシュボード</h1>
-        </div>
-
         {/* 統計情報カード */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">総日記数</CardTitle>

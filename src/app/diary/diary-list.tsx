@@ -28,9 +28,10 @@ import { type DiaryRow } from '@/schemas';
 
 type DiaryListProps = {
   diaries: DiaryRow[];
+  isAuthenticated?: boolean;
 };
 
-export function DiaryList({ diaries }: DiaryListProps) {
+export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) {
   const router = useRouter();
   const [previewDiary, setPreviewDiary] = useState<DiaryRow | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -95,67 +96,57 @@ export function DiaryList({ diaries }: DiaryListProps) {
               <p className="text-sm line-clamp-3 mb-4 animate-dimlight">
                 {diary.note || '本文なし'}
               </p>
-              <div className="flex items-center justify-end gap-2">
-                {/* <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={() => handlePreview(diary)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>日記をプレビュー</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider> */}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link href={`/diary/${diary.id}/edit`} onClick={stopPropagation}>
-                        <Button variant="outline" size="icon" onClick={stopPropagation}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>日記を編集</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+              {isAuthenticated && (
+                <div className="flex items-center justify-end gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link href={`/diary/${diary.id}/edit`} onClick={stopPropagation}>
                           <Button variant="outline" size="icon" onClick={stopPropagation}>
-                            <Trash2 className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>日記を削除しますか？</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              この操作は取り消せません。日記が完全に削除されます。
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(diary.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              削除
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>日記を削除</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>日記を編集</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="icon" onClick={stopPropagation}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>日記を削除しますか？</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                この操作は取り消せません。日記が完全に削除されます。
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(diary.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                削除
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>日記を削除</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

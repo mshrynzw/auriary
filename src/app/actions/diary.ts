@@ -1,6 +1,6 @@
 'use server';
 
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getAuth } from '@/lib/auth';
 import {
   createDiaryFormSchema,
   updateDiaryFormSchema,
@@ -203,6 +203,7 @@ export async function deleteDiaryAction(id: number) {
 
 /**
  * 日記一覧を取得
+ * 未認証の場合は空の配列を返す
  */
 export async function getDiariesAction(params?: {
   start_date?: string;
@@ -210,12 +211,17 @@ export async function getDiariesAction(params?: {
   limit?: number;
   offset?: number;
 }) {
-  const { userProfile, supabase } = await requireAuth();
+  const { userProfile, supabase } = await getAuth();
+
+  // 未認証の場合は空の配列を返す
+  if (!userProfile || !supabase) {
+    return { diaries: [] };
+  }
 
   let query = supabase
     .from('t_diaries')
     .select('*')
-    .eq('user_id', userProfile!.id)
+    .eq('user_id', userProfile.id)
     .is('deleted_at', null)
     .order('journal_date', { ascending: false });
 
@@ -249,15 +255,26 @@ export async function getDiariesAction(params?: {
 
 /**
  * 日記を取得（単一）
+ * 未認証の場合はエラーを返す
  */
 export async function getDiaryAction(id: number) {
-  const { userProfile, supabase } = await requireAuth();
+  const { userProfile, supabase } = await getAuth();
+
+  // 未認証の場合はエラーを返す
+  if (!userProfile || !supabase) {
+    return {
+      error: {
+        code: 'UNAUTHORIZED',
+        message: '認証が必要です',
+      },
+    };
+  }
 
   const { data, error } = await supabase
     .from('t_diaries')
     .select('*')
     .eq('id', id)
-    .eq('user_id', userProfile!.id)
+    .eq('user_id', userProfile.id)
     .is('deleted_at', null)
     .single();
 
