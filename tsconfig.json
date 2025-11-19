@@ -28,7 +28,6 @@
       ]
     },
     "types": [
-      "./cloudflare-env.d.ts",
       "node",
       "vitest/globals",
       "@testing-library/jest-dom"
