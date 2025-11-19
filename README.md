@@ -153,7 +153,7 @@ pnpm dev
 
 ```
 
-### 5. Cloudflare Deploy（OpenNext + Wrangler）
+### 5. Cloudflare Deploy（パターン1：OpenNext + Wrangler）
 
 ```
 pnpm run build:cloudflare     # .open-next/ 以下にPages用成果物を出力
@@ -168,6 +168,54 @@ Cloudflare Pages ダッシュボードでの推奨設定
 - Compatibility flags: `nodejs_compat`
 - Envs: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`（必要に応じ `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`）
 - Windowsでローカルビルドする場合は **開発者モードを有効にするか WSL 上で実行** してください（Next.js がシンボリックリンクを作成するため、通常のPowerShellでは失敗します）。
+
+### 6. ☁️ Hybrid Deploy Pattern 2 — Cloudflare Front + Vercel Origin
+
+このパターンでは、Next.js 本体は Vercel にデプロイしつつ、Cloudflare Workers をフロントのリバースプロキシとして利用します。
+
+**構成:**
+- **Origin**: https://auriary.vercel.app （Vercel）
+- **Front**: Cloudflare Workers（`cloudflare-proxy/` 以下）
+- **特徴:**
+  - SSR / ISR ロジックはすべて Vercel 側の Next.js に任せる
+  - Cloudflare 側は非ログイン時のページや静的アセットをキャッシュして高速化
+  - Supabase Auth の Cookie / Authorization ヘッダがあるリクエストはキャッシュせずにオリジンへパススルー
+
+**デプロイ手順:**
+
+1. **Vercel にデプロイ済みであることを確認**
+   - 本番 URL: https://auriary.vercel.app
+
+2. **Cloudflare Worker をデプロイ**
+   ```bash
+   pnpm install
+   pnpm cf:proxy:deploy
+   ```
+
+3. **Cloudflare ダッシュボードで設定**
+   - Workers & Pages → auriary-proxy を選択
+   - **Routes** セクションでカスタムドメインを Worker に紐付け
+     - 例: `diary.example.com/*` → `auriary-proxy` Worker
+   - または、Workers の **Triggers** でルートを設定
+
+4. **環境変数の確認**
+   - `wrangler.toml` の `ORIGIN_BASE_URL` が正しい Vercel URL を指しているか確認
+
+**キャッシュ戦略:**
+- **静的アセット** (`/_next/static/*`, `/favicon.*`, `/images/*` など): 長期キャッシュ（1日）
+- **非ログイン状態の HTML/JSON**: 短期キャッシュ（60秒）
+- **ログイン済みユーザー**（Supabase Auth Cookie あり）: キャッシュなし（オリジンへ直接プロキシ）
+- **API エンドポイント** (`/api/*`, `/supabase/*`): キャッシュなし
+
+**開発環境でのテスト:**
+```bash
+pnpm cf:proxy:dev
+```
+
+**注意事項:**
+- パターン1（OpenNext）とパターン2（プロキシ）は独立して動作します
+- パターン2を使用する場合、Vercel 側のデプロイが正常に動作している必要があります
+- Cloudflare のエッジキャッシュにより、非ログイン時のページ読み込み速度が向上します
 
 ---
 

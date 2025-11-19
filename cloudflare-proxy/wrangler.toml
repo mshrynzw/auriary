@@ -1,0 +1,29 @@
+# Cloudflare Workers 設定（パターン2：Vercel オリジン用プロキシ）
+# 既存の wrangler.jsonc（OpenNext 用）とは別の設定ファイルです
+
+name = "auriary-proxy"
+main = "src/worker.ts"
+compatibility_date = "2025-01-20"
+compatibility_flags = ["nodejs_compat"]
+
+# 環境変数（Vercel オリジンの URL）
+[vars]
+ORIGIN_BASE_URL = "https://auriary.vercel.app"
+
+# 監視設定
+[observability]
+enabled = true
+
+# カスタムドメインのルーティング（オプション）
+# カスタムドメインを使用する場合は、以下のコメントを外して設定してください
+# routes = [
+#   { pattern = "diary.example.com/*", zone_name = "example.com" }
+# ]
+
+# または、zone_id を直接指定する場合
+# routes = [
+#   { pattern = "diary.example.com/*", zone_id = "your-zone-id" }
+# ]
+
+# 注意: カスタムドメインを使用しない場合（*.workers.dev のみ）は routes の設定は不要です
+

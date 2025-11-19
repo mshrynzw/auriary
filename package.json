@@ -21,7 +21,9 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
+    "cf:proxy:dev": "wrangler dev --config ./cloudflare-proxy/wrangler.toml",
+    "cf:proxy:deploy": "wrangler deploy --config ./cloudflare-proxy/wrangler.toml"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
