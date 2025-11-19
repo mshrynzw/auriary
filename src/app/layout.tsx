@@ -80,6 +80,7 @@ const mainFont = kosugiMaru;
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 export const revalidate = 0;
+export const runtime = 'edge';
 
 export const metadata: Metadata = {
   title: 'auriary',
