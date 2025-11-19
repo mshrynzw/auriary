@@ -6,7 +6,7 @@ import {
   Shippori_Mincho,
   Kosugi_Maru,
   M_PLUS_Rounded_1c,
-  Yuji_Syuku,
+  // Yuji_Syuku, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
 } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/header';
@@ -64,15 +64,15 @@ const mPlusRounded = M_PLUS_Rounded_1c({
   display: 'swap',
 });
 
-// 6. Yuji Syuku - 古風で幻想的
-const yujiSyuku = Yuji_Syuku({
-  variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400'],
-  display: 'swap',
-});
+// 6. Yuji Syuku - 古風で幻想的（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// const yujiSyuku = Yuji_Syuku({
+//   variable: '--font-sans',
+//   subsets: ['latin'],
+//   weight: ['400'],
+//   display: 'swap',
+// });
 
-// 使用するフォントを選択（現在は Zen Old Mincho を使用）
+// 使用するフォントを選択（現在は Kosugi Maru を使用）
 const mainFont = kosugiMaru;
 
 export const dynamic = 'force-dynamic';
