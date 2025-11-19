@@ -75,6 +75,10 @@ const yujiSyuku = Yuji_Syuku({
 // 使用するフォントを選択（現在は Zen Old Mincho を使用）
 const mainFont = kosugiMaru;
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'auriary',
   description: '日々の記録を楽に・幻想的に残せる次世代の日記アプリ',

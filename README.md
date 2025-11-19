@@ -153,15 +153,21 @@ pnpm dev
 
 ```
 
-### 5. Cloudflare Deploy
+### 5. Cloudflare Deploy（OpenNext + Wrangler）
 
 ```
-
-pnpm run build
-
+pnpm run build:cloudflare     # .open-next/ 以下にPages用成果物を出力
+# （オプション）直接Workersへ流す場合
+pnpm run deploy:cloudflare    # build → wrangler deploy まで一括
 ```
 
-Cloudflare Pages にて Next.js プロジェクトとしてデプロイ。
+Cloudflare Pages ダッシュボードでの推奨設定
+
+- Build command: `pnpm install && pnpm run build:cloudflare`
+- Build output directory: `.open-next`
+- Compatibility flags: `nodejs_compat`
+- Envs: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`（必要に応じ `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`）
+- Windowsでローカルビルドする場合は **開発者モードを有効にするか WSL 上で実行** してください（Next.js がシンボリックリンクを作成するため、通常のPowerShellでは失敗します）。
 
 ---
 

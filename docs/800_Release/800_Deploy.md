@@ -20,6 +20,10 @@
    - ビルド設定：
      - Build command: `pnpm install && pnpm run build:cloudflare`
      - Build output directory: `.open-next`
+      - Compatibility flags（Settings → Functions）: `nodejs_compat`
+      - Build comments / cache: 任意（nc-chatと同じでOK）
+    - Runtime → Placement: `Default`（Workers互換）
+    - Fail open/closed: `Fail open`（推奨）
 
 3. **環境変数を設定**
    - Settings → Environment variables
@@ -28,6 +32,10 @@
 4. **デプロイ**
    - Save and Deploy をクリック
    - 完了！
+
+> 💡 **Windowsローカルでの注意**  
+> OpenNext/Next.js は `.next/standalone` 生成時にシンボリックリンクを作成します。  
+> Cloudflare の本番ビルドはLinuxで実行されるため問題ありませんが、ローカル検証を行う場合は **開発者モードを有効にする** か **WSL上で `pnpm run build:cloudflare` を実行** してください。
 
 詳細な手順は以下を参照してください。
 
