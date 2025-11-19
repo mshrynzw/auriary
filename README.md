@@ -163,11 +163,14 @@ pnpm run deploy:cloudflare    # build → wrangler deploy まで一括
 
 Cloudflare Pages ダッシュボードでの推奨設定
 
+**推奨: OpenNext を使用する場合（バンドルサイズ最適化）**
 - Build command: `pnpm install && pnpm run build:cloudflare`
 - Build output directory: `.open-next`
 - Compatibility flags: `nodejs_compat`
 - Envs: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`（必要に応じ `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`）
 - Windowsでローカルビルドする場合は **開発者モードを有効にするか WSL 上で実行** してください（Next.js がシンボリックリンクを作成するため、通常のPowerShellでは失敗します）。
+
+**注意**: `@cloudflare/next-on-pages` はバンドルサイズが 25MB の制限を超える可能性があるため、OpenNext の使用を推奨します。
 
 ### 6. ☁️ Hybrid Deploy Pattern 2 — Cloudflare Front + Vercel Origin
 

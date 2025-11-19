@@ -17,13 +17,14 @@
    - ページ上部の「**Pages**」タブをクリック（重要：最初は「Workers」タブが選択されています）
    - 「**Import an existing Git repository**」の「**Get started**」ボタンをクリック
    - GitHubアカウントを認証・接続してリポジトリを選択
-   - ビルド設定：
-     - Build command: `pnpm install && pnpm run build:cloudflare`
-     - Build output directory: `.open-next`
-      - Compatibility flags（Settings → Functions）: `nodejs_compat`
-      - Build comments / cache: 任意（nc-chatと同じでOK）
-    - Runtime → Placement: `Default`（Workers互換）
-    - Fail open/closed: `Fail open`（推奨）
+  - ビルド設定：
+    - **Build command**: `pnpm install && pnpm run build:cloudflare`（OpenNext を使用 - バンドルサイズ最適化）
+    - **Build output directory**: `.open-next`
+    - **注意**: `@cloudflare/next-on-pages` はバンドルサイズが大きくなるため、OpenNext を推奨します
+     - Compatibility flags（Settings → Functions）: `nodejs_compat`
+     - Build comments / cache: 任意（nc-chatと同じでOK）
+   - Runtime → Placement: `Default`（Workers互換）
+   - Fail open/closed: `Fail open`（推奨）
 
 3. **環境変数を設定**
    - Settings → Environment variables
