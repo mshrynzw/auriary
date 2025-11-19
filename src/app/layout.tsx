@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import {
   Geist_Mono,
-  Noto_Serif_JP,
-  Zen_Old_Mincho,
-  Shippori_Mincho,
+  // Noto_Serif_JP, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
+  // Zen_Old_Mincho, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
+  // Shippori_Mincho, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
   Kosugi_Maru,
-  M_PLUS_Rounded_1c,
+  // M_PLUS_Rounded_1c, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
   // Yuji_Syuku, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
 } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
@@ -23,32 +23,34 @@ const geistMono = Geist_Mono({
 
 // 幻想的な日本語フォントの選択肢
 // 以下のフォントから選んで、使用するフォントのコメントを外してください
+// 注意: Cloudflare Pages ビルド環境では一部のフォントがダウンロードできないため、
+// 現在は Kosugi_Maru のみを使用しています
 
-// 1. Noto Serif JP - エレガントで読みやすい
-const notoSerifJP = Noto_Serif_JP({
-  variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
+// 1. Noto Serif JP - エレガントで読みやすい（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// const notoSerifJP = Noto_Serif_JP({
+//   variable: '--font-sans',
+//   subsets: ['latin'],
+//   weight: ['400', '500', '600', '700'],
+//   display: 'swap',
+// });
 
-// 2. Zen Old Mincho - 古風で幻想的（推奨）
-const zenOldMincho = Zen_Old_Mincho({
-  variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
+// 2. Zen Old Mincho - 古風で幻想的（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// const zenOldMincho = Zen_Old_Mincho({
+//   variable: '--font-sans',
+//   subsets: ['latin'],
+//   weight: ['400', '500', '600', '700'],
+//   display: 'swap',
+// });
 
-// 3. Shippori Mincho - 幻想的で読みやすい
-const shipporiMincho = Shippori_Mincho({
-  variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
+// 3. Shippori Mincho - 幻想的で読みやすい（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// const shipporiMincho = Shippori_Mincho({
+//   variable: '--font-sans',
+//   subsets: ['latin'],
+//   weight: ['400', '500', '600', '700'],
+//   display: 'swap',
+// });
 
-// 4. Kosugi Maru - 丸みがあって優しい
+// 4. Kosugi Maru - 丸みがあって優しい（現在使用中）
 const kosugiMaru = Kosugi_Maru({
   variable: '--font-sans',
   subsets: ['latin'],
@@ -56,13 +58,13 @@ const kosugiMaru = Kosugi_Maru({
   display: 'swap',
 });
 
-// 5. M PLUS Rounded 1c - 丸みがあってモダン
-const mPlusRounded = M_PLUS_Rounded_1c({
-  variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  display: 'swap',
-});
+// 5. M PLUS Rounded 1c - 丸みがあってモダン（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// const mPlusRounded = M_PLUS_Rounded_1c({
+//   variable: '--font-sans',
+//   subsets: ['latin'],
+//   weight: ['400', '500', '700'],
+//   display: 'swap',
+// });
 
 // 6. Yuji Syuku - 古風で幻想的（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
 // const yujiSyuku = Yuji_Syuku({
