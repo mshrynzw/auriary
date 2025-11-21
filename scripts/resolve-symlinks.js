@@ -102,3 +102,22 @@ try {
   process.exit(1);
 }
 
+// Cloudflare Pages は `_worker.js` を探すため、worker.js をコピー
+const workerJs = path.join(openNextDir, 'worker.js');
+const workerJsUnderscore = path.join(openNextDir, '_worker.js');
+
+if (!fs.existsSync(workerJs)) {
+  console.error('❌ Error: .open-next/worker.js not found. Build may have failed.');
+  process.exit(1);
+}
+
+try {
+  fs.copyFileSync(workerJs, workerJsUnderscore);
+  console.log('🗂️ Copied worker.js to _worker.js');
+} catch (error) {
+  console.error('❌ Error copying worker.js to _worker.js:', error.message);
+  process.exit(1);
+}
+
+console.log('✨ Ready for Cloudflare Pages deploy');
+

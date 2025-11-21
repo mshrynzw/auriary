@@ -27,6 +27,14 @@ if (fs.existsSync(workerJs)) {
   console.log('  ❌ .open-next/worker.js (missing)');
 }
 
+// _worker.js の確認（Cloudflare Pages 用）
+const workerJsUnderscore = path.join(openNextDir, '_worker.js');
+if (fs.existsSync(workerJsUnderscore)) {
+  console.log('  ✅ .open-next/_worker.js');
+} else {
+  console.log('  ⚠️  .open-next/_worker.js (missing - will be created by resolve-symlinks.js)');
+}
+
 // assets ディレクトリの確認
 const assetsDir = path.join(openNextDir, 'assets');
 if (fs.existsSync(assetsDir)) {

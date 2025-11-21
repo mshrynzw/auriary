@@ -679,6 +679,130 @@ Wrangler CLIのログで静的ファイルが「Ok」と表示されているに
 
 ---
 
+## サイト全体が表示されない場合（404エラー、ERR_NAME_NOT_RESOLVED）
+
+**問題**: `https://auriary.pages.dev`、`https://auriaries.org`、`https://www.auriaries.org` のいずれも表示されない
+
+**確認手順**:
+
+### 1. Cloudflare Pages プロジェクトの存在確認
+
+1. [Cloudflare Dashboard](https://dash.cloudflare.com) にログイン
+2. 左サイドバー → **Workers & Pages** → **Pages** タブをクリック
+3. **`auriary`** プロジェクトが存在するか確認
+   - 存在しない場合 → プロジェクトを作成する必要があります（[デプロイ手順](./800_DEPLOY.md)を参照）
+   - 存在する場合 → 次のステップへ
+
+### 2. デプロイメントの状態確認
+
+1. **`auriary`** プロジェクトをクリック
+2. **Deployments** タブを確認
+3. 最新のデプロイメントの状態を確認：
+   - **Success**（緑色）→ デプロイは成功しています（次のステップへ）
+   - **Failed**（赤色）→ ビルドが失敗しています（[ビルドエラーの解決](#ビルドエラーが発生する場合)を参照）
+   - **Building**（黄色）→ ビルド中です（完了まで待つ）
+   - **Queued**（灰色）→ ビルド待ちです（完了まで待つ）
+
+### 3. ビルドログの確認
+
+1. 最新のデプロイメントをクリック
+2. **Build logs** タブを確認
+3. 以下のメッセージが表示されているか確認：
+   - `✅ Symlinks resolved successfully`
+   - `🗂️ Copied worker.js to _worker.js`
+   - `✨ Ready for Cloudflare Pages deploy`
+   - `✨ Build completed`
+4. エラーメッセージがないか確認
+
+### 4. カスタムドメインの設定確認
+
+**`https://auriary.pages.dev` が見れない場合**:
+
+1. **Settings** → **Custom domains** を確認
+2. `auriary.pages.dev` が表示されているか確認
+3. 表示されていない場合 → プロジェクト名が `auriary` であることを確認
+
+**`https://auriaries.org` や `https://www.auriaries.org` が見れない場合**:
+
+1. **Settings** → **Custom domains** を確認
+2. `auriaries.org` と `www.auriaries.org` が追加されているか確認
+3. ステータスが **Active** になっているか確認
+4. **SSL/TLS** が有効になっているか確認
+
+### 5. DNS 設定の確認
+
+**`ERR_NAME_NOT_RESOLVED` が表示される場合**:
+
+1. Cloudflare Dashboard → **DNS** → **Records** を確認
+2. 手動で追加した CNAME レコードがある場合：
+   - **削除してください**（Cloudflare Pages が自動で管理します）
+3. **Custom domains** でドメインが追加されている場合：
+   - Cloudflare Pages が自動で DNS レコードを作成します
+   - 手動で追加したレコードと競合する可能性があります
+
+### 6. 再デプロイの実行
+
+1. **Deployments** タブで最新のデプロイメントを選択
+2. **Retry deployment** をクリック
+3. ビルドが完了するまで待つ（通常 5-10 分）
+4. 完了後、再度アクセスして確認
+
+### 7. プロジェクト設定の確認
+
+1. **Settings** → **Builds & deployments** を確認
+2. 以下の設定が正しいか確認：
+   - **Build command**: `pnpm install && pnpm run build:cloudflare`
+   - **Build output directory**: `.open-next`
+   - **Production branch**: `main` または `master`
+3. **Framework preset**: **Next.js** が選択されているか確認（**Next.js (Static HTML Export)** ではない）
+
+### 8. 環境変数の確認
+
+1. **Settings** → **Environment variables** を確認
+2. 以下の環境変数が設定されているか確認：
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. 環境変数が設定されていない場合、Internal Server Error が発生する可能性があります
+
+### 9. 最新のコードがプッシュされているか確認
+
+1. GitHub リポジトリを確認
+2. 最新のコミットがプッシュされているか確認
+3. `package.json` に `build:cloudflare` スクリプトが含まれているか確認
+4. `scripts/resolve-symlinks.js` が存在するか確認
+
+### 10. ローカルでビルドをテスト
+
+```bash
+cd D:\Code\auriary
+pnpm install
+pnpm run build:cloudflare
+```
+
+- ビルドが成功するか確認
+- `.open-next/worker.js` と `.open-next/_worker.js` が生成されているか確認
+- エラーが発生する場合、そのエラーを解決してから再デプロイ
+
+### 11. ブラウザのキャッシュをクリア
+
+1. ブラウザのキャッシュを完全にクリア（Ctrl+Shift+Delete）
+2. シークレットモード（プライベートモード）でアクセス
+3. デベロッパーツール → Networkタブで「Disable cache」を有効にして再読み込み
+
+### 12. 別のブラウザやデバイスで確認
+
+- 異なるブラウザでアクセス
+- モバイルデバイスでアクセス
+- 別のネットワーク（例：スマートフォンのテザリング）でアクセス
+
+### 13. Cloudflare のステータスを確認
+
+1. [Cloudflare Status](https://www.cloudflarestatus.com/) を確認
+2. Cloudflare Pages に問題がないか確認
+3. 問題がある場合、解決まで待つ
+
+---
+
 ## サポート
 
 問題が解決しない場合は、以下を参照してください：
