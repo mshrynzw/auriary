@@ -4,7 +4,7 @@ import {
   // Noto_Serif_JP, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
   // Zen_Old_Mincho, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
   // Shippori_Mincho, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
-  Kosugi_Maru,
+  // Kosugi_Maru, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
   // M_PLUS_Rounded_1c, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
   // Yuji_Syuku, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
 } from 'next/font/google';
@@ -17,14 +17,17 @@ import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import './globals.css';
 
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+  variable: '--font-geist-mono --font-sans', // --font-sans としても使用可能にする
   subsets: ['latin'],
 });
 
+// メインフォントとして Geist_Mono を使用（日本語フォントは Cloudflare Pages ビルドでエラーが発生するため一時的に無効化）
+const mainFont = geistMono;
+
 // 幻想的な日本語フォントの選択肢
 // 以下のフォントから選んで、使用するフォントのコメントを外してください
-// 注意: Cloudflare Pages ビルド環境では一部のフォントがダウンロードできないため、
-// 現在は Kosugi_Maru のみを使用しています
+// 注意: Cloudflare Pages ビルド環境では Google Fonts のダウンロードに失敗するため、
+// 現在は Geist_Mono のみを使用しています（日本語フォントは一時的に無効化）
 
 // 1. Noto Serif JP - エレガントで読みやすい（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
 // const notoSerifJP = Noto_Serif_JP({
@@ -50,13 +53,13 @@ const geistMono = Geist_Mono({
 //   display: 'swap',
 // });
 
-// 4. Kosugi Maru - 丸みがあって優しい（現在使用中）
-const kosugiMaru = Kosugi_Maru({
-  variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400'],
-  display: 'swap',
-});
+// 4. Kosugi Maru - 丸みがあって優しい（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// const kosugiMaru = Kosugi_Maru({
+//   variable: '--font-sans',
+//   subsets: ['latin'],
+//   weight: ['400'],
+//   display: 'swap',
+// });
 
 // 5. M PLUS Rounded 1c - 丸みがあってモダン（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
 // const mPlusRounded = M_PLUS_Rounded_1c({
@@ -73,9 +76,6 @@ const kosugiMaru = Kosugi_Maru({
 //   weight: ['400'],
 //   display: 'swap',
 // });
-
-// 使用するフォントを選択（現在は Kosugi Maru を使用）
-const mainFont = kosugiMaru;
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
