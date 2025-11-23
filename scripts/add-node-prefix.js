@@ -43,21 +43,36 @@ const unsupportedModules = ['timers', 'child_process', 'cluster', 'worker_thread
 function addNodePrefix(content) {
   let modified = content;
 
-  // Cloudflare Workers でサポートされていないモジュールの node: プレフィックスを削除
-  // node:timers を timers に戻す（Cloudflare Workers ではグローバル関数が利用可能）
+  // まず、Cloudflare Workers でサポートされていないモジュールを空のオブジェクトに置き換え
+  // これは、他の処理の前に実行する必要がある（node: プレフィックスを追加する前に）
+  // timers の特別処理: node:timers と timers の両方を空のオブジェクトに置き換え
+  // Cloudflare Workers では setTimeout/setInterval などのグローバル関数が利用可能なので、
+  // timers モジュールは不要（空のオブジェクトで置き換え）
+  modified = modified.replace(/require\(["']node:timers["']\)/g, '({}) /* timers not needed in Cloudflare Workers - global functions available */');
+  modified = modified.replace(/require\(['"]node:timers['"]\)/g, "({}) /* timers not needed in Cloudflare Workers - global functions available */");
+  modified = modified.replace(/require\(["']timers["']\)/g, '({}) /* timers not needed in Cloudflare Workers - global functions available */');
+  modified = modified.replace(/require\(['"]timers['"]\)/g, "({}) /* timers not needed in Cloudflare Workers - global functions available */");
+
+  // 他の unsupportedModules も同様に処理（必要に応じて）
   for (const module of unsupportedModules) {
-    // require("node:module") を require("module") に戻す（ただし、これは通常使用されない）
-    const pattern1 = new RegExp(`require\\(["']node:${module}["']\\)`, 'g');
-    modified = modified.replace(pattern1, `require("${module}")`);
+    if (module !== 'timers') {
+      // timers 以外の unsupportedModules も空のオブジェクトに置き換え
+      const pattern1 = new RegExp(`require\\(["']node:${module}["']\\)`, 'g');
+      modified = modified.replace(pattern1, `({}) /* ${module} not supported in Cloudflare Workers */`);
 
-    const pattern2 = new RegExp(`require\\(['"]node:${module}['"]\\)`, 'g');
-    modified = modified.replace(pattern2, `require('${module}')`);
+      const pattern2 = new RegExp(`require\\(['"]node:${module}['"]\\)`, 'g');
+      modified = modified.replace(pattern2, `({}) /* ${module} not supported in Cloudflare Workers */`);
 
-    // さらに、require("module") を削除またはコメントアウト（Cloudflare Workers では不要）
-    // ただし、これは危険なので、まずは node: プレフィックスを削除するだけにする
+      const pattern3 = new RegExp(`require\\(["']${module}["']\\)`, 'g');
+      modified = modified.replace(pattern3, `({}) /* ${module} not supported in Cloudflare Workers */`);
+
+      const pattern4 = new RegExp(`require\\(['"]${module}['"]\\)`, 'g');
+      modified = modified.replace(pattern4, `({}) /* ${module} not supported in Cloudflare Workers */`);
+    }
   }
 
   // require("module") を require("node:module") に置換
+  // ただし、timers は既に空のオブジェクトに置き換えられているので、スキップされる
   for (const module of nodeBuiltinModules) {
     // require("module") パターン
     const pattern1 = new RegExp(`require\\(["']${module}["']\\)`, 'g');
@@ -71,14 +86,6 @@ function addNodePrefix(content) {
   // dns/promises の特別処理
   modified = modified.replace(/require\(["']dns\/promises["']\)/g, 'require("node:dns/promises")');
   modified = modified.replace(/require\(['"]dns\/promises['"]\)/g, 'require("node:dns/promises")');
-
-  // timers の特別処理: node:timers を空のオブジェクトに置き換え
-  // Cloudflare Workers では setTimeout/setInterval などのグローバル関数が利用可能なので、
-  // timers モジュールは不要（空のオブジェクトで置き換え）
-  modified = modified.replace(/require\(["']node:timers["']\)/g, '({}) /* timers not needed in Cloudflare Workers - global functions available */');
-  modified = modified.replace(/require\(['"]node:timers['"]\)/g, "({}) /* timers not needed in Cloudflare Workers - global functions available */");
-  modified = modified.replace(/require\(["']timers["']\)/g, '({}) /* timers not needed in Cloudflare Workers - global functions available */');
-  modified = modified.replace(/require\(['"]timers['"]\)/g, "({}) /* timers not needed in Cloudflare Workers - global functions available */");
 
   return modified;
 }
@@ -131,7 +138,7 @@ try {
     processDirectory(serverFunctionsDir);
   }
 
-  // worker.js も処理
+  // worker.js と _worker.js も処理
   const workerJs = path.join(openNextDir, 'worker.js');
   if (fs.existsSync(workerJs)) {
     const content = fs.readFileSync(workerJs, 'utf8');
@@ -139,6 +146,16 @@ try {
     if (content !== modified) {
       fs.writeFileSync(workerJs, modified, 'utf8');
       console.log(`✅ Updated: .open-next/worker.js`);
+    }
+  }
+
+  const workerJsUnderscore = path.join(openNextDir, '_worker.js');
+  if (fs.existsSync(workerJsUnderscore)) {
+    const content = fs.readFileSync(workerJsUnderscore, 'utf8');
+    const modified = addNodePrefix(content);
+    if (content !== modified) {
+      fs.writeFileSync(workerJsUnderscore, modified, 'utf8');
+      console.log(`✅ Updated: .open-next/_worker.js`);
     }
   }
 
