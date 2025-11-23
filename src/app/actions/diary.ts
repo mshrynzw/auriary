@@ -213,8 +213,17 @@ export async function getDiariesAction(params?: {
 }) {
   const { userProfile, supabase } = await getAuth();
 
+  // デバッグログ
+  console.log('getDiariesAction() - Auth state:', {
+    hasUserProfile: !!userProfile,
+    userProfileId: userProfile?.id,
+    hasSupabase: !!supabase,
+    params,
+  });
+
   // 未認証の場合は空の配列を返す
   if (!userProfile || !supabase) {
+    console.warn('getDiariesAction() - Unauthenticated or missing supabase client');
     return { diaries: [] };
   }
 

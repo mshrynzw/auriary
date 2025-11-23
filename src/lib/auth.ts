@@ -48,6 +48,14 @@ export async function getAuth() {
       error: authError,
     } = await supabase.auth.getUser();
 
+    // デバッグログ
+    console.log('getAuth() - Auth check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      authError: authError ? { message: authError.message, code: authError.code } : null,
+    });
+
     // Auth session missing! は未認証の正常な状態なので、エラーとして扱わない
     // ただし、実際の接続エラー（CORS、ネットワークエラーなど）の場合はエラーとして扱う
     if (authError && authError.message !== 'Auth session missing!') {

@@ -30,6 +30,16 @@ export async function loginAction(formData: FormData) {
     password: validated.data.password,
   });
 
+  // デバッグログ
+  console.log('loginAction() - Sign in result:', {
+    hasUser: !!data?.user,
+    userId: data?.user?.id,
+    userEmail: data?.user?.email,
+    hasError: !!error,
+    errorMessage: error?.message,
+    errorCode: error?.code,
+  });
+
   if (error) {
     return {
       error: {
