@@ -34,7 +34,7 @@ ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自
 
 ### ☁️ クロスデバイス同期
 - Supabase を利用したリアルタイム同期
-- Cloudflare Pages / KV / Cache に最適化
+- Cloudflare Workers エッジキャッシュで高速化
 
 ---
 
@@ -44,7 +44,7 @@ ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自
 |---------|------------|
 | Framework | **Next.js 16**（App Router / Server Components / Cache Components） |
 | Database | **Supabase（PostgreSQL + RLS）** |
-| Hosting | **Cloudflare Pages**（Vercel 互換ビルド） |
+| Hosting | **Vercel**（Next.js 本番環境）+ **Cloudflare Workers**（エッジプロキシ） |
 | UI | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント） |
 | Auth | Supabase Auth |
 | AI | OpenAI / ChatGPT API |
@@ -221,27 +221,6 @@ pnpm cf:proxy:dev
 2. `auriary` プロジェクトを選択
 3. **Settings** → 最下部の「Delete project」をクリック（または、デプロイを無効化）
 
-### 6. Cloudflare Deploy（パターン1：OpenNext + Wrangler）⚠️ 非推奨
-
-**注意**: このパターンは `node:timers` などのビルドエラーが発生する可能性があります。パターン2（上記）の使用を強く推奨します。
-
-```
-pnpm run build:cloudflare     # .open-next/ 以下にPages用成果物を出力
-# （オプション）直接Workersへ流す場合
-pnpm run deploy:cloudflare    # build → wrangler deploy まで一括
-```
-
-Cloudflare Pages ダッシュボードでの推奨設定
-
-**推奨: OpenNext を使用する場合（バンドルサイズ最適化）**
-- Build command: `pnpm install && pnpm run build:cloudflare`
-- Build output directory: `.open-next`
-- Compatibility flags（Settings → Runtime）: `nodejs_compat`
-- **Compatibility date（Settings → Runtime）**: `2024-09-22`（重要：OpenNext が生成したコードが `node:` プレフィックスを使っていないため、2024-09-22 以前の日付が必要）
-- Envs: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`（必要に応じ `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`）
-- Windowsでローカルビルドする場合は **開発者モードを有効にするか WSL 上で実行** してください（Next.js がシンボリックリンクを作成するため、通常のPowerShellでは失敗します）。
-
-**注意**: `@cloudflare/next-on-pages` はバンドルサイズが 25MB の制限を超える可能性があるため、OpenNext の使用を推奨します。
 
 ---
 

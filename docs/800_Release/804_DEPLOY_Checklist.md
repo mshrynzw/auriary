@@ -1,6 +1,6 @@
-# デプロイ前チェックリスト・FAQ
+# デプロイ前チェックリスト・FAQ（パターン2：Cloudflare Workers プロキシ + Vercel オリジン）
 
-このドキュメントでは、デプロイ前の確認事項、参考リンク、よくある質問をまとめています。
+このドキュメントでは、パターン2のデプロイ前の確認事項、参考リンク、よくある質問をまとめています。
 
 ---
 
@@ -8,64 +8,74 @@
 
 デプロイ前に以下を確認してください：
 
+### Vercel の確認
+
+- [ ] Vercel にアプリがデプロイ済みである
+- [ ] 本番 URL（`https://auriary.vercel.app`）が正常に動作している
+- [ ] ログイン機能が正常に動作している
+- [ ] 環境変数が正しく設定されている
+
+### Cloudflare Worker の確認
+
+- [ ] `cloudflare-proxy/wrangler.toml` の `ORIGIN_BASE_URL` が正しい Vercel URL を指している
+- [ ] `cloudflare-proxy/src/worker.ts` に構文エラーがない
+- [ ] ローカルで `pnpm cf:proxy:dev` が正常に動作する
+
 ### コードの確認
 
-- [ ] ローカルで`pnpm run build:cloudflare`が正常に完了する
-- [ ] ローカルで`pnpm run start`でアプリが起動する（通常のNext.jsビルドの場合）
 - [ ] 型チェックが通る（`pnpm run types`）
 - [ ] リントエラーがない（`pnpm run lint`）
 - [ ] テストが通る（`pnpm run test:run`）
 
 ### 環境変数の確認
 
-- [ ] 必要な環境変数がすべて設定されている
+- [ ] Vercel 側で必要な環境変数がすべて設定されている
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] 環境変数の値が正しい（本番環境のSupabaseプロジェクトを指している）
 - [ ] 機密情報（Service Role Keyなど）が公開されていない
 
-### Supabaseの確認
+### Supabase の確認
 
-- [ ] Supabaseプロジェクトが本番環境で利用可能
+- [ ] Supabase プロジェクトが本番環境で利用可能
 - [ ] データベースマイグレーションが適用されている
 - [ ] RLS（Row Level Security）ポリシーが正しく設定されている
-- [ ] CORS設定にCloudflare PagesのURLが含まれている
+- [ ] CORS 設定に Cloudflare Workers のドメインが含まれている（必要に応じて）
 
 ### セキュリティの確認
 
-- [ ] `.gitignore`に`.env`が含まれている（機密情報をコミットしない）
-- [ ] 環境変数に機密情報が含まれていない（`NEXT_PUBLIC_`で始まる変数は公開される）
-- [ ] APIキーやトークンがハードコードされていない
+- [ ] `.gitignore` に `.env` が含まれている（機密情報をコミットしない）
+- [ ] 環境変数に機密情報が含まれていない（`NEXT_PUBLIC_` で始まる変数は公開される）
+- [ ] API キーやトークンがハードコードされていない
 
-### ビルド設定の確認
+### カスタムドメインの確認
 
-- [ ] `package.json`に`build:cloudflare`スクリプトが含まれている
-- [ ] `.nvmrc`ファイルが存在し、適切なNode.jsバージョンが指定されている
-- [ ] `wrangler.jsonc`の設定が正しい
+- [ ] カスタムドメイン（`www.auriaries.org` など）が Cloudflare で管理されている
+- [ ] DNS レコードが正しく設定されている
+- [ ] SSL/TLS 証明書が有効になっている
 
 ---
 
 ## 🔗 参考リンク
 
-### Cloudflare関連
+### Cloudflare 関連
 
-- [Cloudflare Pages ドキュメント](https://developers.cloudflare.com/pages/)
-- [Cloudflare Pages ビルド設定](https://developers.cloudflare.com/pages/platform/build-configuration/)
-- [Cloudflare Pages 環境変数](https://developers.cloudflare.com/pages/platform/environment-variables/)
+- [Cloudflare Workers ドキュメント](https://developers.cloudflare.com/workers/)
+- [Cloudflare Workers ルーティング](https://developers.cloudflare.com/workers/configuration/routing/)
 - [Wrangler CLI ドキュメント](https://developers.cloudflare.com/workers/wrangler/)
 
-### OpenNext.js関連
+### Vercel 関連
 
-- [OpenNext.js Cloudflare アダプター](https://opennext.js.org/cloudflare)
-- [OpenNext.js 設定](https://opennext.js.org/cloudflare/configuration)
+- [Vercel ドキュメント](https://vercel.com/docs)
+- [Vercel デプロイメント](https://vercel.com/docs/deployments/overview)
 
-### Supabase関連
+### Supabase 関連
 
 - [Supabase ドキュメント](https://supabase.com/docs)
 - [Supabase Auth ドキュメント](https://supabase.com/docs/guides/auth)
 - [Supabase RLS ドキュメント](https://supabase.com/docs/guides/auth/row-level-security)
 
-### Next.js関連
+### Next.js 関連
 
 - [Next.js ドキュメント](https://nextjs.org/docs)
 - [Next.js デプロイメント](https://nextjs.org/docs/deployment)
@@ -78,43 +88,33 @@
 
 ### パフォーマンスの最適化
 
-1. **Cloudflareのキャッシュ設定を調整**
-   - 静的アセットのキャッシュ期間を設定
-   - 動的コンテンツのキャッシュ戦略を検討
+1. **Cloudflare のキャッシュ設定を調整**
+   - 静的アセットのキャッシュ期間を設定（現在：1日）
+   - 動的コンテンツのキャッシュ戦略を検討（現在：60秒）
 
-2. **R2ストレージを使用したキャッシュ（オプション）**
-   - インクリメンタルキャッシュをR2に保存
-   - `open-next.config.ts`でR2キャッシュを有効化
+2. **モニタリング**
+   - Cloudflare Analytics でトラフィックを監視
+   - Worker のログを確認してエラーを監視
 
-### モニタリング
+### CI/CD の設定
 
-1. **Cloudflare Analyticsでトラフィックを監視**
-   - リクエスト数、帯域幅、エラー率を確認
-   - パフォーマンスメトリクスを分析
-
-2. **エラーログを確認**
-   - Cloudflare Dashboardでエラーログを確認
-   - 必要に応じてアラートを設定
-
-### CI/CDの設定
-
-1. **GitHub Actionsで自動テストを実行**
+1. **GitHub Actions で自動テストを実行**
    - プッシュ時に自動でテストを実行
    - テストが通らない場合はデプロイをブロック
 
-2. **プルリクエストごとにプレビューデプロイ**
-   - 変更内容を確認してからマージ
-   - プレビューデプロイのURLをコメントに追加
+2. **自動デプロイ**
+   - Vercel への自動デプロイ（既に設定済み）
+   - Cloudflare Worker への自動デプロイ（必要に応じて）
 
 ### セキュリティの強化
 
 1. **環境変数の管理**
-   - 機密情報はCloudflare Dashboardのシークレットとして管理
+   - 機密情報は Cloudflare Dashboard のシークレットとして管理
    - 環境ごと（本番・ステージング）に環境変数を分離
 
 2. **アクセス制御**
    - 必要に応じて認証を追加
-   - IP制限やWAFルールを設定
+   - IP 制限や WAF ルールを設定
 
 ---
 
@@ -123,54 +123,51 @@
 ### プラン・料金について
 
 **Q: 無料プランで利用できますか？**
-A: はい、Cloudflare Pagesは無料プランで利用できます。ただし、リクエスト数やビルド時間に制限があります。詳細は[Cloudflare Pagesの料金ページ](https://developers.cloudflare.com/pages/platform/pricing/)を参照してください。
+A: はい、Cloudflare Workers と Vercel の両方が無料プランで利用できます。ただし、リクエスト数やビルド時間に制限があります。
 
 **Q: どのくらいのリクエストまで無料で利用できますか？**
-A: 無料プランでは、月500回のビルドと無制限のリクエストが利用できます。詳細は公式ドキュメントを確認してください。
+A: Cloudflare Workers の無料プランでは、月10万リクエストまで利用できます。Vercel の無料プランでは、月100GB の帯域幅まで利用できます。詳細は各サービスの料金ページを確認してください。
 
 ### ドメインについて
 
 **Q: カスタムドメインは必要ですか？**
-A: いいえ、Cloudflare Pagesは自動的に`*.pages.dev`のサブドメインを提供します。カスタムドメインはオプションです。
+A: いいえ、必須ではありません。ただし、カスタムドメインを使用することで、ブランディングや SEO の向上が期待できます。
 
 **Q: カスタムドメインを設定するにはどうすればいいですか？**
-A: Cloudflare Dashboardの「Settings」→「Custom domains」から設定できます。詳細は[カスタムドメインの設定](https://developers.cloudflare.com/pages/platform/custom-domains/)を参照してください。
+A: Cloudflare Dashboard → Workers & Pages → Workers → `auriary-proxy` → Triggers → Routes から設定できます。詳細は[メインデプロイ手順書](./800_Deploy.md)を参照してください。
 
 ### 環境変数について
 
 **Q: 環境変数を変更した後、どうすればいいですか？**
-A: 環境変数を変更した後は、再デプロイが必要です。GitHub連携を使用している場合、新しいコミットをプッシュするか、手動で再デプロイをトリガーしてください。
+A: Vercel 側の環境変数を変更した場合は、Vercel が自動的に再デプロイします。Cloudflare Worker 側の環境変数（`ORIGIN_BASE_URL` など）を変更した場合は、Worker を再デプロイする必要があります：
+```bash
+pnpm cf:proxy:deploy
+```
 
 **Q: 環境変数はどこで設定しますか？**
-A: Cloudflare Dashboardの「Settings」→「Environment variables」から設定できます。GitHub連携を使用している場合、環境ごと（Production、Preview）に設定できます。
-
-### ビルドについて
-
-**Q: ビルドにどのくらい時間がかかりますか？**
-A: プロジェクトのサイズや依存関係によって異なりますが、通常は3-10分程度です。初回ビルドは依存関係のインストールに時間がかかることがあります。
-
-**Q: ビルドが失敗する場合はどうすればいいですか？**
-A: [トラブルシューティング](./803_DEPLOY_Troubleshooting.md)を参照してください。ビルドログを確認して、具体的なエラーメッセージを特定することが重要です。
+A: Vercel 側の環境変数は Vercel Dashboard の「Settings」→「Environment Variables」から設定します。Cloudflare Worker 側の環境変数は `cloudflare-proxy/wrangler.toml` の `[vars]` セクションで設定します。
 
 ### デプロイについて
 
 **Q: デプロイは自動的に実行されますか？**
-A: GitHub連携を設定している場合、`main`ブランチ（または設定したProduction branch）へのプッシュで自動的にデプロイされます。その他のブランチへのプッシュでは、プレビューデプロイが作成されます。
+A: Vercel へのデプロイは、GitHub にプッシュすると自動的に実行されます。Cloudflare Worker へのデプロイは、手動で `pnpm cf:proxy:deploy` を実行する必要があります（必要に応じて GitHub Actions で自動化できます）。
 
-**Q: 特定のコミットだけをデプロイできますか？**
-A: はい、Cloudflare Dashboardの「Deployments」タブから、過去のデプロイを再デプロイできます。
+**Q: Vercel と Cloudflare Worker のどちらを先にデプロイすればいいですか？**
+A: Vercel を先にデプロイして、正常に動作することを確認してから Cloudflare Worker をデプロイすることを推奨します。
 
-### Supabaseについて
+### ログインについて
 
-**Q: Supabaseの接続エラーが発生します。どうすればいいですか？**
-A: [トラブルシューティング](./803_DEPLOY_Troubleshooting.md)の「Supabase接続エラー」セクションを参照してください。CORS設定とRLSポリシーを確認することが重要です。
+**Q: ログインが完了しない場合はどうすればいいですか？**
+A: [トラブルシューティング](./803_DEPLOY_Troubleshooting.md)の「ログインが完了しない場合」セクションを参照してください。主な原因は Set-Cookie ヘッダーの処理です。
+
+### Supabase について
+
+**Q: Supabase の接続エラーが発生します。どうすればいいですか？**
+A: Vercel 側で Supabase への接続が正常に動作していることを確認してください。Cloudflare Worker は Vercel へのプロキシのみを行い、Supabase への直接接続は行いません。
 
 ---
 
 ## 関連ドキュメント
 
-- [メインデプロイ手順書](./800_DEPLOY.md)
-- [GitHub連携デプロイ](./801_DEPLOY_GitHub.md)
-- [Wrangler CLIデプロイ](./802_DEPLOY_Wrangler.md)
+- [メインデプロイ手順書](./800_Deploy.md)
 - [トラブルシューティング](./803_DEPLOY_Troubleshooting.md)
-
