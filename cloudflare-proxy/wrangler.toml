@@ -16,8 +16,9 @@ enabled = true
 
 # カスタムドメインのルーティング
 # auriaries.org ドメインを Worker に紐付け
-routes = [
-  { pattern = "www.auriaries.org/*", zone_name = "auriaries.org" },
-  { pattern = "auriaries.org/*", zone_name = "auriaries.org" }
-]
+# 注意: routes は Cloudflare Dashboard で設定することを推奨
+# 以下の設定は wrangler.toml では直接サポートされていない場合があります
+# [[routes]]
+# pattern = "www.auriaries.org/*"
+# zone_name = "auriaries.org"
 
