@@ -5,8 +5,10 @@
 name = "auriary"
 pages_build_output_dir = ".open-next"
 
-# 注意: compatibility_date と compatibility_flags は Cloudflare Pages の Functions 設定で指定する必要があります
-# Cloudflare Pages ダッシュボード → Settings → Functions → Compatibility flags: nodejs_compat
+# compatibility_date を 2024-09-22 に設定（2024-09-23 以降は node: プレフィックスが必須になるため）
+# OpenNext が生成したコードは node: プレフィックスを使っていないため、2024-09-22 以前の日付が必要
+compatibility_date = "2024-09-22"
+compatibility_flags = ["nodejs_compat"]
 
 # Smart Placement: placement = { mode = "smart" }
 # Bindings: https://developers.cloudflare.com/workers/runtime-apis/bindings/
