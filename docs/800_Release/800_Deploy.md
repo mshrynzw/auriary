@@ -21,7 +21,8 @@
     - **Build command**: `pnpm install && pnpm run build:cloudflare`（OpenNext を使用 - バンドルサイズ最適化）
     - **Build output directory**: `.open-next`
     - **注意**: `@cloudflare/next-on-pages` はバンドルサイズが大きくなるため、OpenNext を推奨します
-     - Compatibility flags（Settings → Functions）: `nodejs_compat`
+     - Compatibility flags（Settings → Runtime）: `nodejs_compat`
+     - **Compatibility date（Settings → Runtime）**: `2024-09-22`（重要：OpenNext が生成したコードが `node:` プレフィックスを使っていないため、2024-09-22 以前の日付が必要）
      - Build comments / cache: 任意（nc-chatと同じでOK）
    - Runtime → Placement: `Default`（Workers互換）
    - Fail open/closed: `Fail open`（推奨）

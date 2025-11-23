@@ -123,6 +123,53 @@ Cloudflare Pagesには「Create application」というボタンはありませ�
 pnpm run build:cloudflare
 ```
 
+### Node.js 組み込みモジュールの解決エラー
+
+**問題**: ビルドログに以下のようなエラーが表示される：
+
+```
+✘ [ERROR] Could not resolve "async_hooks"
+✘ [ERROR] Could not resolve "fs"
+✘ [ERROR] Could not resolve "path"
+✘ [ERROR] Could not resolve "url"
+...
+The package "async_hooks" wasn't found on the file system but is built into node.
+- Make sure to prefix the module name with "node:" or update your compatibility_date to 2024-09-23 or later.
+```
+
+**原因**: OpenNext が生成したコードが Node.js 組み込みモジュールを直接 `require()` しており、Cloudflare Workers のバンドラーが解決できない。また、Cloudflare Pages のビルドプロセスが `wrangler.toml` の `compatibility_date` と `compatibility_flags` を Worker のバンドル時に適用していない可能性がある。
+
+**解決方法**:
+
+1. **Cloudflare Pages のダッシュボードで直接設定（最重要）**
+   - Cloudflare Dashboard → プロジェクト → Settings → **Runtime** セクション
+   - **Compatibility date** の横の編集アイコンをクリックし、`2024-09-22` に設定（重要：OpenNext が生成したコードが `node:` プレフィックスを使っていないため、2024-09-22 以前の日付が必要）
+   - **Compatibility flags** に `nodejs_compat` が設定されていることを確認（既に設定されている場合はそのままでOK）
+   - 設定を保存して再デプロイ
+
+2. **`wrangler.toml` の設定を確認**
+   - プロジェクトルートの `wrangler.toml` に以下が設定されていることを確認：
+     ```toml
+     compatibility_date = "2024-09-22"
+     compatibility_flags = ["nodejs_compat"]
+     ```
+   - ただし、Cloudflare Pages のビルドプロセスでは `wrangler.toml` の設定が Worker のバンドル時に適用されない可能性があるため、**上記のダッシュボードでの設定が必須**です
+
+3. **OpenNext のバージョンを確認**
+   - `package.json` の `@opennextjs/cloudflare` が最新バージョン（`^1.13.1`）であることを確認
+   - 最新バージョンに更新：
+     ```bash
+     pnpm update @opennextjs/cloudflare
+     ```
+
+4. **代替案を検討**
+   - この問題が解決しない場合、以下の選択肢があります：
+     - **Vercel のみを使用**（既に動作中：`https://auriary.vercel.app`）
+     - **リポジトリを分割**（Cloudflare 用と Vercel 用で分ける）
+     - **OpenNext の開発者に報告**（GitHub Issues など）
+
+**注意**: エラーメッセージには「update your compatibility_date to 2024-09-23 or later」とありますが、これは逆です。`compatibility_date` を 2024-09-23 以降にすると `node:` プレフィックスが必須になり、OpenNext の生成コードは対応していません。そのため、**2024-09-22 以前の日付を設定する必要があります**。
+
 ---
 
 ## 環境変数が読み込まれない場合

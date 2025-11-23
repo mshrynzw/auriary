@@ -166,7 +166,8 @@ Cloudflare Pages ダッシュボードでの推奨設定
 **推奨: OpenNext を使用する場合（バンドルサイズ最適化）**
 - Build command: `pnpm install && pnpm run build:cloudflare`
 - Build output directory: `.open-next`
-- Compatibility flags: `nodejs_compat`
+- Compatibility flags（Settings → Runtime）: `nodejs_compat`
+- **Compatibility date（Settings → Runtime）**: `2024-09-22`（重要：OpenNext が生成したコードが `node:` プレフィックスを使っていないため、2024-09-22 以前の日付が必要）
 - Envs: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`（必要に応じ `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`）
 - Windowsでローカルビルドする場合は **開発者モードを有効にするか WSL 上で実行** してください（Next.js がシンボリックリンクを作成するため、通常のPowerShellでは失敗します）。
 
