@@ -50,6 +50,48 @@
 
 ---
 
+## 🔄 CI/CDの設定（GitHub Actions）
+
+`cloudflare-proxy/`ディレクトリの変更を自動デプロイするには、GitHub Actionsを設定します。
+
+### 1. Cloudflare APIトークンの取得
+
+1. Cloudflare Dashboard → 右上のプロフィールアイコン → 「**My Profile**」
+2. 「**API Tokens**」タブ → 「**Create Token**」
+3. 「**Edit Cloudflare Workers**」テンプレートを選択、またはカスタムトークンを作成
+   - 権限: `Account` → `Cloudflare Workers` → `Edit`
+4. トークンをコピー（一度しか表示されません）
+
+### 2. CloudflareアカウントIDの取得
+
+1. Cloudflare Dashboard → 右側の「**Account ID**」をコピー
+
+### 3. GitHub Secretsの設定
+
+1. GitHubリポジトリ → 「**Settings**」→ 「**Secrets and variables**」→ 「**Actions**」
+2. 「**New repository secret**」をクリック
+3. 以下の2つのSecretsを追加：
+   - **Name**: `CLOUDFLARE_API_TOKEN`
+     - **Value**: 上記で取得したAPIトークン
+   - **Name**: `CLOUDFLARE_ACCOUNT_ID`
+     - **Value**: 上記で取得したアカウントID
+
+### 4. 動作確認
+
+1. `cloudflare-proxy/src/worker.ts`を少し変更（例: コメント追加）
+2. コミット・プッシュ
+3. GitHubリポジトリの「**Actions**」タブでデプロイ状況を確認
+
+### 5. 自動デプロイの仕組み
+
+- `.github/workflows/cloudflare-deploy.yml`が`cloudflare-proxy/`ディレクトリの変更を検知
+- `master`ブランチへのpush時に自動的に`wrangler deploy`を実行
+- 手動実行も可能（GitHub Actionsの「Run workflow」ボタンから）
+
+**注意**: GitHub Secretsを設定しない場合、手動で`pnpm cf:proxy:deploy`を実行する必要があります。
+
+---
+
 ## 🔧 トラブルシューティング
 
 問題が発生した場合は、以下のドキュメントを参照してください。
