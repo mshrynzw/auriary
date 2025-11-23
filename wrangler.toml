@@ -1,16 +1,11 @@
 # Cloudflare Pages 設定（パターン1：OpenNext 用）
 # このファイルは Cloudflare Pages のビルド時に使用されます
-# 注意: Cloudflare Pages では `main` と `pages_build_output_dir` を同時に使用できません
 # OpenNext の場合は `_worker.js` が自動的に検出されるため、`pages_build_output_dir` のみを指定します
 
-name = "auriary"
 pages_build_output_dir = ".open-next"
 
-compatibility_date = "2024-09-22"
-compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
-
-[observability]
-enabled = true
+# 注意: compatibility_date と compatibility_flags は Cloudflare Pages の Functions 設定で指定する必要があります
+# Cloudflare Pages ダッシュボード → Settings → Functions → Compatibility flags: nodejs_compat
 
 # Smart Placement: placement = { mode = "smart" }
 # Bindings: https://developers.cloudflare.com/workers/runtime-apis/bindings/
