@@ -153,27 +153,9 @@ pnpm dev
 
 ```
 
-### 5. Cloudflare Deploy（パターン1：OpenNext + Wrangler）
+### 5. ☁️ Hybrid Deploy Pattern 2 — Cloudflare Front + Vercel Origin（推奨）
 
-```
-pnpm run build:cloudflare     # .open-next/ 以下にPages用成果物を出力
-# （オプション）直接Workersへ流す場合
-pnpm run deploy:cloudflare    # build → wrangler deploy まで一括
-```
-
-Cloudflare Pages ダッシュボードでの推奨設定
-
-**推奨: OpenNext を使用する場合（バンドルサイズ最適化）**
-- Build command: `pnpm install && pnpm run build:cloudflare`
-- Build output directory: `.open-next`
-- Compatibility flags（Settings → Runtime）: `nodejs_compat`
-- **Compatibility date（Settings → Runtime）**: `2024-09-22`（重要：OpenNext が生成したコードが `node:` プレフィックスを使っていないため、2024-09-22 以前の日付が必要）
-- Envs: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`（必要に応じ `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`）
-- Windowsでローカルビルドする場合は **開発者モードを有効にするか WSL 上で実行** してください（Next.js がシンボリックリンクを作成するため、通常のPowerShellでは失敗します）。
-
-**注意**: `@cloudflare/next-on-pages` はバンドルサイズが 25MB の制限を超える可能性があるため、OpenNext の使用を推奨します。
-
-### 6. ☁️ Hybrid Deploy Pattern 2 — Cloudflare Front + Vercel Origin
+**このパターンが推奨です。** Next.js 本体は Vercel にデプロイし、Cloudflare Workers をフロントのリバースプロキシとして利用します。OpenNext のビルドエラーを回避でき、シンプルで安定した構成です。
 
 このパターンでは、Next.js 本体は Vercel にデプロイしつつ、Cloudflare Workers をフロントのリバースプロキシとして利用します。
 
@@ -217,9 +199,49 @@ pnpm cf:proxy:dev
 ```
 
 **注意事項:**
-- パターン1（OpenNext）とパターン2（プロキシ）は独立して動作します
-- パターン2を使用する場合、Vercel 側のデプロイが正常に動作している必要があります
+- パターン2を使用する場合、Vercel 側のデプロイが正常に動作している必要があります（`https://auriary.vercel.app`）
 - Cloudflare のエッジキャッシュにより、非ログイン時のページ読み込み速度が向上します
+- カスタムドメイン（`www.auriaries.org` など）を Cloudflare Workers に設定する必要があります
+
+**カスタムドメインの設定手順:**
+
+1. Cloudflare Dashboard → Workers & Pages → **Workers** タブを選択
+2. `auriary-proxy` Worker を選択
+3. **Triggers** → **Routes** セクションで「Add route」をクリック
+4. ルートを追加:
+   - Route: `www.auriaries.org/*` または `auriaries.org/*`
+   - Zone: `auriaries.org`
+5. 保存
+
+**Cloudflare Pages の無効化（オプション）:**
+
+パターン2を使用する場合、Cloudflare Pages のプロジェクトは不要です。無効化するには：
+
+1. Cloudflare Dashboard → Workers & Pages → **Pages** タブを選択
+2. `auriary` プロジェクトを選択
+3. **Settings** → 最下部の「Delete project」をクリック（または、デプロイを無効化）
+
+### 6. Cloudflare Deploy（パターン1：OpenNext + Wrangler）⚠️ 非推奨
+
+**注意**: このパターンは `node:timers` などのビルドエラーが発生する可能性があります。パターン2（上記）の使用を強く推奨します。
+
+```
+pnpm run build:cloudflare     # .open-next/ 以下にPages用成果物を出力
+# （オプション）直接Workersへ流す場合
+pnpm run deploy:cloudflare    # build → wrangler deploy まで一括
+```
+
+Cloudflare Pages ダッシュボードでの推奨設定
+
+**推奨: OpenNext を使用する場合（バンドルサイズ最適化）**
+- Build command: `pnpm install && pnpm run build:cloudflare`
+- Build output directory: `.open-next`
+- Compatibility flags（Settings → Runtime）: `nodejs_compat`
+- **Compatibility date（Settings → Runtime）**: `2024-09-22`（重要：OpenNext が生成したコードが `node:` プレフィックスを使っていないため、2024-09-22 以前の日付が必要）
+- Envs: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`（必要に応じ `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`）
+- Windowsでローカルビルドする場合は **開発者モードを有効にするか WSL 上で実行** してください（Next.js がシンボリックリンクを作成するため、通常のPowerShellでは失敗します）。
+
+**注意**: `@cloudflare/next-on-pages` はバンドルサイズが 25MB の制限を超える可能性があるため、OpenNext の使用を推奨します。
 
 ---
 
