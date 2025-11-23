@@ -111,8 +111,13 @@ async function proxyToOrigin(request: Request, env: Env): Promise<Response> {
   // リクエストヘッダーをコピー（Host ヘッダーは除外）
   const headers = new Headers(request.headers);
   headers.delete('Host');
+  
+  // Next.js Server Actions は X-Forwarded-Host と Origin の一致をチェックする
+  // そのため、両方を現在のリクエストのオリジンに設定する
+  const currentOrigin = `${url.protocol}//${url.host}`;
   headers.set('X-Forwarded-Host', url.host);
   headers.set('X-Forwarded-Proto', url.protocol.slice(0, -1)); // 'https:' → 'https'
+  headers.set('Origin', currentOrigin); // Next.js Server Actions の検証のために必要
 
   // キャッシュ戦略の決定
   const isPersonalized = isPersonalizedRequest(request);
