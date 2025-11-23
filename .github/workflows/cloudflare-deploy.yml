@@ -35,7 +35,8 @@ jobs:
 
       - name: Deploy to Cloudflare Workers
         run: |
-          pnpm exec wrangler deploy src/worker.ts --config wrangler.toml
+          cd cloudflare-proxy
+          pnpm exec wrangler deploy src/worker.ts
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
