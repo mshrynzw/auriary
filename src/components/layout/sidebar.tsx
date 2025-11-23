@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { BookOpen, Calendar, BarChart3, ChartArea, Settings, LogOut, Menu } from 'lucide-react';
@@ -16,6 +17,8 @@ type SidberProps = {
 
 export function Sidber({ displayName, userEmail, initials }: SidberProps) {
   const [open, setOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const router = useRouter();
 
   const menuItems = [
     { href: '/dashboard', icon: ChartArea, label: 'ダッシュボード' },
@@ -77,15 +80,34 @@ export function Sidber({ displayName, userEmail, initials }: SidberProps) {
 
           {/* ログアウト */}
           <div className="pt-4 border-t">
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
-              >
-                <LogOut className="h-5 w-5" />
-                ログアウト
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={async () => {
+                setIsLoggingOut(true);
+                try {
+                  const result = await logoutAction();
+                  if (result?.success && result.redirectTo) {
+                    router.push(result.redirectTo);
+                  } else if (result?.error) {
+                    console.error('Logout error:', result.error);
+                    // エラーが発生してもログアウト処理は続行
+                    router.push('/login');
+                  } else {
+                    router.push('/login');
+                  }
+                } catch (error) {
+                  console.error('Logout error:', error);
+                  router.push('/login');
+                } finally {
+                  setIsLoggingOut(false);
+                }
+              }}
+              disabled={isLoggingOut}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LogOut className="h-5 w-5" />
+              {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
+            </button>
           </div>
         </div>
       </SheetContent>
