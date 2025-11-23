@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { loginFormSchema, type LoginFormInput } from '@/schemas';
 import { loginAction } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import Link from 'next/link';
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -38,8 +40,10 @@ export function LoginForm() {
     if (result?.error) {
       setError(result.error.message);
       setIsLoading(false);
+    } else if (result?.success && result.redirectTo) {
+      // 成功時はクライアント側でリダイレクト
+      router.push(result.redirectTo);
     }
-    // 成功時は loginAction 内でリダイレクトされる
   };
 
   return (

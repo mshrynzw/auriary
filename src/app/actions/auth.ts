@@ -3,7 +3,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { loginFormSchema, registerFormSchema } from '@/schemas';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 /**
  * ログイン
@@ -72,11 +71,14 @@ export async function loginAction(formData: FormData) {
 
     if (insertError) {
       console.error('Failed to create user profile:', insertError);
+      // ユーザープロフィール作成に失敗してもログインは成功しているので、続行
     }
   }
 
   revalidatePath('/');
-  redirect('/');
+  // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
+  // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
+  return { success: true, redirectTo: '/' };
 }
 
 /**
@@ -150,7 +152,9 @@ export async function registerAction(formData: FormData) {
   }
 
   revalidatePath('/');
-  redirect('/');
+  // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
+  // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
+  return { success: true, redirectTo: '/' };
 }
 
 /**
@@ -161,5 +165,7 @@ export async function logoutAction() {
   await supabase.auth.signOut();
 
   revalidatePath('/');
-  redirect('/login');
+  // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
+  // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
+  return { success: true, redirectTo: '/login' };
 }
