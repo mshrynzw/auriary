@@ -16,12 +16,13 @@ import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import './globals.css';
 
+// メインフォントとして Geist_Mono を使用（日本語フォントは Cloudflare Pages ビルドでエラーが発生するため一時的に無効化）
+// --font-sans として定義（既存の CSS 変数名に合わせる）
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono --font-sans', // --font-sans としても使用可能にする
+  variable: '--font-sans',
   subsets: ['latin'],
 });
 
-// メインフォントとして Geist_Mono を使用（日本語フォントは Cloudflare Pages ビルドでエラーが発生するため一時的に無効化）
 const mainFont = geistMono;
 
 // 幻想的な日本語フォントの選択肢
