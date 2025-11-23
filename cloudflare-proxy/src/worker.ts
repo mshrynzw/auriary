@@ -154,6 +154,25 @@ async function proxyToOrigin(request: Request, env: Env): Promise<Response> {
   // レスポンスヘッダーをコピー
   const responseHeaders = new Headers(response.headers);
 
+  // リダイレクトレスポンス（3xx）の処理
+  // Next.jsのサーバーアクションでredirect()が呼ばれると、Locationヘッダーが設定される
+  if (response.status >= 300 && response.status < 400) {
+    const location = responseHeaders.get('Location');
+    if (location) {
+      // 相対パスの場合は絶対URLに変換
+      let redirectUrl: string;
+      try {
+        // 既に絶対URLの場合はそのまま使用
+        new URL(location);
+        redirectUrl = location;
+      } catch {
+        // 相対パスの場合は、現在のリクエストのオリジンを使用
+        redirectUrl = `${url.protocol}//${url.host}${location}`;
+      }
+      responseHeaders.set('Location', redirectUrl);
+    }
+  }
+
   // Set-Cookie ヘッダーを正しく処理
   // 複数の Set-Cookie ヘッダーがある場合、すべてを取得して Domain 属性を調整
   const setCookieHeaders = response.headers.getSetCookie?.() || [];
