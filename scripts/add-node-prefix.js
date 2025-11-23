@@ -87,6 +87,74 @@ function addNodePrefix(content) {
   modified = modified.replace(/require\(["']dns\/promises["']\)/g, 'require("node:dns/promises")');
   modified = modified.replace(/require\(['"]dns\/promises['"]\)/g, 'require("node:dns/promises")');
 
+  // ES modules の import 文の処理
+  // timers モジュールの import 文を処理（Cloudflare Workers では不要）
+  // import ... from "node:timers" または import ... from "timers" をコメントアウト
+  modified = modified.replace(/import\s+.*?\s+from\s+["']node:timers["'];?/g, '// $& /* timers not needed in Cloudflare Workers */');
+  modified = modified.replace(/import\s+.*?\s+from\s+['"]node:timers['"];?/g, "// $& /* timers not needed in Cloudflare Workers */");
+  modified = modified.replace(/import\s+.*?\s+from\s+["']timers["'];?/g, '// $& /* timers not needed in Cloudflare Workers */');
+  modified = modified.replace(/import\s+.*?\s+from\s+['"]timers['"];?/g, "// $& /* timers not needed in Cloudflare Workers */");
+
+  // 動的インポート import("node:timers") または import("timers") を Promise.resolve({}) に置き換え
+  modified = modified.replace(/import\(["']node:timers["']\)/g, 'Promise.resolve({}) /* timers not needed in Cloudflare Workers */');
+  modified = modified.replace(/import\(['"]node:timers['"]\)/g, "Promise.resolve({}) /* timers not needed in Cloudflare Workers */");
+  modified = modified.replace(/import\(["']timers["']\)/g, 'Promise.resolve({}) /* timers not needed in Cloudflare Workers */');
+  modified = modified.replace(/import\(['"]timers['"]\)/g, "Promise.resolve({}) /* timers not needed in Cloudflare Workers */");
+
+  // 他の unsupportedModules の import 文も処理
+  for (const module of unsupportedModules) {
+    if (module !== 'timers') {
+      // import ... from "node:module" または import ... from "module" をコメントアウト
+      const importPattern1 = new RegExp(`import\\s+.*?\\s+from\\s+["']node:${module}["'];?`, 'g');
+      modified = modified.replace(importPattern1, `// $& /* ${module} not supported in Cloudflare Workers */`);
+
+      const importPattern2 = new RegExp(`import\\s+.*?\\s+from\\s+['"]node:${module}['"];?`, 'g');
+      modified = modified.replace(importPattern2, `// $& /* ${module} not supported in Cloudflare Workers */`);
+
+      const importPattern3 = new RegExp(`import\\s+.*?\\s+from\\s+["']${module}["'];?`, 'g');
+      modified = modified.replace(importPattern3, `// $& /* ${module} not supported in Cloudflare Workers */`);
+
+      const importPattern4 = new RegExp(`import\\s+.*?\\s+from\\s+['"]${module}['"];?`, 'g');
+      modified = modified.replace(importPattern4, `// $& /* ${module} not supported in Cloudflare Workers */`);
+
+      // 動的インポート import("node:module") または import("module") を Promise.resolve({}) に置き換え
+      const dynamicImportPattern1 = new RegExp(`import\\(["']node:${module}["']\\)`, 'g');
+      modified = modified.replace(dynamicImportPattern1, `Promise.resolve({}) /* ${module} not supported in Cloudflare Workers */`);
+
+      const dynamicImportPattern2 = new RegExp(`import\\(['"]node:${module}['"]\\)`, 'g');
+      modified = modified.replace(dynamicImportPattern2, `Promise.resolve({}) /* ${module} not supported in Cloudflare Workers */`);
+
+      const dynamicImportPattern3 = new RegExp(`import\\(["']${module}["']\\)`, 'g');
+      modified = modified.replace(dynamicImportPattern3, `Promise.resolve({}) /* ${module} not supported in Cloudflare Workers */`);
+
+      const dynamicImportPattern4 = new RegExp(`import\\(['"]${module}['"]\\)`, 'g');
+      modified = modified.replace(dynamicImportPattern4, `Promise.resolve({}) /* ${module} not supported in Cloudflare Workers */`);
+    }
+  }
+
+  // その他の Node.js 組み込みモジュールの import 文に node: プレフィックスを追加
+  for (const module of nodeBuiltinModules) {
+    // import ... from "module" を import ... from "node:module" に置換
+    const importPattern1 = new RegExp(`import\\s+([^"']+?)\\s+from\\s+["']${module}["']`, 'g');
+    modified = modified.replace(importPattern1, `import $1 from "node:${module}"`);
+
+    const importPattern2 = new RegExp(`import\\s+([^"']+?)\\s+from\\s+['"]${module}['"]`, 'g');
+    modified = modified.replace(importPattern2, `import $1 from "node:${module}"`);
+
+    // 動的インポート import("module") を import("node:module") に置換
+    const dynamicImportPattern1 = new RegExp(`import\\(["']${module}["']\\)`, 'g');
+    modified = modified.replace(dynamicImportPattern1, `import("node:${module}")`);
+
+    const dynamicImportPattern2 = new RegExp(`import\\(['"]${module}['"]\\)`, 'g');
+    modified = modified.replace(dynamicImportPattern2, `import("node:${module}")`);
+  }
+
+  // dns/promises の import 文の特別処理
+  modified = modified.replace(/import\s+([^"']+?)\s+from\s+["']dns\/promises["']/g, 'import $1 from "node:dns/promises"');
+  modified = modified.replace(/import\s+([^"']+?)\s+from\s+['"]dns\/promises['"]/g, 'import $1 from "node:dns/promises"');
+  modified = modified.replace(/import\(["']dns\/promises["']\)/g, 'import("node:dns/promises")');
+  modified = modified.replace(/import\(['"]dns\/promises['"]\)/g, 'import("node:dns/promises")');
+
   return modified;
 }
 
