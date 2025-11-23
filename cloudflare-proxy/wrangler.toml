@@ -14,16 +14,10 @@ ORIGIN_BASE_URL = "https://auriary.vercel.app"
 [observability]
 enabled = true
 
-# カスタムドメインのルーティング（オプション）
-# カスタムドメインを使用する場合は、以下のコメントを外して設定してください
-# routes = [
-#   { pattern = "diary.example.com/*", zone_name = "example.com" }
-# ]
-
-# または、zone_id を直接指定する場合
-# routes = [
-#   { pattern = "diary.example.com/*", zone_id = "your-zone-id" }
-# ]
-
-# 注意: カスタムドメインを使用しない場合（*.workers.dev のみ）は routes の設定は不要です
+# カスタムドメインのルーティング
+# auriaries.org ドメインを Worker に紐付け
+routes = [
+  { pattern = "www.auriaries.org/*", zone_name = "auriaries.org" },
+  { pattern = "auriaries.org/*", zone_name = "auriaries.org" }
+]
 

@@ -1,8 +1,43 @@
-# Cloudflare Pages デプロイ手順書
+# Cloudflare デプロイ手順書
 
-このドキュメントでは、auriaryプロジェクトをCloudflare Pagesにデプロイする手順を説明します。
+このドキュメントでは、auriaryプロジェクトをCloudflareにデプロイする手順を説明します。
 
-## ⚡ クイックスタート（5分でデプロイ）
+## ⚡ 推奨: パターン2（Cloudflare Workers プロキシ + Vercel オリジン）
+
+**このパターンが推奨です。** OpenNext のビルドエラーを回避でき、シンプルで安定した構成です。
+
+### クイックスタート（3分でデプロイ）
+
+1. **Vercel にデプロイ済みであることを確認**
+   - 本番 URL: `https://auriary.vercel.app` が正常に動作していること
+
+2. **Cloudflare Worker プロキシをデプロイ**
+   ```bash
+   pnpm install
+   pnpm cf:proxy:deploy
+   ```
+
+3. **Cloudflare ダッシュボードでカスタムドメインを設定**
+   - Cloudflare Dashboard → Workers & Pages → **Workers** タブ
+   - `auriary-proxy` Worker を選択
+   - **Triggers** → **Routes** → 「Add route」をクリック
+   - ルートを追加: `www.auriaries.org/*` または `auriaries.org/*`
+   - Zone: `auriaries.org`
+   - 保存
+
+4. **完了！**
+   - カスタムドメインからアクセス可能になります
+   - Cloudflare のエッジキャッシュにより、非ログイン時のページ読み込み速度が向上します
+
+**詳細**: プロジェクトルートの `README.md` の「Hybrid Deploy Pattern 2」セクションを参照してください。
+
+---
+
+## ⚠️ 非推奨: パターン1（Cloudflare Pages + OpenNext）
+
+**注意**: このパターンは `node:timers` などのビルドエラーが発生する可能性があります。パターン2の使用を強く推奨します。
+
+### クイックスタート（5分でデプロイ）
 
 1. **GitHubにコードをプッシュ**
    ```bash

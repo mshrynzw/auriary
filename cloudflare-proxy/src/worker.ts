@@ -154,10 +154,44 @@ async function proxyToOrigin(request: Request, env: Env): Promise<Response> {
   // レスポンスヘッダーをコピー
   const responseHeaders = new Headers(response.headers);
 
-  // CORS ヘッダーを追加（必要に応じて）
-  responseHeaders.set('Access-Control-Allow-Origin', '*');
+  // Set-Cookie ヘッダーを正しく処理
+  // 複数の Set-Cookie ヘッダーがある場合、すべてを取得して Domain 属性を調整
+  const setCookieHeaders = response.headers.getSetCookie?.() || [];
+  if (setCookieHeaders.length > 0) {
+    // 既存の Set-Cookie ヘッダーを削除
+    responseHeaders.delete('Set-Cookie');
+    // 各 Set-Cookie ヘッダーを追加（Domain 属性を現在のドメインに調整）
+    for (const cookie of setCookieHeaders) {
+      // Domain 属性を現在のドメインに調整（Vercel のドメインから Cloudflare のドメインへ）
+      // Domain 属性が存在する場合は置換、存在しない場合は追加
+      let adjustedCookie = cookie;
+      const domainMatch = cookie.match(/Domain=([^;]+)/i);
+      if (domainMatch) {
+        // 既存の Domain 属性を現在のドメインに置換
+        adjustedCookie = cookie.replace(/Domain=[^;]+/i, `Domain=${url.hostname}`);
+      } else {
+        // Domain 属性がない場合は追加（セミコロンの前に追加）
+        const semicolonIndex = cookie.indexOf(';');
+        if (semicolonIndex !== -1) {
+          adjustedCookie = `${cookie.substring(0, semicolonIndex)}; Domain=${url.hostname}${cookie.substring(semicolonIndex)}`;
+        } else {
+          adjustedCookie = `${cookie}; Domain=${url.hostname}`;
+        }
+      }
+      responseHeaders.append('Set-Cookie', adjustedCookie);
+    }
+  }
+
+  // CORS ヘッダーを追加（認証が必要な場合は credentials を許可）
+  const origin = request.headers.get('Origin');
+  if (origin) {
+    responseHeaders.set('Access-Control-Allow-Origin', origin);
+    responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+  } else {
+    responseHeaders.set('Access-Control-Allow-Origin', '*');
+  }
   responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
 
   // キャッシュ制御ヘッダーを設定
   if (isGet && !isPersonalized && !isApi) {
