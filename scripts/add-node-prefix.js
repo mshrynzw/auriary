@@ -34,7 +34,7 @@ const nodeBuiltinModules = [
 
 // Cloudflare Workers でサポートされていない Node.js 組み込みモジュール
 // これらのモジュールは node: プレフィックスを追加しない（または削除する）
-const unsupportedModules = ['timers', 'child_process', 'cluster', 'worker_threads'];
+const unsupportedModules = ['timers', 'child_process', 'cluster', 'worker_threads', 'module'];
 
 /**
  * ファイル内の require() 呼び出しに node: プレフィックスを追加
