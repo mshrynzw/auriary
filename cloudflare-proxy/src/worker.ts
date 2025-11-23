@@ -151,6 +151,20 @@ async function proxyToOrigin(request: Request, env: Env): Promise<Response> {
 
   const response = await fetch(originUrl, fetchOptions);
 
+  // デバッグログ（エラーの場合）
+  if (response.status >= 400) {
+    const responseClone = response.clone();
+    const responseBody = await responseClone.text();
+    console.error('Error from origin:', {
+      url: originUrl,
+      method: request.method,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      bodyPreview: responseBody.substring(0, 1000), // 最初の1000文字のみ
+    });
+  }
+
   // レスポンスヘッダーをコピー
   const responseHeaders = new Headers(response.headers);
 
