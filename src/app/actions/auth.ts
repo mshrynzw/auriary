@@ -161,11 +161,22 @@ export async function registerAction(formData: FormData) {
  * ログアウト
  */
 export async function logoutAction() {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  try {
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.signOut();
 
-  revalidatePath('/');
-  // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
-  // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
-  return { success: true, redirectTo: '/login' };
+    revalidatePath('/');
+    // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
+    // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
+    return { success: true, redirectTo: '/login' };
+  } catch (error) {
+    console.error('Logout error:', error);
+    // エラーが発生してもログアウト処理は続行
+    return {
+      error: {
+        code: 'LOGOUT_ERROR',
+        message: 'ログアウトに失敗しました',
+      },
+    };
+  }
 }

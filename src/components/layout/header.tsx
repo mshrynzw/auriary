@@ -1,16 +1,15 @@
 import { getAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LogOut, BookOpen, Settings } from 'lucide-react';
+import { BookOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
-import { logoutAction } from '@/app/actions/auth';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { LogoutButton } from './logout-button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Dialog,
@@ -137,14 +136,7 @@ export async function Header() {
                       </DropdownMenuItem>
                     </Link>
                     <DropdownMenuSeparator />
-                    <form action={logoutAction}>
-                      <DropdownMenuItem asChild>
-                        <button type="submit" className="w-full text-left">
-                          <LogOut className="mr-2 h-4 w-4" />
-                          ログアウト
-                        </button>
-                      </DropdownMenuItem>
-                    </form>
+                    <LogoutButton />
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
