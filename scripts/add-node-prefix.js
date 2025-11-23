@@ -32,11 +32,30 @@ const nodeBuiltinModules = [
   'net',
 ];
 
+// Cloudflare Workers でサポートされていない Node.js 組み込みモジュール
+// これらのモジュールは node: プレフィックスを追加しない（または削除する）
+const unsupportedModules = ['timers', 'child_process', 'cluster', 'worker_threads'];
+
 /**
  * ファイル内の require() 呼び出しに node: プレフィックスを追加
+ * ただし、Cloudflare Workers でサポートされていないモジュールは除外
  */
 function addNodePrefix(content) {
   let modified = content;
+
+  // Cloudflare Workers でサポートされていないモジュールの node: プレフィックスを削除
+  // node:timers を timers に戻す（Cloudflare Workers ではグローバル関数が利用可能）
+  for (const module of unsupportedModules) {
+    // require("node:module") を require("module") に戻す（ただし、これは通常使用されない）
+    const pattern1 = new RegExp(`require\\(["']node:${module}["']\\)`, 'g');
+    modified = modified.replace(pattern1, `require("${module}")`);
+
+    const pattern2 = new RegExp(`require\\(['"]node:${module}['"]\\)`, 'g');
+    modified = modified.replace(pattern2, `require('${module}')`);
+
+    // さらに、require("module") を削除またはコメントアウト（Cloudflare Workers では不要）
+    // ただし、これは危険なので、まずは node: プレフィックスを削除するだけにする
+  }
 
   // require("module") を require("node:module") に置換
   for (const module of nodeBuiltinModules) {
@@ -52,6 +71,14 @@ function addNodePrefix(content) {
   // dns/promises の特別処理
   modified = modified.replace(/require\(["']dns\/promises["']\)/g, 'require("node:dns/promises")');
   modified = modified.replace(/require\(['"]dns\/promises['"]\)/g, 'require("node:dns/promises")');
+
+  // timers の特別処理: node:timers を空のオブジェクトに置き換え
+  // Cloudflare Workers では setTimeout/setInterval などのグローバル関数が利用可能なので、
+  // timers モジュールは不要（空のオブジェクトで置き換え）
+  modified = modified.replace(/require\(["']node:timers["']\)/g, '({}) /* timers not needed in Cloudflare Workers - global functions available */');
+  modified = modified.replace(/require\(['"]node:timers['"]\)/g, "({}) /* timers not needed in Cloudflare Workers - global functions available */");
+  modified = modified.replace(/require\(["']timers["']\)/g, '({}) /* timers not needed in Cloudflare Workers - global functions available */');
+  modified = modified.replace(/require\(['"]timers['"]\)/g, "({}) /* timers not needed in Cloudflare Workers - global functions available */");
 
   return modified;
 }
