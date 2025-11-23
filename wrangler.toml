@@ -2,6 +2,7 @@
 # このファイルは Cloudflare Pages のビルド時に使用されます
 # OpenNext の場合は `_worker.js` が自動的に検出されるため、`pages_build_output_dir` のみを指定します
 
+name = "auriary"
 pages_build_output_dir = ".open-next"
 
 # 注意: compatibility_date と compatibility_flags は Cloudflare Pages の Functions 設定で指定する必要があります
