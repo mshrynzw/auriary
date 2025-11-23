@@ -213,29 +213,11 @@ pnpm cf:proxy:dev
    - Zone: `auriaries.org`
 5. 保存
 
-**CI/CDの設定（GitHub Actions）:**
+**詳細な設定手順:**
 
-`cloudflare-proxy/`ディレクトリの変更を自動デプロイするには、GitHub Secretsを設定してください：
-
-1. **Cloudflare APIトークンの取得**
-   - Cloudflare Dashboard → 右上のプロフィールアイコン → 「My Profile」
-   - 「API Tokens」タブ → 「Create Token」
-   - 「Edit Cloudflare Workers」テンプレートを選択、またはカスタムトークンを作成
-   - 権限: `Account` → `Cloudflare Workers` → `Edit`
-   - トークンをコピー（一度しか表示されません）
-
-2. **CloudflareアカウントIDの取得**
-   - Cloudflare Dashboard → 右側の「Account ID」をコピー
-
-3. **GitHub Secretsの設定**
-   - GitHubリポジトリ → 「Settings」→ 「Secrets and variables」→ 「Actions」
-   - 以下のSecretsを追加:
-     - `CLOUDFLARE_API_TOKEN`: 上記で取得したAPIトークン
-     - `CLOUDFLARE_ACCOUNT_ID`: 上記で取得したアカウントID
-
-4. **自動デプロイの確認**
-   - `cloudflare-proxy/`ディレクトリのファイルを変更してpushすると、自動的にデプロイされます
-   - GitHub Actionsの「Actions」タブでデプロイ状況を確認できます
+詳細な設定手順については、[docs/800_Release/800_Deploy.md](./docs/800_Release/800_Deploy.md) を参照してください：
+- カスタムドメインの設定
+- CI/CDの設定（GitHub Actions）
 
 **Cloudflare Pages の無効化（オプション）:**
 
