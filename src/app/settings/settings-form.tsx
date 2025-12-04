@@ -361,7 +361,7 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
                 <h3 className="text-lg font-semibold mb-4">時刻デフォルト設定</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="sleep_start_at_default">就寝時刻</Label>
+                    <Label htmlFor="sleep_start_at_default">起床時刻</Label>
                     <Input
                       id="sleep_start_at_default"
                       type="time"
@@ -374,7 +374,7 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="sleep_end_at_default">起床時刻</Label>
+                    <Label htmlFor="sleep_end_at_default">就寝時刻</Label>
                     <Input
                       id="sleep_end_at_default"
                       type="time"

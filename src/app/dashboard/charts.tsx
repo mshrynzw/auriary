@@ -221,11 +221,11 @@ export function UnifiedChart({ diaries }: ChartProps) {
 
   const colors = {
     mood: '#3b82f6', // 青
-    sleepHours: '#22c55e', // 緑
-    sleepHoursBar: 'rgba(34, 197, 94, 0.3)', // 緑（薄い、棒グラフ用）
+    sleepHours: '#3b82f6', // 青
+    sleepHoursBar: 'rgba(59, 130, 246, 0.3)', // 青（薄い、棒グラフ用）
     sleepQuality: '#8b5cf6', // 紫
     wakeLevel: '#f59e0b', // オレンジ
-    daytimeLevel: '#3b82f6', // 青（moodと同じ）
+    daytimeLevel: '#22c55e', // 緑
     preSleepLevel: '#ec4899', // ピンク
     medAdherenceLevel: '#10b981', // 緑
     appetiteLevel: '#ef4444', // 赤
@@ -250,7 +250,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
   }
 
   return (
-    <Card className="border-none bg-muted/50">
+    <Card className="border-none bg-muted/80">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>データ推移</CardTitle>
@@ -300,11 +300,14 @@ export function UnifiedChart({ diaries }: ChartProps) {
               tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
               stroke="oklch(0.129 0.042 264.695)"
               label={{
-                value: '睡眠時間 (時間)',
+                value: '睡眠時間 （時間）・OD回数（回）',
                 angle: 90,
                 position: 'right',
                 offset: -7.5,
                 fill: 'oklch(0.129 0.042 264.695)',
+                style: {
+                  textAnchor: 'middle',
+                },
               }}
             />
             <RechartsTooltip
@@ -332,14 +335,14 @@ export function UnifiedChart({ diaries }: ChartProps) {
                             entry.dataKey?.toString() === 'sleepQuality';
                           const isOdTimes = entry.dataKey?.toString() === 'odTimes';
                           return (
-                            <div key={index} className="flex flex-col">
+                            <div key={index} className="flex flex-col font-bold">
                               <span
                                 className="text-[0.70rem] uppercase"
                                 style={{ color: 'oklch(0.129 0.042 264.695)' }}
                               >
                                 {entry.name}
                               </span>
-                              <span className="font-bold" style={{ color: entry.color }}>
+                              <span>
                                 {isLevel
                                   ? `${entry.value}/5`
                                   : entry.dataKey === 'sleepHours'
