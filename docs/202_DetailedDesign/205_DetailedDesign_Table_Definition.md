@@ -33,14 +33,14 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 | -- | -------------------------- | ------------ | ----------- | -------- | -- | ----------------------------------- |
 | 1  | id                         | 日々デフォルトID    | BIGINT      | NOT NULL | PK | レコードID。                             |
 | 2  | user_id                    | ユーザーID       | BIGINT      | NOT NULL | FK | `m_users.id`。デフォルトの持ち主。             |
-| 3  | sleep_quality_default      | 睡眠の質デフォルト    | SMALLINT    | NOT NULL |    | 1〜5。1=とても悪い〜5=とても良い。                |
-| 4  | wake_level_default          | 目覚め時の気分デフォルト | SMALLINT    | NOT NULL |    | 1〜5。1=最悪〜5=とても良い。                   |
-| 5  | daytime_level_default       | 日中の気分デフォルト   | SMALLINT    | NOT NULL |    | 1〜5。                                |
-| 6  | pre_sleep_level_default     | 就寝前の気分デフォルト  | SMALLINT    | NOT NULL |    | 1〜5。                                |
-| 7  | med_adherence_level_default      | 服薬遵守度デフォルト   | SMALLINT    | NOT NULL |    | 1〜5。1=全く飲めず〜5=全部飲めた。                |
-| 8  | appetite_level_default     | 食欲レベルデフォルト   | SMALLINT    | NOT NULL |    | 1〜5。1=ない,2=あまりない,3=ふつう,4=ややある,5=ある。 |
-| 9  | sleep_desire_level_default | 睡眠欲レベルデフォルト  | SMALLINT    | NOT NULL |    | 1〜5。同上スケール。                         |
-| 10 | exercise_level_default     | 運動レベルデフォルト   | SMALLINT    | NOT NULL |    | 1〜5。1=全くしない、5=たくさんする。デフォルト値は3。 |
+| 3  | sleep_quality_default      | 睡眠の質デフォルト    | SMALLINT    | NOT NULL |    | 0〜10。0=とても悪い〜10=とても良い。デフォルト値は5。                |
+| 4  | wake_level_default          | 目覚め時の気分デフォルト | SMALLINT    | NOT NULL |    | 0〜10。0=最悪〜10=とても良い。デフォルト値は5。                   |
+| 5  | daytime_level_default       | 日中の気分デフォルト   | SMALLINT    | NOT NULL |    | 0〜10。デフォルト値は5。                                |
+| 6  | pre_sleep_level_default     | 就寝前の気分デフォルト  | SMALLINT    | NOT NULL |    | 0〜10。デフォルト値は5。                                |
+| 7  | med_adherence_level_default      | 服薬遵守度デフォルト   | SMALLINT    | NOT NULL |    | 0〜10。0=全く飲めず〜10=全部飲めた。デフォルト値は5。                |
+| 8  | appetite_level_default     | 食欲レベルデフォルト   | SMALLINT    | NOT NULL |    | 0〜10。0=ない〜10=ある。デフォルト値は5。 |
+| 9  | sleep_desire_level_default | 睡眠欲レベルデフォルト  | SMALLINT    | NOT NULL |    | 0〜10。デフォルト値は5。                         |
+| 10 | exercise_level_default     | 運動レベルデフォルト   | SMALLINT    | NOT NULL |    | 0〜10。0=全くしない、10=たくさんする。デフォルト値は5。 |
 | 11 | source_id                  | 元レコードID      | BIGINT      | NULL     |    | バージョン管理用。                           |
 | 12 | created_at                 | 作成日時         | TIMESTAMPTZ | NOT NULL |    | レコード作成日時。                           |
 | 13 | updated_at                 | 更新日時         | TIMESTAMPTZ | NOT NULL |    | レコード最終更新日時。                         |
@@ -133,14 +133,14 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 | 5  | sleep_end_at       | 起床時刻           | TIMESTAMPTZ | NULL     |    | 起きた時刻。                |
 | 6  | bath_start_at      | 入浴開始時刻         | TIMESTAMPTZ | NULL     |    | 風呂に入り始めた時刻。           |
 | 7  | bath_end_at        | 入浴終了時刻         | TIMESTAMPTZ | NULL     |    | 風呂から上がった時刻。           |
-| 8  | sleep_quality      | 睡眠の質           | SMALLINT    | NULL     |    | 1〜5。1=ほぼ眠れない,5=よく眠れた。 |
-| 9  | wake_level          | 起床時の気分         | SMALLINT    | NULL     |    | 1〜5。1=最悪,5=とても良い。     |
-| 10 | daytime_level       | 日中の気分          | SMALLINT    | NULL     |    | 1〜5。                  |
-| 11 | pre_sleep_level     | 就寝前の気分         | SMALLINT    | NULL     |    | 1〜5。                  |
-| 12 | med_adherence_level      | 服薬遵守度          | SMALLINT    | NULL     |    | 1〜5。1=全く飲めず,5=全部飲めた。  |
-| 13 | appetite_level     | 食欲レベル          | SMALLINT    | NULL     |    | 1〜5。1=ない〜5=ある。        |
-| 14 | sleep_desire_level | 睡眠欲レベル         | SMALLINT    | NULL     |    | 1〜5。                  |
-| 15 | exercise_level     | 運動レベル           | SMALLINT    | NULL     |    | 1〜5。1=全くしない、5=たくさんする。 |
+| 8  | sleep_quality      | 睡眠の質           | SMALLINT    | NULL     |    | 0〜10。0=ほぼ眠れない,10=よく眠れた。 |
+| 9  | wake_level          | 起床時の気分         | SMALLINT    | NULL     |    | 0〜10。0=最悪,10=とても良い。     |
+| 10 | daytime_level       | 日中の気分          | SMALLINT    | NULL     |    | 0〜10。                  |
+| 11 | pre_sleep_level     | 就寝前の気分         | SMALLINT    | NULL     |    | 0〜10。                  |
+| 12 | med_adherence_level      | 服薬遵守度          | SMALLINT    | NULL     |    | 0〜10。0=全く飲めず,10=全部飲めた。  |
+| 13 | appetite_level     | 食欲レベル          | SMALLINT    | NULL     |    | 0〜10。0=ない〜10=ある。        |
+| 14 | sleep_desire_level | 睡眠欲レベル         | SMALLINT    | NULL     |    | 0〜10。                  |
+| 15 | exercise_level     | 運動レベル           | SMALLINT    | NULL     |    | 0〜10。0=全くしない、10=たくさんする。 |
 | 16 | note      | 日記本文（Markdown） | TEXT        | NULL     |    | 自由記述。Markdownで記録。     |
 | 17 | has_od             | OD発生フラグ        | BOOLEAN     | NULL     |    | その日に OD があったか。        |
 | 18 | od_times            | OD情報配列          | JSONB       | NULL     |    | ODの時刻・量・単位・メモを配列で保持。各要素は `{occurred_at, amount, amount_unit, context_memo, source_id}` の形式。 |
@@ -230,7 +230,7 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 | 2  | user_id            | ユーザーID      | BIGINT      | NOT NULL | FK | `m_users.id`。            |
 | 3  | user_medication_id | ユーザー処方ID    | BIGINT      | NOT NULL | FK | `r_user_medications.id`。 |
 | 4  | intake_date        | 服薬対象日       | DATE        | NOT NULL |    | どの日の服薬か。                 |
-| 5  | adherence_score    | 服薬遵守度スコア    | SMALLINT    | NULL     |    | 1〜5。1=全く飲めず〜5=全部飲めた。     |
+| 5  | adherence_score    | 服薬遵守度スコア    | SMALLINT    | NULL     |    | 0〜10。0=全く飲めず〜10=全部飲めた。     |
 | 6  | note               | メモ          | TEXT        | NULL     |    | 「朝だけ飲めた」など補足。            |
 | 7  | source_id          | 元レコードID     | BIGINT      | NULL     |    | バージョン管理用。                |
 | 8  | created_at         | 作成日時        | TIMESTAMPTZ | NOT NULL |    |                          |

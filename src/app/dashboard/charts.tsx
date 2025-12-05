@@ -286,14 +286,11 @@ export function UnifiedChart({ diaries }: ChartProps) {
               tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
               stroke="oklch(0.129 0.042 264.695)"
               label={{
-                value: 'スコア（折れ線グラフ）',
+                value: 'スコア',
                 angle: -90,
                 position: 'left',
                 offset: -7.5,
                 fill: 'oklch(0.129 0.042 264.695)',
-                style: {
-                  textAnchor: 'middle',
-                },
               }}
             />
             <YAxis
@@ -303,7 +300,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
               tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
               stroke="oklch(0.129 0.042 264.695)"
               label={{
-                value: '睡眠時間・OD回数（棒グラフ）',
+                value: '睡眠時間 （時間）・OD回数（回）',
                 angle: 90,
                 position: 'right',
                 offset: -7.5,
@@ -347,7 +344,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
                               </span>
                               <span>
                                 {isLevel
-                                  ? `${entry.value}/5`
+                                  ? `${entry.value}/10`
                                   : entry.dataKey === 'sleepHours'
                                     ? `${entry.value}時間`
                                     : isOdTimes

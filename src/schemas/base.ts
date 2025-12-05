@@ -25,9 +25,9 @@ export const medicationIdSchema = z.number().int().positive().brand<'MedicationI
 export const userMedicationIdSchema = z.number().int().positive().brand<'UserMedicationId'>();
 
 /**
- * レベル値の共通スキーマ（1-5の範囲）
+ * レベル値の共通スキーマ（0-10の範囲）
  */
-export const levelSchema = z.number().int().min(1).max(5);
+export const levelSchema = z.number().int().min(0).max(10);
 
 /**
  * レベル値の共通スキーマ（1-10の範囲）

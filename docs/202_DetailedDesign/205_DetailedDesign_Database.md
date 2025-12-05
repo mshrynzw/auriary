@@ -39,13 +39,14 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 - `user_id`：ユーザーID（BIGINT, FK → m_users.id）
 - `diary_date`：記録対象日（DATE, NOT NULL）
 - `note`：日記本文（Markdown）（TEXT, NULL）
-- `sleep_quality`：睡眠の質（SMALLINT, 1-5, NULL）
-- `wake_level`：起床時の気分（SMALLINT, 1-5, NULL）
-- `daytime_level`：日中の気分（SMALLINT, 1-5, NULL）
-- `pre_sleep_level`：就寝前の気分（SMALLINT, 1-5, NULL）
-- `med_adherence_level`：服薬遵守度（SMALLINT, 1-5, NULL）
-- `appetite_level`：食欲レベル（SMALLINT, 1-5, NULL）
-- `sleep_desire_level`：睡眠欲レベル（SMALLINT, 1-5, NULL）
+- `sleep_quality`：睡眠の質（SMALLINT, 0-10, NULL）
+- `wake_level`：起床時の気分（SMALLINT, 0-10, NULL）
+- `daytime_level`：日中の気分（SMALLINT, 0-10, NULL）
+- `pre_sleep_level`：就寝前の気分（SMALLINT, 0-10, NULL）
+- `med_adherence_level`：服薬遵守度（SMALLINT, 0-10, NULL）
+- `appetite_level`：食欲レベル（SMALLINT, 0-10, NULL）
+- `sleep_desire_level`：睡眠欲レベル（SMALLINT, 0-10, NULL）
+- `exercise_level`：運動レベル（SMALLINT, 0-10, NULL）
 - `has_od`：OD発生フラグ（BOOLEAN, NULL）
 - `od_times`：OD情報配列（JSONB, NULL）
   - 各ODの時刻・薬情報・量・単位・メモを配列で保持
@@ -78,13 +79,14 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 **主要カラム:**
 - `id`：日々デフォルトID（BIGINT, PK）
 - `user_id`：ユーザーID（BIGINT, FK → m_users.id）
-- `sleep_quality_default`：睡眠の質デフォルト（SMALLINT, 1-5, NOT NULL）
-- `wake_level_default`：目覚め時の気分デフォルト（SMALLINT, 1-5, NOT NULL）
-- `daytime_level_default`：日中の気分デフォルト（SMALLINT, 1-5, NOT NULL）
-- `pre_sleep_level_default`：就寝前の気分デフォルト（SMALLINT, 1-5, NOT NULL）
-- `med_adherence_level_default`：服薬遵守度デフォルト（SMALLINT, 1-5, NOT NULL）
-- `appetite_level_default`：食欲レベルデフォルト（SMALLINT, 1-5, NOT NULL）
-- `sleep_desire_level_default`：睡眠欲レベルデフォルト（SMALLINT, 1-5, NOT NULL）
+- `sleep_quality_default`：睡眠の質デフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
+- `wake_level_default`：目覚め時の気分デフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
+- `daytime_level_default`：日中の気分デフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
+- `pre_sleep_level_default`：就寝前の気分デフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
+- `med_adherence_level_default`：服薬遵守度デフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
+- `appetite_level_default`：食欲レベルデフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
+- `sleep_desire_level_default`：睡眠欲レベルデフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
+- `exercise_level_default`：運動レベルデフォルト（SMALLINT, 0-10, NOT NULL、デフォルト値5）
 
 #### 5.3.5 通知関連テーブル（将来実装）
 
@@ -171,6 +173,26 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 - OD情報は日記テーブルに直接保存（1日単位での集約）
 - 薬マスタ（`m_medications`）との紐づけをサポート
 - 薬マスタにない薬は自由入力で記録可能
+
+#### 2025-01-16: スコア範囲の変更（1-5 → 0-10）
+
+**変更内容:**
+- `t_diaries`テーブルの各レベルカラムのスコア範囲を1-5から0-10に変更
+  - `sleep_quality`, `wake_level`, `daytime_level`, `pre_sleep_level`, `med_adherence_level`, `appetite_level`, `sleep_desire_level`, `exercise_level`
+- `m_user_daily_defaults`テーブルの各デフォルト値カラムのスコア範囲を1-5から0-10に変更
+  - デフォルト値を3から5に変更（1-5の3が0-10の5に対応）
+- `t_medication_intakes`テーブルの`adherence_score`も0-10に変更
+- 既存データは線形変換式 `ROUND((x - 1) * 2.5)` で変換
+  - 1 → 0, 2 → 3, 3 → 5, 4 → 8, 5 → 10
+
+**マイグレーションファイル:**
+- `supabase/migrations/20250116000005_convert_level_1_5_to_0_10.sql`
+
+**実装詳細:**
+- データ更新前にCHECK制約を削除し、データ更新後に新しい制約を追加
+- PostgreSQLの自動生成制約名に対応するため、動的な制約削除を実装
+- スキーマ（`levelSchema`）とバリデーターも0-10に更新
+- フロントエンド表示も`/5`から`/10`に変更
 
 ### 5.5 Supabase 高度な機能
 

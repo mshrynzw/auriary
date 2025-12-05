@@ -17,14 +17,14 @@ const timeFieldSchema = z
   .optional();
 
 export const dailyDefaultsSchema = z.object({
-  sleep_quality_default: z.number().min(1).max(5),
-  wake_level_default: z.number().min(1).max(5),
-  daytime_level_default: z.number().min(1).max(5),
-  pre_sleep_level_default: z.number().min(1).max(5),
-  med_adherence_level_default: z.number().min(1).max(5),
-  appetite_level_default: z.number().min(1).max(5),
-  sleep_desire_level_default: z.number().min(1).max(5),
-  exercise_level_default: z.number().min(1).max(5),
+  sleep_quality_default: z.number().min(0).max(10),
+  wake_level_default: z.number().min(0).max(10),
+  daytime_level_default: z.number().min(0).max(10),
+  pre_sleep_level_default: z.number().min(0).max(10),
+  med_adherence_level_default: z.number().min(0).max(10),
+  appetite_level_default: z.number().min(0).max(10),
+  sleep_desire_level_default: z.number().min(0).max(10),
+  exercise_level_default: z.number().min(0).max(10),
   sleep_start_at_default: timeFieldSchema,
   sleep_end_at_default: timeFieldSchema,
   bath_start_at_default: timeFieldSchema,
