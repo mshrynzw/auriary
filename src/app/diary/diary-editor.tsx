@@ -329,7 +329,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>睡眠の質: {sleepQuality}/5</Label>
+                    <Label>睡眠の質: {sleepQuality}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -344,8 +344,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[sleepQuality]}
                     onValueChange={(value) => setValue('sleep_quality', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
@@ -353,7 +353,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>起床時の気分: {wakeLevel}/5</Label>
+                    <Label>起床時の気分: {wakeLevel}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -368,8 +368,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[wakeLevel]}
                     onValueChange={(value) => setValue('wake_level', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
@@ -377,7 +377,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>日中の気分: {daytimeLevel}/5</Label>
+                    <Label>日中の気分: {daytimeLevel}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -392,8 +392,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[daytimeLevel]}
                     onValueChange={(value) => setValue('daytime_level', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
@@ -401,7 +401,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>就寝前の気分: {preSleepLevel}/5</Label>
+                    <Label>就寝前の気分: {preSleepLevel}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -416,8 +416,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[preSleepLevel]}
                     onValueChange={(value) => setValue('pre_sleep_level', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
@@ -425,7 +425,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>服薬遵守度: {medAdherenceLevel}/5</Label>
+                    <Label>服薬遵守度: {medAdherenceLevel}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -440,8 +440,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[medAdherenceLevel]}
                     onValueChange={(value) => setValue('med_adherence_level', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
@@ -449,7 +449,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>食欲レベル: {appetiteLevel}/5</Label>
+                    <Label>食欲レベル: {appetiteLevel}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -464,8 +464,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[appetiteLevel]}
                     onValueChange={(value) => setValue('appetite_level', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
@@ -473,7 +473,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>睡眠欲レベル: {sleepDesireLevel}/5</Label>
+                    <Label>睡眠欲レベル: {sleepDesireLevel}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -488,8 +488,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[sleepDesireLevel]}
                     onValueChange={(value) => setValue('sleep_desire_level', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
@@ -497,7 +497,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>運動レベル: {exerciseLevel}/5</Label>
+                    <Label>運動レベル: {exerciseLevel}/10</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -512,8 +512,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[exerciseLevel]}
                     onValueChange={(value) => setValue('exercise_level', value[0])}
-                    min={1}
-                    max={5}
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isLoading}
                   />
