@@ -44,12 +44,12 @@ export async function Header() {
             <Link href="/" className="flex items-center gap-2">
               <div
                 className="flex items-center gap-2 text-2xl font-semibold tracking-wider animate-dimlight box-reflect group-data-[collapsible=icon]:hidden aurialy-logo"
-                data-text="aurialy"
+                data-text="auriary"
               >
                 <span className="inline-block">
                   <BookOpen className="h-8 w-8" />
                 </span>
-                aurialy
+                auriary
               </div>
             </Link>
             {user && <NavMenu />}
