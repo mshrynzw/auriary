@@ -10,7 +10,7 @@ export function NavMenu() {
 
   return (
     <nav className="hidden md:flex items-center gap-4">
-      <Link href="/dashboard" className="pointer-events-auto">
+      <Link href="/dashboard">
         <Button
           variant="ghost"
           size="sm"
