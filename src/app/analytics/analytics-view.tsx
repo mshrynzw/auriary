@@ -159,7 +159,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{avgSleepQuality.toFixed(1)}</p>
-                <p className="text-sm text-muted-foreground">/ 5</p>
+                <p className="text-sm text-muted-foreground">/ 10</p>
               </CardContent>
             </Card>
             <Card>

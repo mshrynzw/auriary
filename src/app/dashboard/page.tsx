@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                 {avgSleepQuality ? avgSleepQuality.toFixed(1) : '-'}
               </div>
               <p className="text-xs text-muted-foreground">
-                {avgSleepQuality ? '/ 5' : 'データなし'}
+                {avgSleepQuality ? '/ 10' : 'データなし'}
               </p>
             </CardContent>
           </Card>
