@@ -14,7 +14,7 @@ export function NavMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className={pathname === '/dashboard' || pathname === '/' ? 'animate-dimlight' : ''}
+          className={pathname === '/dashboard' ? 'animate-dimlight' : 'cursor-pointer'}
         >
           <ChartArea className="mr-2 h-4 w-4" />
           ダッシュボード
@@ -24,9 +24,7 @@ export function NavMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className={
-            pathname.startsWith('/diary') && pathname !== '/diary/new' ? 'animate-dimlight' : ''
-          }
+          className={pathname === '/diary' ? 'animate-dimlight' : 'cursor-pointer'}
         >
           <BookOpen className="mr-2 h-4 w-4" />
           日記
@@ -36,7 +34,7 @@ export function NavMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className={pathname === '/calendar' ? 'animate-dimlight' : ''}
+          className={pathname === '/calendar' ? 'animate-dimlight' : 'cursor-pointer'}
         >
           <Calendar className="mr-2 h-4 w-4" />
           カレンダー
@@ -46,7 +44,7 @@ export function NavMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className={pathname === '/analytics' ? 'animate-dimlight' : ''}
+          className={pathname === '/analytics' ? 'animate-dimlight' : 'cursor-pointer'}
         >
           <BarChart3 className="mr-2 h-4 w-4" />
           分析
