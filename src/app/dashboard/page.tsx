@@ -77,7 +77,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{avgMood ? avgMood.toFixed(1) : '-'}</div>
-              <p className="text-xs text-muted-foreground">{avgMood ? '/ 10' : 'データなし'}</p>
+              <p className="text-xs text-muted-foreground">{avgMood ? '/ 10.0' : 'データなし'}</p>
             </CardContent>
           </Card>
 
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                 {avgSleepQuality ? avgSleepQuality.toFixed(1) : '-'}
               </div>
               <p className="text-xs text-muted-foreground">
-                {avgSleepQuality ? '/ 10' : 'データなし'}
+                {avgSleepQuality ? '/ 10.0' : 'データなし'}
               </p>
             </CardContent>
           </Card>

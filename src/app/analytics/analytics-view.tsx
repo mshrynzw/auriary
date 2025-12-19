@@ -150,7 +150,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{avgMood.toFixed(1)}</p>
-                <p className="text-sm text-muted-foreground">/ 10</p>
+                <p className="text-sm text-muted-foreground">/ 10.0</p>
               </CardContent>
             </Card>
             <Card>
@@ -159,7 +159,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{avgSleepQuality.toFixed(1)}</p>
-                <p className="text-sm text-muted-foreground">/ 10</p>
+                <p className="text-sm text-muted-foreground">/ 10.0</p>
               </CardContent>
             </Card>
             <Card>
