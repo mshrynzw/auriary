@@ -255,12 +255,12 @@ export function UnifiedChart({ diaries }: ChartProps) {
         <div className="flex items-center justify-between">
           <CardTitle>データ推移</CardTitle>
           <Select value={period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px] cursor-pointer">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {PERIOD_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem key={option.value} value={option.value} className="cursor-pointer">
                   {option.label}
                 </SelectItem>
               ))}

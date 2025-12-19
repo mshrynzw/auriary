@@ -37,7 +37,7 @@ export function LogoutButton() {
         type="button"
         onClick={handleLogout}
         disabled={isLoading}
-        className="w-full text-left"
+        className="w-full text-left cursor-pointer"
       >
         <LogOut className="mr-2 h-4 w-4" />
         {isLoading ? 'ログアウト中...' : 'ログアウト'}
@@ -45,4 +45,3 @@ export function LogoutButton() {
     </DropdownMenuItem>
   );
 }
-

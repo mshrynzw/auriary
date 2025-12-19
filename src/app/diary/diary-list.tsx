@@ -100,7 +100,12 @@ export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) 
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Link href={`/diary/${diary.id}/edit`} onClick={stopPropagation}>
-                          <Button variant="outline" size="icon" onClick={stopPropagation}>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={stopPropagation}
+                            className="cursor-pointer"
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </Link>
@@ -115,7 +120,12 @@ export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) 
                       <TooltipTrigger asChild>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="icon" onClick={stopPropagation}>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={stopPropagation}
+                              className="cursor-pointer"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>

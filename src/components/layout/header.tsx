@@ -67,7 +67,7 @@ export async function Header() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="bg-white/15 hover:bg-white/25 shadow-lg hover:shodow-2xl"
+                            className="bg-white/15 hover:bg-white/25 shadow-lg hover:shodow-2xl cursor-pointer"
                           >
                             <Info className="h-6 w-6 text-white hover:text-slate-700 transition-colors" />
                           </Button>
@@ -100,7 +100,7 @@ export async function Header() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Link href="/diary/new">
-                        <Button className="shadow-lg hover:shodow-2xl">
+                        <Button className="shadow-lg hover:shodow-2xl cursor-pointer">
                           <Plus className="mr-2 h-4 w-4" />
                           新規作成
                         </Button>
@@ -116,7 +116,10 @@ export async function Header() {
               <div className="hidden md:block">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full cursor-pointer"
+                    >
                       <Avatar>
                         <AvatarFallback>{initials}</AvatarFallback>
                       </Avatar>
@@ -131,7 +134,7 @@ export async function Header() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <Link href="/settings">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
                         設定
                       </DropdownMenuItem>

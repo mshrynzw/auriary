@@ -1,17 +1,13 @@
-import { getAuth } from '@/lib/auth';
 import { getDiariesAction } from '@/app/actions/diary';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Calendar, BarChart3, Plus, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { type DiaryRow } from '@/schemas';
 import { UnifiedChart } from './charts';
 
 export default async function DashboardPage() {
-  const { userProfile } = await getAuth();
-
   // 全期間の日記を取得（統計用）
   const allDiariesResult = await getDiariesAction();
   const allDiaries = allDiariesResult.diaries || [];
@@ -113,7 +109,7 @@ export default async function DashboardPage() {
               <div className="flex items-center justify-between">
                 <CardTitle>最近の日記</CardTitle>
                 <Link href="/diary">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="cursor-pointer">
                     すべて見る
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -168,25 +164,25 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Link href="/diary/new" className="block">
-                <Button className="w-full justify-start" size="lg">
+                <Button className="w-full justify-start cursor-pointer" size="lg">
                   <Plus className="mr-2 h-4 w-4" />
                   新しい日記を作成
                 </Button>
               </Link>
               <Link href="/diary" className="block">
-                <Button className="w-full justify-start" variant="outline" size="lg">
+                <Button className="w-full justify-start cursor-pointer" variant="outline" size="lg">
                   <BookOpen className="mr-2 h-4 w-4" />
                   日記一覧
                 </Button>
               </Link>
               <Link href="/calendar" className="block">
-                <Button className="w-full justify-start" variant="outline" size="lg">
+                <Button className="w-full justify-start cursor-pointer" variant="outline" size="lg">
                   <Calendar className="mr-2 h-4 w-4" />
                   カレンダー
                 </Button>
               </Link>
               <Link href="/analytics" className="block">
-                <Button className="w-full justify-start" variant="outline" size="lg">
+                <Button className="w-full justify-start cursor-pointer" variant="outline" size="lg">
                   <BarChart3 className="mr-2 h-4 w-4" />
                   分析
                 </Button>

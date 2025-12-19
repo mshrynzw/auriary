@@ -8,7 +8,6 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Link from 'next/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type Diary = {
   id: number;
@@ -83,7 +82,7 @@ export function CalendarView({ diaries }: CalendarViewProps) {
                 {selectedDiary.note || '本文なし'}
               </p>
               <Link href={`/diary/${selectedDiary.id}`}>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full cursor-pointer">
                   詳細を見る
                 </Button>
               </Link>
