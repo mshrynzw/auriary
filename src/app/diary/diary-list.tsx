@@ -93,9 +93,7 @@ export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) 
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm line-clamp-3 mb-4 animate-dimlight">
-                {diary.note || '本文なし'}
-              </p>
+              <p className="text-sm line-clamp-3 mb-4">{diary.note || ''}</p>
               {isAuthenticated && (
                 <div className="flex items-center justify-end gap-2">
                   <TooltipProvider>

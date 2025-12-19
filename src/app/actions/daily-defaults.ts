@@ -22,13 +22,14 @@ export async function getDailyDefaultsAction() {
     if (error.code === 'PGRST116') {
       return {
         defaults: {
-          sleep_quality_default: 3,
-          wake_level_default: 3,
-          daytime_level_default: 3,
-          pre_sleep_level_default: 3,
-          med_adherence_level_default: 3,
-          appetite_level_default: 3,
-          sleep_desire_level_default: 3,
+          sleep_quality_default: 5,
+          wake_level_default: 5,
+          daytime_level_default: 5,
+          pre_sleep_level_default: 5,
+          med_adherence_level_default: 5,
+          appetite_level_default: 5,
+          sleep_desire_level_default: 5,
+          exercise_level_default: 5,
           sleep_start_at_default: null,
           sleep_end_at_default: null,
           bath_start_at_default: null,
