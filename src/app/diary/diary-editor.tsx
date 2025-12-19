@@ -290,6 +290,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
             <Label htmlFor="journal_date">日付</Label>
             <Input
               id="journal_date"
+              className="w-auto max-w-xs"
               type="date"
               {...register('journal_date')}
               disabled={isLoading}
