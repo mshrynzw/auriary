@@ -60,9 +60,11 @@ const DEFAULT_VISIBILITY: VisibilitySettings = {
   odTimes: false,
 };
 
-type PeriodOption = 'all' | '1month' | '3months' | '6months' | '1year';
+type PeriodOption = 'all' | '1week' | '2weeks' | '1month' | '3months' | '6months' | '1year';
 const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
   { value: 'all', label: '全期間' },
+  { value: '1week', label: '過去1週間' },
+  { value: '2weeks', label: '過去2週間' },
   { value: '1month', label: '過去1ヶ月' },
   { value: '3months', label: '過去3ヶ月' },
   { value: '6months', label: '過去6ヶ月' },
@@ -113,6 +115,12 @@ export function UnifiedChart({ diaries }: ChartProps) {
     const cutoffDate = new Date();
 
     switch (period) {
+      case '1week':
+        cutoffDate.setDate(now.getDate() - 7);
+        break;
+      case '2weeks':
+        cutoffDate.setDate(now.getDate() - 14);
+        break;
       case '1month':
         cutoffDate.setMonth(now.getMonth() - 1);
         break;
