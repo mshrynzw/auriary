@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import {
   Geist_Mono,
-  // Noto_Serif_JP, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
-  // Zen_Old_Mincho, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
-  // Shippori_Mincho, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
-  // Kosugi_Maru, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
-  // M_PLUS_Rounded_1c, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
-  // Yuji_Syuku, // Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト
+  // Noto_Serif_JP, // 日本語フォント（必要に応じてコメントを外してください）
+  // Zen_Old_Mincho, // 日本語フォント（必要に応じてコメントを外してください）
+  // Shippori_Mincho, // 日本語フォント（必要に応じてコメントを外してください）
+  // Kosugi_Maru, // 日本語フォント（必要に応じてコメントを外してください）
+  // M_PLUS_Rounded_1c, // 日本語フォント（必要に応じてコメントを外してください）
+  // Yuji_Syuku, // 日本語フォント（必要に応じてコメントを外してください）
 } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/header';
@@ -16,7 +16,7 @@ import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import './globals.css';
 
-// メインフォントとして Geist_Mono を使用（日本語フォントは Cloudflare Pages ビルドでエラーが発生するため一時的に無効化）
+// メインフォントとして Geist_Mono を使用
 // --font-sans として定義（既存の CSS 変数名に合わせる）
 const geistMono = Geist_Mono({
   variable: '--font-sans',
@@ -27,10 +27,8 @@ const mainFont = geistMono;
 
 // 幻想的な日本語フォントの選択肢
 // 以下のフォントから選んで、使用するフォントのコメントを外してください
-// 注意: Cloudflare Pages ビルド環境では Google Fonts のダウンロードに失敗するため、
-// 現在は Geist_Mono のみを使用しています（日本語フォントは一時的に無効化）
 
-// 1. Noto Serif JP - エレガントで読みやすい（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// 1. Noto Serif JP - エレガントで読みやすい
 // const notoSerifJP = Noto_Serif_JP({
 //   variable: '--font-sans',
 //   subsets: ['latin'],
@@ -38,7 +36,7 @@ const mainFont = geistMono;
 //   display: 'swap',
 // });
 
-// 2. Zen Old Mincho - 古風で幻想的（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// 2. Zen Old Mincho - 古風で幻想的
 // const zenOldMincho = Zen_Old_Mincho({
 //   variable: '--font-sans',
 //   subsets: ['latin'],
@@ -46,7 +44,7 @@ const mainFont = geistMono;
 //   display: 'swap',
 // });
 
-// 3. Shippori Mincho - 幻想的で読みやすい（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// 3. Shippori Mincho - 幻想的で読みやすい
 // const shipporiMincho = Shippori_Mincho({
 //   variable: '--font-sans',
 //   subsets: ['latin'],
@@ -54,7 +52,7 @@ const mainFont = geistMono;
 //   display: 'swap',
 // });
 
-// 4. Kosugi Maru - 丸みがあって優しい（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// 4. Kosugi Maru - 丸みがあって優しい
 // const kosugiMaru = Kosugi_Maru({
 //   variable: '--font-sans',
 //   subsets: ['latin'],
@@ -62,7 +60,7 @@ const mainFont = geistMono;
 //   display: 'swap',
 // });
 
-// 5. M PLUS Rounded 1c - 丸みがあってモダン（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// 5. M PLUS Rounded 1c - 丸みがあってモダン
 // const mPlusRounded = M_PLUS_Rounded_1c({
 //   variable: '--font-sans',
 //   subsets: ['latin'],
@@ -70,7 +68,7 @@ const mainFont = geistMono;
 //   display: 'swap',
 // });
 
-// 6. Yuji Syuku - 古風で幻想的（Cloudflare Pages ビルドでエラーが発生するため一時的にコメントアウト）
+// 6. Yuji Syuku - 古風で幻想的
 // const yujiSyuku = Yuji_Syuku({
 //   variable: '--font-sans',
 //   subsets: ['latin'],

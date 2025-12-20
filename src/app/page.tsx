@@ -19,7 +19,7 @@ export default async function HomePage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Cloudflare Pagesの設定で、以下の環境変数が設定されているか確認してください：
+              Vercelの設定で、以下の環境変数が設定されているか確認してください：
             </p>
             <ul className="mt-4 space-y-2 text-sm">
               <li>• NEXT_PUBLIC_SUPABASE_URL</li>

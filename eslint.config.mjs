@@ -15,7 +15,6 @@ export default [
       '*.config.{js,mjs,ts}',
       'scripts/**',
       'public/sw.js',
-      'cloudflare-env.d.ts',
     ],
   },
   {
@@ -58,4 +57,3 @@ export default [
     },
   },
 ];
-

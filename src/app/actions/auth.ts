@@ -87,7 +87,6 @@ export async function loginAction(formData: FormData) {
 
   revalidatePath('/');
   // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
-  // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
   return { success: true, redirectTo: '/' };
 }
 
@@ -163,7 +162,6 @@ export async function registerAction(formData: FormData) {
 
   revalidatePath('/');
   // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
-  // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
   return { success: true, redirectTo: '/' };
 }
 
@@ -177,7 +175,6 @@ export async function logoutAction() {
 
     revalidatePath('/');
     // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
-    // Cloudflare Workerプロキシ経由でredirect()が正しく処理されない場合があるため
     return { success: true, redirectTo: '/login' };
   } catch (error) {
     console.error('Logout error:', error);

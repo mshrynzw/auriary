@@ -4,13 +4,11 @@ import { createServerClient } from '@supabase/ssr';
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
-  // Cloudflare Pagesでは、環境変数は実行時にWorkerに渡される
   // 環境変数の読み込みを試行
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   // デバッグログ（常に出力して環境変数の読み込み状況を確認）
-  // Cloudflare Pagesでは、環境変数は実行時にWorkerに渡される
   // process.envの全キーを確認（機密情報は含まれないように注意）
   const allEnvKeys = Object.keys(process.env);
   const supabaseEnvKeys = allEnvKeys.filter((key) => key.includes('SUPABASE'));
