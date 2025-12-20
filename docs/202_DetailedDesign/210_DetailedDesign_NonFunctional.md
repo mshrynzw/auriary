@@ -7,11 +7,13 @@
 #### 10.1.1 Next.js 16 Cache Components
 
 **実装方針:**
+
 - Server Components を活用してサーバーサイドでレンダリング
 - `unstable_cache` を使用してデータ取得をキャッシュ
 - 静的生成（SSG）を可能な限り活用
 
 **キャッシュ戦略:**
+
 ```typescript
 import { unstable_cache } from 'next/cache';
 
@@ -23,16 +25,17 @@ export const getCachedDiaries = unstable_cache(
   {
     revalidate: 60, // 60秒で再検証
     tags: ['diaries'],
-  }
+  },
 );
 ```
 
-#### 10.1.2 Cloudflare Pages 最適化
+#### 10.1.2 Vercel 最適化
 
 **実装方針:**
-- `@opennextjs/cloudflare` を使用して Cloudflare Pages に最適化
+
+- Vercel が Next.js を自動的に最適化
 - Edge Network によるグローバル CDN 配信
-- KV Storage を活用したセッション管理（将来実装）
+- 自動的な静的生成とキャッシング
 
 #### 10.1.3 パフォーマンス目標
 
@@ -44,6 +47,7 @@ export const getCachedDiaries = unstable_cache(
 ### 10.2 アクセシビリティ
 
 **実装方針:**
+
 - shadcn/ui コンポーネントは Radix UI ベースで、デフォルトでアクセシビリティ対応
 - ARIA 属性を適切に設定
 - キーボードナビゲーション対応
@@ -51,6 +55,7 @@ export const getCachedDiaries = unstable_cache(
 - コントラスト比の確保（WCAG 2.1 AA 準拠）
 
 **チェック項目:**
+
 - すべてのインタラクティブ要素がキーボードで操作可能
 - フォーカスインジケーターが明確
 - 画像に代替テキストを設定
@@ -59,12 +64,14 @@ export const getCachedDiaries = unstable_cache(
 ### 10.3 保守性
 
 **実装方針:**
+
 - TypeScript による型安全性
 - ESLint + Prettier によるコード品質管理
 - コンポーネントの再利用性を重視
 - ドキュメント整備（README、コメント）
 
 **コード規約:**
+
 - コンポーネントは1ファイル1コンポーネント
 - 関数は単一責任の原則に従う
 - 型定義は明確に記述
@@ -73,12 +80,14 @@ export const getCachedDiaries = unstable_cache(
 ### 10.4 拡張性
 
 **実装方針:**
+
 - モジュール化されたコンポーネント設計
 - API Route による機能追加が容易
 - データベーススキーマの拡張に対応（マイグレーション管理）
 - 将来的なモバイルアプリ（Expo / React Native）への対応を考慮
 
 **将来の拡張予定:**
+
 - モバイルアプリ（Expo / React Native）
 - 音声入力 → AI による自動文字起こし
 - ホログラム UI（ユーザーの要望より）
@@ -87,10 +96,12 @@ export const getCachedDiaries = unstable_cache(
 ### 10.5 可用性
 
 **目標:**
+
 - 稼働率 99.9% 以上
 - メンテナンス時間は事前通知
 
 **障害対応:**
+
 - エラーハンドリングの徹底
 - フォールバック機能の実装
 - 監視・アラートの設定（将来実装）
@@ -98,14 +109,16 @@ export const getCachedDiaries = unstable_cache(
 ### 10.6 スケーラビリティ
 
 **実装方針:**
+
 - Supabase の自動スケーリング機能を活用
-- Cloudflare Pages の Edge Network によるグローバル配信
+- Vercel の Edge Network によるグローバル配信
 - データベースクエリの最適化
 - インデックスの適切な設定
 
 ### 10.7 セキュリティ要件
 
 **実装方針:**
+
 - 定期的なセキュリティアップデート
 - 依存関係の脆弱性チェック（`pnpm audit`）
 - 環境変数の適切な管理
@@ -114,18 +127,21 @@ export const getCachedDiaries = unstable_cache(
 ### 10.8 国際化（将来実装）
 
 **実装方針:**
+
 - 多言語対応（日本語・英語など）
 - `next-intl` などのライブラリを活用
 
 ### 10.9 ブラウザサポート
 
 **対象ブラウザ:**
+
 - Chrome（最新版）
 - Firefox（最新版）
 - Safari（最新版）
 - Edge（最新版）
 
 **モバイル:**
+
 - iOS Safari（最新版）
 - Android Chrome（最新版）
 
@@ -134,11 +150,13 @@ export const getCachedDiaries = unstable_cache(
 #### 10.10.1 オフライン対応要件
 
 **実装方針:**
+
 - Service Worker によるキャッシング
 - IndexedDB によるオフラインデータストレージ
 - オンライン復帰時の自動同期
 
 **オフライン時の動作:**
+
 - 既存の日記データを閲覧可能
 - 新規日記を下書き保存可能（オンライン復帰時に自動同期）
 - オフラインインジケーターを表示
@@ -147,11 +165,13 @@ export const getCachedDiaries = unstable_cache(
 #### 10.10.2 パフォーマンス要件（PWA）
 
 **実装方針:**
+
 - Service Worker による静的アセットのキャッシング
 - 初回ロード後の高速化
 - オフライン時の応答速度向上
 
 **目標:**
+
 - インストール後の初回起動: 1秒以内
 - オフライン時のページ表示: 500ms 以内
 - キャッシュヒット率: 80% 以上
@@ -159,7 +179,8 @@ export const getCachedDiaries = unstable_cache(
 #### 10.10.3 セキュリティ要件（PWA）
 
 **実装方針:**
-- HTTPS 必須（Cloudflare Pages で自動対応）
+
+- HTTPS 必須（Vercel で自動対応）
   - PWAのインストールにはHTTPSが必須要件
   - Service Worker の登録にもHTTPSが必要
 - Service Worker のスコープ制限
@@ -167,6 +188,7 @@ export const getCachedDiaries = unstable_cache(
 - プッシュ通知の認証
 
 **セキュリティチェック:**
+
 - Service Worker が適切なスコープ内で動作
 - キャッシュデータに機密情報を含めない
 - プッシュ通知の購読情報を適切に管理
@@ -174,7 +196,7 @@ export const getCachedDiaries = unstable_cache(
 ---
 
 **関連ドキュメント:**
+
 - [基本設計書](./100_BasicDesign.md)
 - [全体アーキテクチャ](./202_DetailedDesign_Architecture.md)
 - [機能設計](./204_DetailedDesign_Functions.md)
-

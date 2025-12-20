@@ -1,94 +1,100 @@
-# Cloudflare デプロイ手順書
+# Vercel デプロイ手順書
 
-このドキュメントでは、auriaryプロジェクトをCloudflareにデプロイする手順を説明します。
+このドキュメントでは、auriaryプロジェクトをVercelにデプロイする手順を説明します。
 
-## ⚡ 推奨: パターン2（Cloudflare Workers プロキシ + Vercel オリジン）
+## ⚡ クイックスタート（3分でデプロイ）
 
-**このパターンが推奨です。** OpenNext のビルドエラーを回避でき、シンプルで安定した構成です。
+1. **GitHubリポジトリをVercelに接続**
+   - [Vercel Dashboard](https://vercel.com/dashboard) にログイン
+   - 「**Add New Project**」をクリック
+   - GitHubリポジトリを選択してインポート
 
-### クイックスタート（3分でデプロイ）
+2. **環境変数を設定**
+   - Vercel Dashboard → プロジェクト → **Settings** → **Environment Variables**
+   - 以下の環境変数を追加：
+     - `NEXT_PUBLIC_SUPABASE_URL`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-1. **Vercel にデプロイ済みであることを確認**
-   - 本番 URL: `https://auriary.vercel.app` が正常に動作していること
-
-2. **Cloudflare Worker プロキシをデプロイ**
-   ```bash
-   pnpm install
-   pnpm cf:proxy:deploy
-   ```
-
-3. **Cloudflare ダッシュボードでカスタムドメインを設定**
-   - Cloudflare Dashboard → Workers & Pages → **Workers** タブ
-   - `auriary-proxy` Worker を選択
-   - **Triggers** → **Routes** → 「Add route」をクリック
-   - ルートを追加: `www.auriaries.org/*` または `auriaries.org/*`
-   - Zone: `auriaries.org`
-   - 保存
+3. **デプロイ**
+   - 「**Deploy**」をクリック
+   - ビルドが完了すると自動的にデプロイされます
 
 4. **完了！**
-   - カスタムドメインからアクセス可能になります
-   - Cloudflare のエッジキャッシュにより、非ログイン時のページ読み込み速度が向上します
-
-**詳細**: プロジェクトルートの `README.md` の「Hybrid Deploy Pattern 2」セクションを参照してください。
+   - デプロイされたURL（例: `https://auriary.vercel.app`）からアクセス可能になります
 
 ---
 
 ## 📋 前提条件
 
-- Cloudflareアカウント（無料で作成可能）
 - GitHubアカウント（コードをホスティングするため）
+- Vercelアカウント（無料で作成可能）
 - Supabaseプロジェクト（既に使用している前提）
 
 ---
 
 ## 📚 詳細手順
 
-パターン2の詳細な設定手順については、以下のドキュメントを参照してください：
+### 1. Vercelアカウントの作成
 
-- **カスタムドメインの設定**: Cloudflare Dashboard → Workers & Pages → Workers → `auriary-proxy` → Triggers → Routes
-- **環境変数の確認**: `cloudflare-proxy/wrangler.toml` の `ORIGIN_BASE_URL` が正しい Vercel URL を指しているか確認
+1. [Vercel](https://vercel.com) にアクセス
+2. 「**Sign Up**」をクリック
+3. GitHubアカウントでサインアップ（推奨）
+
+### 2. プロジェクトのインポート
+
+1. Vercel Dashboard → 「**Add New Project**」
+2. GitHubリポジトリを選択
+3. プロジェクト設定を確認：
+   - **Framework Preset**: Next.js（自動検出）
+   - **Root Directory**: `./`（デフォルト）
+   - **Build Command**: `pnpm build`（自動検出）
+   - **Output Directory**: `.next`（自動検出）
+   - **Install Command**: `pnpm install`（自動検出）
+
+### 3. 環境変数の設定
+
+Vercel Dashboard → プロジェクト → **Settings** → **Environment Variables** で以下を設定：
+
+#### 必須環境変数
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+  - SupabaseプロジェクトのURL
+  - 例: `https://xxxxx.supabase.co`
+
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - SupabaseプロジェクトのAnon Key
+  - Supabase Dashboard → **Settings** → **API** から取得
+
+#### オプション環境変数（将来実装）
+
+- `OPENAI_API_KEY`（AI機能を使用する場合）
+
+### 4. カスタムドメインの設定（オプション）
+
+1. Vercel Dashboard → プロジェクト → **Settings** → **Domains**
+2. 「**Add Domain**」をクリック
+3. カスタムドメインを入力（例: `www.auriaries.org`）
+4. DNS設定の指示に従って設定
+   - Vercelが提供するDNSレコードをDNSプロバイダーに追加
+   - SSL証明書は自動的に設定されます
 
 ---
 
-## 🔄 CI/CDの設定（GitHub Actions）
+## 🔄 CI/CDの設定
 
-`cloudflare-proxy/`ディレクトリの変更を自動デプロイするには、GitHub Actionsを設定します。
+VercelはGitHubと連携することで、自動的にCI/CDが設定されます。
 
-### 1. Cloudflare APIトークンの取得
+### 自動デプロイの仕組み
 
-1. Cloudflare Dashboard → 右上のプロフィールアイコン → 「**My Profile**」
-2. 「**API Tokens**」タブ → 「**Create Token**」
-3. 「**Edit Cloudflare Workers**」テンプレートを選択、またはカスタムトークンを作成
-   - 権限: `Account` → `Cloudflare Workers` → `Edit`
-4. トークンをコピー（一度しか表示されません）
+- **プッシュ時の自動デプロイ**: `main`（または`master`）ブランチへのプッシュで自動デプロイ
+- **プルリクエスト**: プルリクエストごとにプレビューデプロイが作成されます
+- **ビルドログ**: Vercel Dashboardでビルドログを確認できます
 
-### 2. CloudflareアカウントIDの取得
+### ブランチ設定
 
-1. Cloudflare Dashboard → 右側の「**Account ID**」をコピー
-
-### 3. GitHub Secretsの設定
-
-1. GitHubリポジトリ → 「**Settings**」→ 「**Secrets and variables**」→ 「**Actions**」
-2. 「**New repository secret**」をクリック
-3. 以下の2つのSecretsを追加：
-   - **Name**: `CLOUDFLARE_API_TOKEN`
-     - **Value**: 上記で取得したAPIトークン
-   - **Name**: `CLOUDFLARE_ACCOUNT_ID`
-     - **Value**: 上記で取得したアカウントID
-
-### 4. 動作確認
-
-1. `cloudflare-proxy/src/worker.ts`を少し変更（例: コメント追加）
-2. コミット・プッシュ
-3. GitHubリポジトリの「**Actions**」タブでデプロイ状況を確認
-
-### 5. 自動デプロイの仕組み
-
-- `.github/workflows/cloudflare-deploy.yml`が`cloudflare-proxy/`ディレクトリの変更を検知
-- `master`ブランチへのpush時に自動的に`wrangler deploy`を実行
-- 手動実行も可能（GitHub Actionsの「Run workflow」ボタンから）
-
-**注意**: GitHub Secretsを設定しない場合、手動で`pnpm cf:proxy:deploy`を実行する必要があります。
+1. Vercel Dashboard → プロジェクト → **Settings** → **Git**
+2. **Production Branch** を設定（デフォルト: `main` または `master`）
+3. 必要に応じて **Ignored Build Step** を設定
 
 ---
 
@@ -105,3 +111,12 @@
 デプロイ前の確認事項、参考リンク、よくある質問は以下のドキュメントを参照してください。
 
 **詳細**: [804_DEPLOY_Checklist.md](./804_DEPLOY_Checklist.md)
+
+---
+
+## 📖 参考リンク
+
+- [Vercel ドキュメント](https://vercel.com/docs)
+- [Vercel デプロイメント](https://vercel.com/docs/deployments/overview)
+- [Next.js デプロイメント](https://nextjs.org/docs/deployment)
+- [Supabase ドキュメント](https://supabase.com/docs)

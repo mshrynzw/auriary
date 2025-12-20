@@ -1,5 +1,6 @@
-# auriary — AI Diary App  
-**Next.js 16 + Supabase + Tailwind CSS v4 + shadcn/ui + Cloudflare**
+# auriary — AI Diary App
+
+**Next.js 16 + Supabase + Tailwind CSS v4 + shadcn/ui**
 
 auriary（オーリアリー）は、**日々の記録を楽に・幻想的に残せる次世代の日記アプリ**です。  
 ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自動生成などを自動化します。
@@ -10,45 +11,49 @@ ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自
 
 <img width="378" height="820" alt="image" src="https://github.com/user-attachments/assets/e09e8f23-54b8-40e2-add0-94f97b841b54" />
 
-
 ---
 
 ## 🌟 Features
 
 ### ✏️ スマート日記作成
+
 - リッチテキストエディタ（shadcn/ui + TipTap）
 - AI による文章補完・推敲
 - 自動タグ / 自動カテゴリ分類
 
 ### 🔐 セキュア認証
+
 - Supabase Auth（Email / OAuth）
 - RLS（Row Level Security）対応
 
 ### 📅 カレンダー管理
+
 - 月/週/日ビュー切替
 - フィルタリング（気分・タグ・期間）
 
 ### 📊 感情・傾向分析
+
 - AI による sentiment / topic 分析
 - 過去30日間の感情シーケンスを可視化
 
 ### ☁️ クロスデバイス同期
+
 - Supabase を利用したリアルタイム同期
-- Cloudflare Workers エッジキャッシュで高速化
+- Vercel のエッジネットワークで高速化
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Category | Technology |
-|---------|------------|
+| Category  | Technology                                                          |
+| --------- | ------------------------------------------------------------------- |
 | Framework | **Next.js 16**（App Router / Server Components / Cache Components） |
-| Database | **Supabase（PostgreSQL + RLS）** |
-| Hosting | **Vercel**（Next.js 本番環境）+ **Cloudflare Workers**（エッジプロキシ） |
-| UI | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント） |
-| Auth | Supabase Auth |
-| AI | OpenAI / ChatGPT API |
-| Tools | ESLint + Prettier, GitHub Actions |
+| Database  | **Supabase（PostgreSQL + RLS）**                                    |
+| Hosting   | **Vercel**（Next.js 最適化）                                        |
+| UI        | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント）              |
+| Auth      | Supabase Auth                                                       |
+| AI        | OpenAI / ChatGPT API                                                |
+| Tools     | ESLint + Prettier, GitHub Actions                                   |
 
 ---
 
@@ -83,21 +88,23 @@ auriary/
 主要テーブル（Mermaid ER 図は DB/設計資料に準拠）：
 
 ### **m_users（ユーザーマスタ）**
+
 - id / auth_user_id（UUID）
-- display_name  
-- email  
-- created_at / updated_at / deleted_at  
-- created_by / updated_by / deleted_by  
+- display_name
+- email
+- created_at / updated_at / deleted_at
+- created_by / updated_by / deleted_by
 
 ### **t_diaries（日記）**
-- id  
-- user_id  
-- title  
-- body  
-- mood（感情スコア）  
-- ai_summary  
-- ai_topics  
-- created_at / updated_at / deleted_at  
+
+- id
+- user_id
+- title
+- body
+- mood（感情スコア）
+- ai_summary
+- ai_topics
+- created_at / updated_at / deleted_at
 
 ### **t_diary_tags（タグ紐付け）**
 
@@ -153,80 +160,40 @@ pnpm dev
 
 ```
 
-### 5. ☁️ Hybrid Deploy Pattern 2 — Cloudflare Front + Vercel Origin（推奨）
-
-**このパターンが推奨です。** Next.js 本体は Vercel にデプロイし、Cloudflare Workers をフロントのリバースプロキシとして利用します。OpenNext のビルドエラーを回避でき、シンプルで安定した構成です。
-
-このパターンでは、Next.js 本体は Vercel にデプロイしつつ、Cloudflare Workers をフロントのリバースプロキシとして利用します。
-
-**構成:**
-- **Origin**: https://auriary.vercel.app （Vercel）
-- **Front**: Cloudflare Workers（`cloudflare-proxy/` 以下）
-- **特徴:**
-  - SSR / ISR ロジックはすべて Vercel 側の Next.js に任せる
-  - Cloudflare 側は非ログイン時のページや静的アセットをキャッシュして高速化
-  - Supabase Auth の Cookie / Authorization ヘッダがあるリクエストはキャッシュせずにオリジンへパススルー
+### 5. ☁️ Vercel へのデプロイ
 
 **デプロイ手順:**
 
-1. **Vercel にデプロイ済みであることを確認**
-   - 本番 URL: https://auriary.vercel.app
+1. **Vercel にプロジェクトをインポート**
+   - [Vercel Dashboard](https://vercel.com/dashboard) にログイン
+   - 「**Add New Project**」をクリック
+   - GitHubリポジトリを選択してインポート
 
-2. **Cloudflare Worker をデプロイ**
-   ```bash
-   pnpm install
-   pnpm cf:proxy:deploy
-   ```
+2. **環境変数を設定**
+   - Vercel Dashboard → プロジェクト → **Settings** → **Environment Variables**
+   - 以下の環境変数を追加：
+     - `NEXT_PUBLIC_SUPABASE_URL`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-3. **Cloudflare ダッシュボードで設定**
-   - Workers & Pages → auriary-proxy を選択
-   - **Routes** セクションでカスタムドメインを Worker に紐付け
-     - 例: `diary.example.com/*` → `auriary-proxy` Worker
-   - または、Workers の **Triggers** でルートを設定
+3. **デプロイ**
+   - 「**Deploy**」をクリック
+   - ビルドが完了すると自動的にデプロイされます
 
-4. **環境変数の確認**
-   - `wrangler.toml` の `ORIGIN_BASE_URL` が正しい Vercel URL を指しているか確認
+4. **完了！**
+   - デプロイされたURL（例: `https://auriary.vercel.app`）からアクセス可能になります
 
-**キャッシュ戦略:**
-- **静的アセット** (`/_next/static/*`, `/favicon.*`, `/images/*` など): 長期キャッシュ（1日）
-- **非ログイン状態の HTML/JSON**: 短期キャッシュ（60秒）
-- **ログイン済みユーザー**（Supabase Auth Cookie あり）: キャッシュなし（オリジンへ直接プロキシ）
-- **API エンドポイント** (`/api/*`, `/supabase/*`): キャッシュなし
+**カスタムドメインの設定（オプション）:**
 
-**開発環境でのテスト:**
-```bash
-pnpm cf:proxy:dev
-```
-
-**注意事項:**
-- パターン2を使用する場合、Vercel 側のデプロイが正常に動作している必要があります（`https://auriary.vercel.app`）
-- Cloudflare のエッジキャッシュにより、非ログイン時のページ読み込み速度が向上します
-- カスタムドメイン（`www.auriaries.org` など）を Cloudflare Workers に設定する必要があります
-
-**カスタムドメインの設定手順:**
-
-1. Cloudflare Dashboard → Workers & Pages → **Workers** タブを選択
-2. `auriary-proxy` Worker を選択
-3. **Triggers** → **Routes** セクションで「Add route」をクリック
-4. ルートを追加:
-   - Route: `www.auriaries.org/*` または `auriaries.org/*`
-   - Zone: `auriaries.org`
-5. 保存
+1. Vercel Dashboard → プロジェクト → **Settings** → **Domains**
+2. 「**Add Domain**」をクリック
+3. カスタムドメインを入力（例: `www.auriaries.org`）
+4. DNS設定の指示に従って設定
+   - Vercelが提供するDNSレコードをDNSプロバイダーに追加
+   - SSL証明書は自動的に設定されます
 
 **詳細な設定手順:**
 
-詳細な設定手順については、[docs/800_Release/800_Deploy.md](./docs/800_Release/800_Deploy.md) を参照してください：
-- カスタムドメインの設定
-- CI/CDの設定（GitHub Actions）
-
-**Cloudflare Pages の無効化（オプション）:**
-
-パターン2を使用する場合、Cloudflare Pages のプロジェクトは不要です。無効化するには：
-
-1. Cloudflare Dashboard → Workers & Pages → **Pages** タブを選択
-2. `auriary` プロジェクトを選択
-3. **Settings** → 最下部の「Delete project」をクリック（または、デプロイを無効化）
-
+詳細な設定手順については、[docs/800_Release/800_Deploy.md](./docs/800_Release/800_Deploy.md) を参照してください。
 
 ---
 
@@ -263,4 +230,4 @@ This project is licensed under the **AGPL-3.0**.
 ## 👤 Author
 
 **auriary Project Team**  
-Lead Developer: *mshr ynzw*  
+Lead Developer: _mshr ynzw_

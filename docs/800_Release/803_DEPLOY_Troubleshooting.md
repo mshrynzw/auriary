@@ -1,60 +1,82 @@
-# トラブルシューティング（パターン2：Cloudflare Workers プロキシ + Vercel オリジン）
+# トラブルシューティング（Vercel デプロイ）
 
-このドキュメントでは、パターン2（Cloudflare Workers プロキシ + Vercel オリジン）のデプロイ時に発生する可能性のある問題とその解決方法を説明します。
-
----
-
-## Workers & Pages が見つからない場合
-
-**問題**: Cloudflare Dashboard で「Workers & Pages」が見つからない
-
-**解決方法**:
-
-1. 左サイドバーの「**Compute & AI**」セクションを展開
-2. 「**Workers & Pages**」をクリック
-3. または、直接URLでアクセス: [Workers & Pages](https://dash.cloudflare.com/?to=/:account/workers)
+このドキュメントでは、Vercelへのデプロイ時に発生する可能性のある問題とその解決方法を説明します。
 
 ---
 
-## Worker が見つからない場合
+## ビルドエラー
 
-**問題**: `auriary-proxy` Worker が見つからない
+### 問題: ビルドが失敗する
 
-**解決方法**:
+**解決方法:**
 
-1. Cloudflare Dashboard → Workers & Pages → **Workers** タブを選択
-2. `auriary-proxy` Worker が表示されているか確認
-3. 表示されていない場合:
-   ```bash
-   pnpm cf:proxy:deploy
-   ```
-   を実行して Worker をデプロイ
+1. **ビルドログを確認**
+   - Vercel Dashboard → プロジェクト → **Deployments** → 失敗したデプロイを選択
+   - **Build Logs** タブでエラーメッセージを確認
+
+2. **よくある原因と対処法**
+   - **依存関係のエラー**
+
+     ```bash
+     # ローカルで確認
+     pnpm install
+     pnpm build
+     ```
+
+     - `pnpm-lock.yaml` が最新であることを確認
+     - 依存関係のバージョン競合を確認
+
+   - **環境変数が設定されていない**
+     - Vercel Dashboard → **Settings** → **Environment Variables** で確認
+     - 必要な環境変数がすべて設定されているか確認
+
+   - **TypeScriptエラー**
+
+     ```bash
+     # ローカルで確認
+     pnpm run types
+     ```
+
+     - 型エラーを修正
+
+   - **ESLintエラー**
+     ```bash
+     # ローカルで確認
+     pnpm run lint
+     ```
+
+     - リントエラーを修正
 
 ---
 
-## カスタムドメインのルート設定が見つからない場合
+## 環境変数の問題
 
-**問題**: Cloudflare Dashboard でルート設定が見つからない
+### 問題: 環境変数が読み込まれない
 
-**解決方法**:
+**解決方法:**
 
-1. Cloudflare Dashboard → Workers & Pages → **Workers** タブを選択
-2. `auriary-proxy` Worker を選択
-3. **Triggers** タブを選択
-4. **Routes** セクションで「Add route」をクリック
-5. ルートを追加:
-   - Route: `www.auriaries.org/*` または `auriaries.org/*`
-   - Zone: `auriaries.org`
+1. **環境変数の確認**
+   - Vercel Dashboard → **Settings** → **Environment Variables**
+   - 環境変数が正しく設定されているか確認
+   - `NEXT_PUBLIC_` で始まる変数はクライアント側でも利用可能
 
-**注意**: 「Triggers」タブが見つからない場合は、Worker が正しくデプロイされているか確認してください。
+2. **環境ごとの設定**
+   - **Production**: 本番環境用
+   - **Preview**: プレビュー環境用（プルリクエストなど）
+   - **Development**: 開発環境用
+   - 必要に応じて環境ごとに設定
+
+3. **再デプロイ**
+   - 環境変数を変更した後は、再デプロイが必要です
+   - Vercel Dashboard → **Deployments** → **Redeploy**
 
 ---
 
 ## ログインが完了しない場合
 
-**問題**: ログインページで「ログイン中...」のまま完了しない
+### 問題: ログインページで「ログイン中...」のまま完了しない
 
-**解決方法**:
+**解決方法:**
 
 1. **ブラウザの開発者ツールで確認**
    - F12 キーを押して開発者ツールを開く
@@ -62,57 +84,38 @@
    - **Console** タブでエラーメッセージを確認
    - **Application** タブ → **Cookies** で Cookie が正しく設定されているか確認
 
-2. **Cloudflare Worker のログを確認**
-   - Cloudflare Dashboard → Workers & Pages → Workers → `auriary-proxy`
-   - **Logs** タブでエラーログを確認
+2. **Supabase設定の確認**
+   - Supabase Dashboard → **Settings** → **API**
+   - `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` が正しいか確認
 
-3. **Set-Cookie ヘッダーの確認**
+3. **CORS設定の確認**
+   - Supabase Dashboard → **Settings** → **API** → **CORS**
+   - Vercelのドメイン（`https://auriary.vercel.app` など）が許可されているか確認
+
+4. **Set-Cookie ヘッダーの確認**
    - Network タブでログインリクエストのレスポンスヘッダーを確認
    - `Set-Cookie` ヘッダーが存在するか確認
-   - `Domain` 属性が正しいドメイン（`www.auriaries.org` など）になっているか確認
-
-4. **Vercel オリジンの確認**
-   - `https://auriary.vercel.app` が正常に動作しているか確認
-   - Vercel 側でログインが正常に動作するか確認
+   - `Domain` 属性が正しいドメインになっているか確認
 
 ---
 
-## 環境変数の確認
+## パフォーマンスの問題
 
-**問題**: Worker が Vercel オリジンに接続できない
+### 問題: ページの読み込みが遅い
 
-**解決方法**:
+**解決方法:**
 
-1. **`cloudflare-proxy/wrangler.toml` の確認**
-   ```toml
-   [vars]
-   ORIGIN_BASE_URL = "https://auriary.vercel.app"
-   ```
-   - `ORIGIN_BASE_URL` が正しい Vercel URL を指しているか確認
+1. **Vercel Analytics で確認**
+   - Vercel Dashboard → プロジェクト → **Analytics**
+   - パフォーマンスメトリクスを確認
 
-2. **Worker の環境変数を確認**
-   - Cloudflare Dashboard → Workers & Pages → Workers → `auriary-proxy`
-   - **Settings** → **Variables** で環境変数を確認
-   - `ORIGIN_BASE_URL` が設定されているか確認
+2. **画像の最適化**
+   - Next.js Image コンポーネントを使用
+   - 画像のサイズを最適化
 
----
-
-## キャッシュの問題
-
-**問題**: 更新したコンテンツが表示されない
-
-**解決方法**:
-
-1. **ブラウザのキャッシュをクリア**
-   - Ctrl+Shift+Delete でキャッシュをクリア
-   - シークレットモードでアクセス
-
-2. **Cloudflare のキャッシュをパージ**
-   - Cloudflare Dashboard → ドメイン → **Caching** → **Configuration**
-   - 「**Purge Everything**」をクリック
-
-3. **ログイン状態で確認**
-   - ログイン済みユーザーのリクエストはキャッシュされないため、ログインして確認
+3. **キャッシュの確認**
+   - Next.js のキャッシュ設定を確認
+   - 静的生成（SSG）を活用
 
 ---
 
@@ -120,22 +123,31 @@
 
 ### "Failed to fetch"
 
-**原因**: Vercel オリジンへの接続エラー
+**原因**: Supabaseへの接続エラー
 
-**解決方法**:
-- `https://auriary.vercel.app` が正常に動作しているか確認
-- `ORIGIN_BASE_URL` が正しく設定されているか確認
+**解決方法:**
 
-### "No such module"
+- `NEXT_PUBLIC_SUPABASE_URL` が正しく設定されているか確認
+- Supabaseプロジェクトがアクティブか確認
+- ネットワーク接続を確認
 
-**原因**: Worker のコードに問題がある
+### "Module not found"
 
-**解決方法**:
-- `cloudflare-proxy/src/worker.ts` の構文エラーを確認
-- 再デプロイ:
-  ```bash
-  pnpm cf:proxy:deploy
-  ```
+**原因**: 依存関係の問題
+
+**解決方法:**
+
+- `pnpm-lock.yaml` が最新であることを確認
+- ローカルで `pnpm install` を実行してから再デプロイ
+
+### "Environment variable not found"
+
+**原因**: 環境変数が設定されていない
+
+**解決方法:**
+
+- Vercel Dashboard → **Settings** → **Environment Variables** で確認
+- 必要な環境変数をすべて設定
 
 ---
 
@@ -143,9 +155,10 @@
 
 問題が解決しない場合は、以下を参照してください：
 
-- [Cloudflare Workers ドキュメント](https://developers.cloudflare.com/workers/)
-- [Wrangler CLI ドキュメント](https://developers.cloudflare.com/workers/wrangler/)
 - [Vercel ドキュメント](https://vercel.com/docs)
+- [Next.js ドキュメント](https://nextjs.org/docs)
+- [Supabase ドキュメント](https://supabase.com/docs)
+- [Vercel サポート](https://vercel.com/support)
 
 ---
 

@@ -76,9 +76,11 @@
 - プロジェクト全体で統一されたルールを適用
 
 **設定ファイル:**
+
 - `eslint.config.mjs` - ESLint 9のフラット設定形式を使用
 
 **主要な設定:**
+
 - TypeScriptファイル（`.ts`, `.tsx`）にはTypeScriptパーサーを使用
 - JavaScriptファイル（`.js`, `.jsx`）には標準パーサーを使用
 - ビルド生成ファイル（`.next/`, `.open-next/`, `public/sw.js`など）は除外
@@ -88,6 +90,7 @@
 #### ESLint 9とNext.js 16の互換性問題
 
 **問題:**
+
 - `next lint`コマンドが`lint`ディレクトリを探すエラー
 - `FlatCompat`を使用した際の循環参照エラー
 - `.eslintrc.json`と`eslint.config.mjs`の併用エラー
@@ -99,6 +102,7 @@
    - `@typescript-eslint/eslint-plugin`と`@typescript-eslint/parser`をインストール
 
 2. **TypeScriptファイルとJavaScriptファイルを分離**
+
    ```javascript
    // eslint.config.mjs
    {
@@ -117,20 +121,21 @@
    ```
 
 3. **ビルド生成ファイルを除外**
+
    ```javascript
    ignores: [
      'node_modules/**',
      '.next/**',
-     '.open-next/**',  // OpenNext.jsのビルド出力
+     '.open-next/**', // OpenNext.jsのビルド出力
      'out/**',
      'dist/**',
      'build/**',
      'coverage/**',
      '*.config.{js,mjs,ts}',
      'scripts/**',
-     'public/sw.js',  // Service Worker
-     'cloudflare-env.d.ts',  // 自動生成ファイル
-   ]
+     'public/sw.js', // Service Worker
+     'cloudflare-env.d.ts', // 自動生成ファイル
+   ];
    ```
 
 4. **ルールの調整**
@@ -139,6 +144,7 @@
    - `@typescript-eslint/no-unused-vars`: `argsIgnorePattern: '^_'`で未使用引数を許可
 
 **注意事項:**
+
 - ESLint 9では`.eslintrc.json`形式は非推奨（フラット設定形式のみ）
 - `next lint`コマンドはNext.js 16では削除されている可能性があるため、`eslint .`を直接使用
 - `FlatCompat`を使う場合は循環参照エラーに注意
@@ -156,15 +162,14 @@ export default [
     ignores: [
       'node_modules/**',
       '.next/**',
-      '.open-next/**',  // OpenNext.jsのビルド出力
+      '.open-next/**', // OpenNext.jsのビルド出力
       'out/**',
       'dist/**',
       'build/**',
       'coverage/**',
       '*.config.{js,mjs,ts}',
       'scripts/**',
-      'public/sw.js',  // Service Worker
-      'cloudflare-env.d.ts',  // 自動生成ファイル
+      'public/sw.js', // Service Worker
     ],
   },
   {
@@ -210,6 +215,7 @@ export default [
 ```
 
 **必要な依存関係:**
+
 ```json
 {
   "devDependencies": {
@@ -222,6 +228,7 @@ export default [
 ```
 
 **package.jsonのlintスクリプト:**
+
 ```json
 {
   "scripts": {
@@ -259,10 +266,12 @@ export default [
 ---
 
 **関連ドキュメント:**
+
 - [基本設計書](../100_BasicDesign/100_BasicDesign.md)
 - [Next.js 16 実装方針（概要）](./321_NextJS_Implementation_Overview.md)
 
 **コーディング規約（フレームワーク非依存）:**
+
 - [TypeScript コーディング規約](./302_TypeScript.md)
 - [命名規則・ファイル構造](./303_NamingConventions.md)
 - [Git コミット規約](./304_GitConventions.md)
@@ -279,4 +288,3 @@ export default [
 
 コーディング規約は、プロジェクトの成長に合わせて更新されます。
 重要な変更時は、チーム全体に通知し、既存コードへの影響を確認します。
-
