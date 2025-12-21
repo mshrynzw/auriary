@@ -208,6 +208,50 @@ RailwayはGitHubと連携することで、自動的にCI/CDが設定されま�
 2. **CPU** を増やす
 3. または、中級版（Janome）に戻すことを検討
 
+### 404エラー（Not Found）
+
+**問題**: `/health` や `/analyze` エンドポイントにアクセスすると404エラーが返る
+
+**確認事項**:
+1. **Root Directoryの設定を確認**
+   - Railway Dashboard → プロジェクト → **Settings** → **Source**
+   - **Root Directory** が `sentiment-api` に設定されているか確認
+   - 設定されていない場合は `sentiment-api` に変更して再デプロイ
+
+2. **デプロイの状態を確認**
+   - Railway Dashboard → **Deployments** で最新のデプロイを確認
+   - デプロイが成功しているか確認（緑色のチェックマーク）
+   - 失敗している場合はログを確認
+
+3. **ログを確認**
+   - Railway Dashboard → **Deployments** → 最新のデプロイ → 「**View Logs**」
+   - 以下のメッセージが表示されているか確認：
+     - `Loading model: christian-phu/bert-finetuned-japanese-sentiment...`
+     - `Model loaded on cpu`
+     - `Application startup complete`
+   - エラーメッセージがないか確認
+
+4. **アプリケーションの起動を確認**
+   - ログに `Uvicorn running on http://0.0.0.0:PORT` と表示されているか確認
+   - ポート番号が正しく設定されているか確認
+
+5. **Public Domainの確認**
+   - Railway Dashboard → **Settings** → **Networking**
+   - **Public Domain** が正しく設定されているか確認
+   - カスタムドメインを使用している場合は、正しく設定されているか確認
+
+**解決方法**:
+- Root Directoryが正しく設定されていない場合：
+  1. Railway Dashboard → プロジェクト → **Settings** → **Source**
+  2. **Root Directory** を `sentiment-api` に設定
+  3. 「**Save**」をクリック
+  4. 自動的に再デプロイが開始されます
+
+- デプロイが失敗している場合：
+  1. ログを確認してエラーの原因を特定
+  2. メモリ不足の場合は、**Settings** → **Resources** でメモリを増やす
+  3. 依存関係のエラーの場合は、`requirements.txt` を確認
+
 ---
 
 ## 📊 モニタリング
