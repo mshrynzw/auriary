@@ -16,6 +16,14 @@ type Diary = {
   note: string | null;
   mood: number | null;
   sleep_quality: number | null;
+  sentiment_analysis_result?: {
+    highlighted_words?: Array<{
+      word: string;
+      sentiment: 'positive' | 'negative';
+      score: number;
+      position: number;
+    }>;
+  } | null;
 };
 
 type CalendarViewProps = {
@@ -81,7 +89,12 @@ export function CalendarView({ diaries }: CalendarViewProps) {
               </div>
               <div className="text-sm text-muted-foreground line-clamp-4">
                 {selectedDiary.note ? (
-                  <SentimentText text={selectedDiary.note} diaryId={selectedDiary.id} />
+                  <SentimentText
+                    text={selectedDiary.note}
+                    highlightedWords={
+                      selectedDiary.sentiment_analysis_result?.highlighted_words || []
+                    }
+                  />
                 ) : (
                   <span>本文なし</span>
                 )}

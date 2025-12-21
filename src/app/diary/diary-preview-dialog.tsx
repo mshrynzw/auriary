@@ -53,7 +53,11 @@ export function DiaryPreviewDialog({ diary, open, onOpenChange }: DiaryPreviewDi
             <div className="space-y-2">
               <h3 className="font-semibold text-lg">日記本文</h3>
               <div className="prose prose-sm max-w-none">
-                <SentimentText text={diary.note} diaryId={diary.id} className="text-sm" />
+                <SentimentText
+                  text={diary.note}
+                  highlightedWords={diary.sentiment_analysis_result?.highlighted_words || []}
+                  className="text-sm"
+                />
               </div>
             </div>
           )}

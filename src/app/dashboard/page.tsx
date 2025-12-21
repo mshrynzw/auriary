@@ -145,7 +145,12 @@ export default async function DashboardPage() {
                           </h3>
                           <div className="text-sm text-muted-foreground line-clamp-2">
                             {diary.note ? (
-                              <SentimentText text={diary.note} diaryId={diary.id} />
+                              <SentimentText
+                                text={diary.note}
+                                highlightedWords={
+                                  diary.sentiment_analysis_result?.highlighted_words || []
+                                }
+                              />
                             ) : (
                               <span>本文なし</span>
                             )}

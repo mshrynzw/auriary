@@ -1,42 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { analyzeSentiment, type HighlightedWord } from '@/lib/ai/sentiment-api';
+import { type HighlightedWord } from '@/lib/ai/sentiment-api';
 import { cn } from '@/lib/utils';
 
 interface SentimentTextProps {
   text: string;
-  diaryId?: number;
+  highlightedWords?: HighlightedWord[]; // propsで受け取る（データベースから取得）
   className?: string;
 }
 
-export function SentimentText({ text, diaryId, className }: SentimentTextProps) {
-  const [highlightedWords, setHighlightedWords] = useState<HighlightedWord[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!text || text.trim().length === 0) {
-      setHighlightedWords([]);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    analyzeSentiment(text)
-      .then((result) => {
-        setHighlightedWords(result.highlighted_words);
-      })
-      .catch((err) => {
-        console.error('Failed to analyze sentiment:', err);
-        setError('感情スコア（AI分析）の分析に失敗しました');
-        setHighlightedWords([]);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [text]);
-
+export function SentimentText({ text, highlightedWords = [], className }: SentimentTextProps) {
   // テキストをハイライト付きで表示
   const renderHighlightedText = () => {
     if (highlightedWords.length === 0) {
@@ -123,13 +96,7 @@ export function SentimentText({ text, diaryId, className }: SentimentTextProps) 
 
   return (
     <div className={cn('whitespace-pre-wrap break-words', className)}>
-      {isLoading ? (
-        <span className="text-muted-foreground text-sm">分析中...</span>
-      ) : error ? (
-        <span className="text-muted-foreground text-sm">{error}</span>
-      ) : (
-        renderHighlightedText()
-      )}
+      {renderHighlightedText()}
     </div>
   );
 }

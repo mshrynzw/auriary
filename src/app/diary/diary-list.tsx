@@ -98,7 +98,10 @@ export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) 
             <CardContent>
               <div className="text-sm line-clamp-3 mb-4">
                 {diary.note ? (
-                  <SentimentText text={diary.note} diaryId={diary.id} />
+                  <SentimentText
+                    text={diary.note}
+                    highlightedWords={diary.sentiment_analysis_result?.highlighted_words || []}
+                  />
                 ) : (
                   <span className="text-muted-foreground">本文なし</span>
                 )}

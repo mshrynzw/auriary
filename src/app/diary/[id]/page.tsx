@@ -122,7 +122,10 @@ export default async function DiaryDetailPage({ params }: PageProps) {
               <div className="space-y-2">
                 <h3 className="font-semibold">日記本文</h3>
                 <div className="prose prose-sm max-w-none">
-                  <SentimentText text={diary.note} diaryId={diary.id} />
+                  <SentimentText
+                    text={diary.note}
+                    highlightedWords={diary.sentiment_analysis_result?.highlighted_words || []}
+                  />
                 </div>
               </div>
             )}

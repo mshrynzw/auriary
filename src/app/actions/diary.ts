@@ -33,10 +33,20 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
 
   // 感情分析を実行（noteが存在する場合）
   let moodScore: number | null = null;
+  let sentimentAnalysisResult: any = null;
   if (validated.data.note && validated.data.note.trim().length > 0) {
     try {
       const sentimentResult = await analyzeSentiment(validated.data.note);
       moodScore = sentimentResult.score;
+      // 完全な結果を保存
+      sentimentAnalysisResult = {
+        sentiment: sentimentResult.sentiment,
+        score: sentimentResult.score,
+        confidence: sentimentResult.confidence,
+        highlighted_words: sentimentResult.highlighted_words,
+        overall_sentiment_score: sentimentResult.overall_sentiment_score,
+        model_used: sentimentResult.model_used,
+      };
     } catch (error) {
       // 感情分析に失敗しても日記の保存は続行
       console.error('Failed to analyze sentiment:', error);
@@ -51,6 +61,7 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       journal_date: validated.data.journal_date,
       note: validated.data.note,
       mood: moodScore,
+      sentiment_analysis_result: sentimentAnalysisResult,
       sleep_quality: validated.data.sleep_quality,
       wake_level: validated.data.wake_level,
       daytime_level: validated.data.daytime_level,
@@ -150,17 +161,28 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
       try {
         const sentimentResult = await analyzeSentiment(updateData.note);
         updateData.mood = sentimentResult.score;
+        // 完全な結果を保存
+        updateData.sentiment_analysis_result = {
+          sentiment: sentimentResult.sentiment,
+          score: sentimentResult.score,
+          confidence: sentimentResult.confidence,
+          highlighted_words: sentimentResult.highlighted_words,
+          overall_sentiment_score: sentimentResult.overall_sentiment_score,
+          model_used: sentimentResult.model_used,
+        };
       } catch (error) {
         // 感情分析に失敗しても日記の更新は続行
         console.error('Failed to analyze sentiment:', error);
         // noteが空になった場合はmoodもnullに設定
         if (!updateData.note || updateData.note.trim().length === 0) {
           updateData.mood = null;
+          updateData.sentiment_analysis_result = null;
         }
       }
     } else {
       // noteが空になった場合はmoodもnullに設定
       updateData.mood = null;
+      updateData.sentiment_analysis_result = null;
     }
   }
 
