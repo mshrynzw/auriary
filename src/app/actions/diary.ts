@@ -6,6 +6,7 @@ import {
   updateDiaryFormSchema,
   type CreateDiaryFormInput,
   type UpdateDiaryFormInput,
+  type DiaryRow,
 } from '@/schemas';
 import { revalidatePath } from 'next/cache';
 import { analyzeSentiment } from '@/lib/ai/sentiment-api';
@@ -315,7 +316,7 @@ export async function getDiariesAction(params?: {
     };
   }
 
-  return { diaries: data || [] };
+  return { diaries: (data || []) as DiaryRow[] };
 }
 
 /**
@@ -352,5 +353,5 @@ export async function getDiaryAction(id: number) {
     };
   }
 
-  return { diary: data };
+  return { diary: data as DiaryRow };
 }

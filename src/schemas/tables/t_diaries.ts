@@ -48,6 +48,23 @@ export const diaryRowSchema = commonColumnsSchema.extend({
   ai_summary: z.string().nullable(),
   ai_topics: z.record(z.string(), z.any()).nullable(), // JSONB
   mood: moodSchema.nullable(),
+  sentiment_analysis_result: z
+    .object({
+      sentiment: z.enum(['positive', 'neutral', 'negative']),
+      score: z.number().int().min(1).max(10),
+      confidence: z.number().min(0).max(1),
+      highlighted_words: z.array(
+        z.object({
+          word: z.string(),
+          sentiment: z.enum(['positive', 'negative']),
+          score: z.number(),
+          position: z.number(),
+        }),
+      ),
+      overall_sentiment_score: z.number().min(-1).max(1),
+      model_used: z.string().optional(),
+    })
+    .nullable(),
 });
 
 /**
