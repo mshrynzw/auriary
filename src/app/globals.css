@@ -257,23 +257,67 @@
   }
 }
 
-/* 注目ワードのきらめきアニメーション */
-@keyframes sparkle {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow:
-      0 0 4px rgba(0, 0, 0, 0.1),
-      0 0 8px rgba(0, 0, 0, 0.05);
+/* 注目ワードのモダンなアンダーラインアニメーション */
+@keyframes underline-expand {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
   }
-  50% {
-    opacity: 0.95;
-    box-shadow:
-      0 0 6px rgba(0, 0, 0, 0.15),
-      0 0 12px rgba(0, 0, 0, 0.08);
+  to {
+    transform: scaleX(1);
+    opacity: 1;
   }
 }
 
-.animate-sparkle {
-  animation: sparkle 3s ease-in-out infinite;
+/* ポジティブワードのネオンライトアニメーション（緑） */
+@keyframes sentiment-glow-positive {
+  0%,
+  100% {
+    color: inherit;
+    text-shadow:
+      0 0 4px rgba(34, 197, 94, 0.4),
+      0 0 8px rgba(34, 197, 94, 0.3),
+      0 0 12px rgba(34, 197, 94, 0.2);
+    opacity: 0.8;
+  }
+  50% {
+    color: rgb(34, 197, 94);
+    text-shadow:
+      0 0 8px rgba(34, 197, 94, 0.7),
+      0 0 16px rgba(34, 197, 94, 0.6),
+      0 0 24px rgba(34, 197, 94, 0.4),
+      0 0 32px rgba(34, 197, 94, 0.2);
+    opacity: 1;
+  }
 }
+
+/* ネガティブワードのネオンライトアニメーション（オレンジ） */
+@keyframes sentiment-glow-negative {
+  0%,
+  100% {
+    color: inherit;
+    text-shadow:
+      0 0 4px rgba(249, 115, 22, 0.4),
+      0 0 8px rgba(249, 115, 22, 0.3),
+      0 0 12px rgba(249, 115, 22, 0.2);
+    opacity: 0.8;
+  }
+  50% {
+    color: rgb(249, 115, 22);
+    text-shadow:
+      0 0 8px rgba(249, 115, 22, 0.7),
+      0 0 16px rgba(249, 115, 22, 0.6),
+      0 0 24px rgba(249, 115, 22, 0.4),
+      0 0 32px rgba(249, 115, 22, 0.2);
+    opacity: 1;
+  }
+}
+
+.animate-sentiment-glow-positive {
+  animation: sentiment-glow-positive 3s ease-in-out infinite;
+}
+
+.animate-sentiment-glow-negative {
+  animation: sentiment-glow-negative 3s ease-in-out infinite;
+}
+

@@ -77,12 +77,14 @@ export function SentimentText({ text, highlightedWords = [], className }: Sentim
               <span
                 key={index}
                 className={cn(
-                  'inline-block rounded px-1 py-0.5',
+                  'relative inline-block font-bold animate-dimlight box-reflect aurialy-logo',
                   part.highlight.sentiment === 'positive'
-                    ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
-                    : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
-                  'font-bold',
+                    ? 'animate-sentiment-glow-positive'
+                    : 'animate-sentiment-glow-negative',
                 )}
+                style={{
+                  WebkitBoxReflect: 'below 0px linear-gradient(transparent, rgba(0,0,0,0.1))',
+                }}
               >
                 {part.text}
               </span>
