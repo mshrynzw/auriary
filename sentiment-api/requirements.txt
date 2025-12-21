@@ -1,0 +1,12 @@
+# Basic version dependencies
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+
+# Intermediate version (Janome) - Uncomment to use
+# janome==0.5.0
+
+# Advanced version (Transformers) - Uncomment to use
+# torch>=2.0.0
+# transformers>=4.30.0
+# numpy>=1.24.0

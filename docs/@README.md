@@ -452,6 +452,7 @@
 | **セキュリティ**           | [208_DetailedDesign_Security.md](./202_DetailedDesign/208_DetailedDesign_Security.md)                   | セキュリティ設計            |
 | **ログ**                   | [209_DetailedDesign_Logging.md](./202_DetailedDesign/209_DetailedDesign_Logging.md)                     | ログ・監査                  |
 | **非機能**                 | [210_DetailedDesign_NonFunctional.md](./202_DetailedDesign/210_DetailedDesign_NonFunctional.md)         | 非機能要件                  |
+| **感情分析API**            | [211_DetailedDesign_SentimentAPI.md](./202_DetailedDesign/211_DetailedDesign_SentimentAPI.md)           | 感情分析API設計             |
 | **コーディング規約**       | [301_CodingStandards.md](./300_Cording/301_CodingStandards.md)                                          | コーディング規約（概要）    |
 | **TypeScript**             | [302_TypeScript.md](./300_Cording/302_TypeScript.md)                                                    | TypeScript コーディング規約 |
 | **命名規則**               | [303_NamingConventions.md](./300_Cording/303_NamingConventions.md)                                      | 命名規則・ファイル構造      |

@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { SentimentText } from '@/components/diary/sentiment-text';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -119,7 +120,7 @@ export default async function DiaryDetailPage({ params }: PageProps) {
               <div className="space-y-2">
                 <h3 className="font-semibold">日記本文</h3>
                 <div className="prose prose-sm max-w-none">
-                  <p className="whitespace-pre-wrap">{diary.note}</p>
+                  <SentimentText text={diary.note} diaryId={diary.id} />
                 </div>
               </div>
             )}

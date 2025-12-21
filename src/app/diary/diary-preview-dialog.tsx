@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Calendar, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { type DiaryRow } from '@/schemas';
+import { SentimentText } from '@/components/diary/sentiment-text';
 
 type DiaryPreviewDialogProps = {
   diary: DiaryRow | null;
@@ -52,7 +53,7 @@ export function DiaryPreviewDialog({ diary, open, onOpenChange }: DiaryPreviewDi
             <div className="space-y-2">
               <h3 className="font-semibold text-lg">日記本文</h3>
               <div className="prose prose-sm max-w-none">
-                <p className="whitespace-pre-wrap text-sm">{diary.note}</p>
+                <SentimentText text={diary.note} diaryId={diary.id} className="text-sm" />
               </div>
             </div>
           )}

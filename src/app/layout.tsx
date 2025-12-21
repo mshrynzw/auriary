@@ -11,7 +11,6 @@ import {
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/header';
 import { WireframeTerrainBackground } from '@/components/background/wireframe-terrain-background';
-import PwaScript from '@/components/pwa/PwaScript';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import './globals.css';
@@ -117,7 +116,38 @@ export default function RootLayout({
         className={`${mainFont.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <PwaScript />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                (async () => {
+                  try {
+                    const registration = await navigator.serviceWorker.register('/sw.js', {
+                      scope: '/',
+                    });
+                    console.log('Service Worker registered:', registration.scope);
+                    registration.addEventListener('updatefound', () => {
+                      const newWorker = registration.installing;
+                      if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('New Service Worker available');
+                          }
+                        });
+                      }
+                    });
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                      console.log('Service Worker controller changed');
+                      window.location.reload();
+                    });
+                  } catch (error) {
+                    console.error('Service Worker registration failed:', error);
+                  }
+                })();
+              }
+            `,
+          }}
+        />
         <OfflineIndicator />
         <WireframeTerrainBackground />
         <Header />

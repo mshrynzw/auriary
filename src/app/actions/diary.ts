@@ -8,6 +8,7 @@ import {
   type UpdateDiaryFormInput,
 } from '@/schemas';
 import { revalidatePath } from 'next/cache';
+import { analyzeSentiment } from '@/lib/ai/sentiment-api';
 
 /**
  * 日記を作成
@@ -30,6 +31,18 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
   const hasOd =
     validated.data.has_od || (validated.data.od_times && validated.data.od_times.length > 0);
 
+  // 感情分析を実行（noteが存在する場合）
+  let moodScore: number | null = null;
+  if (validated.data.note && validated.data.note.trim().length > 0) {
+    try {
+      const sentimentResult = await analyzeSentiment(validated.data.note);
+      moodScore = sentimentResult.score;
+    } catch (error) {
+      // 感情分析に失敗しても日記の保存は続行
+      console.error('Failed to analyze sentiment:', error);
+    }
+  }
+
   // 日記を作成
   const { data, error } = await supabase
     .from('t_diaries')
@@ -37,6 +50,7 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       user_id: userProfile!.id,
       journal_date: validated.data.journal_date,
       note: validated.data.note,
+      mood: moodScore,
       sleep_quality: validated.data.sleep_quality,
       wake_level: validated.data.wake_level,
       daytime_level: validated.data.daytime_level,
@@ -128,6 +142,26 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
   } else if (updateData.has_od !== undefined && !updateData.has_od) {
     // has_odがfalseに設定された場合、od_timesもクリア
     updateData.od_times = null;
+  }
+
+  // 感情分析を実行（noteが更新された場合）
+  if (updateData.note !== undefined) {
+    if (updateData.note && updateData.note.trim().length > 0) {
+      try {
+        const sentimentResult = await analyzeSentiment(updateData.note);
+        updateData.mood = sentimentResult.score;
+      } catch (error) {
+        // 感情分析に失敗しても日記の更新は続行
+        console.error('Failed to analyze sentiment:', error);
+        // noteが空になった場合はmoodもnullに設定
+        if (!updateData.note || updateData.note.trim().length === 0) {
+          updateData.mood = null;
+        }
+      }
+    } else {
+      // noteが空になった場合はmoodもnullに設定
+      updateData.mood = null;
+    }
   }
 
   // 日記を更新

@@ -17,6 +17,9 @@ export default function Error({
     console.error('Application error:', error);
   }, [error]);
 
+  // 開発環境かどうかを判定（process.envを使わない）
+  const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md border-destructive">
@@ -32,7 +35,7 @@ export default function Error({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {process.env.NODE_ENV === 'development' && (
+          {isDevelopment && (
             <div className="rounded-md bg-muted p-4">
               <p className="text-sm font-mono text-muted-foreground">{error.message}</p>
               {error.digest && (
