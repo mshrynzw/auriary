@@ -29,7 +29,7 @@ export function SentimentText({ text, diaryId, className }: SentimentTextProps) 
       })
       .catch((err) => {
         console.error('Failed to analyze sentiment:', err);
-        setError('感情分析に失敗しました');
+        setError('感情スコア（AI分析）の分析に失敗しました');
         setHighlightedWords([]);
       })
       .finally(() => {
@@ -104,9 +104,11 @@ export function SentimentText({ text, diaryId, className }: SentimentTextProps) 
               <span
                 key={index}
                 className={cn(
-                  'inline-block',
-                  part.highlight.sentiment === 'positive' ? 'text-green-400' : 'text-red-400',
-                  'animate-sparkle font-semibold',
+                  'inline-block rounded px-1 py-0.5',
+                  part.highlight.sentiment === 'positive'
+                    ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
+                    : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
+                  'font-bold',
                 )}
               >
                 {part.text}
@@ -120,7 +122,7 @@ export function SentimentText({ text, diaryId, className }: SentimentTextProps) 
   };
 
   return (
-    <div className={cn('whitespace-pre-wrap', className)}>
+    <div className={cn('whitespace-pre-wrap break-words', className)}>
       {isLoading ? (
         <span className="text-muted-foreground text-sm">分析中...</span>
       ) : error ? (

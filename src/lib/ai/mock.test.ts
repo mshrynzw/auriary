@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { analyzeSentimentMock, completeTextMock, extractTopicsMock } from './mock';
 
 describe('analyzeSentimentMock', () => {
-  it('ポジティブなテキストに対してポジティブな感情を返す', async () => {
+  it('ポジティブなテキストに対してポジティブな感情スコア（AI分析）を返す', async () => {
     const text = '今日は良い一日でした。楽しい時間を過ごせました。';
     const result = await analyzeSentimentMock(text);
 
@@ -14,7 +14,7 @@ describe('analyzeSentimentMock', () => {
     expect(result.summary).toBeTruthy();
   });
 
-  it('ネガティブなテキストに対してネガティブな感情を返す', async () => {
+  it('ネガティブなテキストに対してネガティブな感情スコア（AI分析）を返す', async () => {
     const text = '今日は悪い一日でした。悲しい出来事がありました。';
     const result = await analyzeSentimentMock(text);
 
@@ -23,7 +23,7 @@ describe('analyzeSentimentMock', () => {
     expect(result.score).toBeLessThanOrEqual(4);
   });
 
-  it('ニュートラルなテキストに対してニュートラルな感情を返す', async () => {
+  it('ニュートラルなテキストに対してニュートラルな感情スコア（AI分析）を返す', async () => {
     const text = '今日は普通の一日でした。';
     const result = await analyzeSentimentMock(text);
 

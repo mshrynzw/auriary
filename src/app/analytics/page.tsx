@@ -45,13 +45,13 @@ export default async function AnalyticsPage() {
                     <DialogHeader>
                       <DialogTitle>分析画面について</DialogTitle>
                       <DialogDescription>
-                        分析画面では、感情分析・トピック分析の可視化を確認できます。
+                        分析画面では、感情スコア（AI分析）・トピック分析の可視化を確認できます。
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
                       <h4 className="font-semibold">主な機能:</h4>
                       <ul className="list-disc list-inside space-y-1 text-sm">
-                        <li>過去30日間の感情推移グラフ</li>
+                        <li>過去30日間の感情スコア推移グラフ（AI分析）</li>
                         <li>トピック分布（円グラフ）</li>
                         <li>統計サマリー（カード表示）</li>
                       </ul>

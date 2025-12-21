@@ -3,10 +3,12 @@ fastapi==0.115.0
 uvicorn[standard]==0.32.0
 pydantic==2.9.2
 
-# Intermediate version (Janome) - Uncomment to use
-# janome==0.5.0
+# Intermediate version (Janome) - Used for word extraction
+janome==0.5.0
 
-# Advanced version (Transformers) - Uncomment to use
-# torch>=2.0.0
-# transformers>=4.30.0
-# numpy>=1.24.0
+# Advanced version (Transformers) - Now active
+torch>=2.0.0
+transformers>=4.30.0
+numpy>=1.24.0
+fugashi>=1.2.0  # Required for Japanese BERT tokenizer (MeCab)
+unidic-lite>=0.9.0  # Japanese morphological dictionary for MeCab

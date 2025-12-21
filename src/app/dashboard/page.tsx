@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { UnifiedChart } from './charts';
+import { SentimentText } from '@/components/diary/sentiment-text';
 
 export default async function DashboardPage() {
   // 全期間の日記を取得（統計用）
@@ -72,7 +73,7 @@ export default async function DashboardPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">平均感情スコア</CardTitle>
+              <CardTitle className="text-sm font-medium">平均感情スコア（AI分析）</CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -142,12 +143,18 @@ export default async function DashboardPage() {
                               locale: ja,
                             })}
                           </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {diary.note || '本文なし'}
-                          </p>
+                          <div className="text-sm text-muted-foreground line-clamp-2">
+                            {diary.note ? (
+                              <SentimentText text={diary.note} diaryId={diary.id} />
+                            ) : (
+                              <span>本文なし</span>
+                            )}
+                          </div>
                         </div>
                         {diary.mood && (
-                          <div className="ml-4 text-sm font-medium">感情: {diary.mood}/10</div>
+                          <div className="ml-4 text-sm font-medium">
+                            感情スコア（AI分析）: {diary.mood}/10
+                          </div>
                         )}
                       </div>
                     </Link>

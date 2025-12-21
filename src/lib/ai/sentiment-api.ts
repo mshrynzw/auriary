@@ -1,12 +1,13 @@
 /**
  * Python Sentiment API クライアント
- * 日記本文の感情分析を行う
+ * 日記本文の感情スコア（AI分析）を行う
  */
 
 export interface HighlightedWord {
   word: string;
   sentiment: 'positive' | 'negative';
   score: number;
+  position: number; // テキスト内の位置（文字位置）
 }
 
 export interface SentimentAnalysisResult {
@@ -15,12 +16,13 @@ export interface SentimentAnalysisResult {
   confidence: number; // 0.0-1.0
   highlighted_words: HighlightedWord[];
   overall_sentiment_score: number; // -1.0 ～ 1.0
+  model_used?: string; // 使用されたモデル名（上級版）
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_SENTIMENT_API_URL || 'http://localhost:8000';
 
 /**
- * テキストの感情分析を実行
+ * テキストの感情スコア（AI分析）を実行
  */
 export async function analyzeSentiment(text: string): Promise<SentimentAnalysisResult> {
   try {

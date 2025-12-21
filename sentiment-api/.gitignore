@@ -20,6 +20,8 @@ ENV/
 # Environment variables
 .env
 .env.local
+# .env.example is allowed (template file)
+!.env.example
 
 # Model files (上級版)
 models/

@@ -78,7 +78,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
     <div className="space-y-6">
       <Tabs defaultValue="mood" className="w-full">
         <TabsList>
-          <TabsTrigger value="mood">感情推移</TabsTrigger>
+          <TabsTrigger value="mood">感情推移（AI分析）</TabsTrigger>
           <TabsTrigger value="topics">トピック分布</TabsTrigger>
           <TabsTrigger value="summary">統計サマリー</TabsTrigger>
         </TabsList>
@@ -86,8 +86,8 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
         <TabsContent value="mood">
           <Card>
             <CardHeader>
-              <CardTitle>過去30日間の感情推移</CardTitle>
-              <CardDescription>日記の感情スコアの推移をグラフで表示</CardDescription>
+              <CardTitle>過去30日間の感情推移（AI分析）</CardTitle>
+              <CardDescription>日記の感情スコア（AI分析）の推移をグラフで表示</CardDescription>
             </CardHeader>
             <CardContent>
               {moodData.length > 0 ? (
@@ -98,7 +98,12 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
                     <YAxis domain={[0, 10]} />
                     <RechartsTooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="mood" stroke="#8884d8" name="感情スコア" />
+                    <Line
+                      type="monotone"
+                      dataKey="mood"
+                      stroke="#8884d8"
+                      name="感情スコア（AI分析）"
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -146,7 +151,7 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">平均感情スコア</CardTitle>
+                <CardTitle className="text-lg">平均感情スコア（AI分析）</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{avgMood.toFixed(1)}</p>

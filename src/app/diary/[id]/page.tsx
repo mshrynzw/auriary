@@ -66,7 +66,7 @@ export default async function DiaryDetailPage({ params }: PageProps) {
                         <h4 className="font-semibold">主な機能:</h4>
                         <ul className="list-disc list-inside space-y-1 text-sm">
                           <li>日記本文の表示</li>
-                          <li>感情スコア・各種スコアの表示</li>
+                          <li>感情スコア（AI分析）・各種スコアの表示</li>
                           <li>日記の編集・削除</li>
                         </ul>
                       </div>
@@ -111,7 +111,9 @@ export default async function DiaryDetailPage({ params }: PageProps) {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                {diary.mood && <Badge variant="outline">感情: {diary.mood}/10</Badge>}
+                {diary.mood && (
+                  <Badge variant="outline">感情スコア（AI分析）: {diary.mood}/10</Badge>
+                )}
               </div>
             </div>
           </CardHeader>

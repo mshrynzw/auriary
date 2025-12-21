@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Link from 'next/link';
+import { SentimentText } from '@/components/diary/sentiment-text';
 
 type Diary = {
   id: number;
@@ -72,15 +73,19 @@ export function CalendarView({ diaries }: CalendarViewProps) {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 {selectedDiary.mood && (
-                  <Badge variant="outline">感情: {selectedDiary.mood}/10</Badge>
+                  <Badge variant="outline">感情スコア（AI分析）: {selectedDiary.mood}/10</Badge>
                 )}
                 {selectedDiary.sleep_quality && (
                   <Badge variant="outline">睡眠: {selectedDiary.sleep_quality}/5</Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-4">
-                {selectedDiary.note || '本文なし'}
-              </p>
+              <div className="text-sm text-muted-foreground line-clamp-4">
+                {selectedDiary.note ? (
+                  <SentimentText text={selectedDiary.note} diaryId={selectedDiary.id} />
+                ) : (
+                  <span>本文なし</span>
+                )}
+              </div>
               <Link href={`/diary/${selectedDiary.id}`}>
                 <Button variant="outline" className="w-full cursor-pointer">
                   詳細を見る

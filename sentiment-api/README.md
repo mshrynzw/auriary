@@ -4,7 +4,7 @@
 
 ## 📋 機能
 
-- **ネガポジ判定**: テキストの感情をポジティブ/ネガティブ/ニュートラルに分類
+- **ネガポジ判定**: テキストの感情をポジティブ/ネガティブ/ニュートラルに分類（transformersで機械学習モデル）
 - **感情スコア算出**: 1-10のスケールで感情スコアを算出
 - **注目ワード抽出**: 感情が強い単語を抽出し、きらめき表示用のデータを提供
 
@@ -210,13 +210,16 @@ pytest tests/
 
 ## 📦 デプロイ
 
-### Railway
+### Railway（推奨）
 
+詳細なデプロイ手順は [Railwayデプロイ手順](../docs/800_Release/805_DEPLOY_Railway.md) を参照してください。
+
+**クイックスタート:**
 1. Railwayアカウントを作成
 2. 新しいプロジェクトを作成
 3. GitHubリポジトリを接続
 4. ルートディレクトリを`sentiment-api`に設定
-5. 環境変数を設定（必要に応じて）
+5. 環境変数 `ALLOWED_ORIGINS` を設定
 6. デプロイ
 
 ### Render
@@ -238,7 +241,8 @@ pytest tests/
 
 ## 📖 詳細ドキュメント
 
-- [詳細設計書](../../docs/202_DetailedDesign/211_DetailedDesign_SentimentAPI.md)
+- [詳細設計書](../docs/202_DetailedDesign/211_DetailedDesign_SentimentAPI.md)
+- [Railwayデプロイ手順](../docs/800_Release/805_DEPLOY_Railway.md)
 
 ## 🐛 トラブルシューティング
 

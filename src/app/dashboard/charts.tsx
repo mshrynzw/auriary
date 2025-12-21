@@ -382,7 +382,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
                 radius={[4, 4, 0, 0]}
               />
             )}
-            {/* 感情スコア（折れ線） */}
+            {/* 感情スコア（AI分析）（折れ線） */}
             {visibility.mood && (
               <Line
                 yAxisId="left"
@@ -392,7 +392,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 6 }}
-                name="感情スコア"
+                name="感情スコア（AI分析）"
               />
             )}
             {/* 7項目（折れ線） */}
@@ -517,7 +517,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
                 onCheckedChange={(checked) => updateVisibility('mood', checked === true)}
               />
               <Label htmlFor="mood" className="text-sm cursor-pointer">
-                感情スコア
+                感情スコア（AI分析）
               </Label>
             </div>
             <div className="flex items-center space-x-2">

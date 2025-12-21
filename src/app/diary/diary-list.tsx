@@ -25,6 +25,7 @@ import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DiaryPreviewDialog } from './diary-preview-dialog';
 import { type DiaryRow } from '@/schemas';
+import { SentimentText } from '@/components/diary/sentiment-text';
 
 type DiaryListProps = {
   diaries: DiaryRow[];
@@ -88,12 +89,20 @@ export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) 
                   </CardDescription> */}
                 </div>
                 <div className="flex items-center gap-1">
-                  {diary.mood && <Badge variant="outline">感情: {diary.mood}/10</Badge>}
+                  {diary.mood && (
+                    <Badge variant="outline">感情スコア（AI分析）: {diary.mood}/10</Badge>
+                  )}
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm line-clamp-3 mb-4">{diary.note || ''}</p>
+              <div className="text-sm line-clamp-3 mb-4">
+                {diary.note ? (
+                  <SentimentText text={diary.note} diaryId={diary.id} />
+                ) : (
+                  <span className="text-muted-foreground">本文なし</span>
+                )}
+              </div>
               {isAuthenticated && (
                 <div className="flex items-center justify-end gap-2">
                   <TooltipProvider>

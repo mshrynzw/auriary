@@ -262,20 +262,18 @@
   0%,
   100% {
     opacity: 1;
-    text-shadow:
-      0 0 5px currentColor,
-      0 0 10px currentColor,
-      0 0 15px currentColor;
+    box-shadow:
+      0 0 4px rgba(0, 0, 0, 0.1),
+      0 0 8px rgba(0, 0, 0, 0.05);
   }
   50% {
-    opacity: 0.8;
-    text-shadow:
-      0 0 10px currentColor,
-      0 0 20px currentColor,
-      0 0 30px currentColor;
+    opacity: 0.95;
+    box-shadow:
+      0 0 6px rgba(0, 0, 0, 0.15),
+      0 0 12px rgba(0, 0, 0, 0.08);
   }
 }
 
 .animate-sparkle {
-  animation: sparkle 2s ease-in-out infinite;
+  animation: sparkle 3s ease-in-out infinite;
 }
