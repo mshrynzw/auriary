@@ -17,19 +17,10 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-
-type Diary = {
-  id: number;
-  journal_date: string;
-  mood: number | null;
-  ai_topics: string[] | null;
-  sleep_quality: number | null;
-  wake_level: number | null;
-  daytime_level: number | null;
-};
+import { type DiaryRow } from '@/schemas';
 
 type AnalyticsViewProps = {
-  diaries: Diary[];
+  diaries: DiaryRow[];
 };
 
 export function AnalyticsView({ diaries }: AnalyticsViewProps) {
@@ -45,8 +36,9 @@ export function AnalyticsView({ diaries }: AnalyticsViewProps) {
   // トピック分布の準備
   const topicCounts: Record<string, number> = {};
   diaries.forEach((d) => {
-    if (d.ai_topics && Array.isArray(d.ai_topics)) {
-      d.ai_topics.forEach((topic) => {
+    if (d.ai_topics && typeof d.ai_topics === 'object' && !Array.isArray(d.ai_topics)) {
+      // ai_topicsはRecord<string, any>型なので、キーをトピックとして扱う
+      Object.keys(d.ai_topics).forEach((topic) => {
         topicCounts[topic] = (topicCounts[topic] || 0) + 1;
       });
     }
