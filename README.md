@@ -212,6 +212,120 @@ pnpm format
 
 ---
 
+## 🧪 Testing
+
+### ユニットテスト・結合テスト（Vitest）
+
+```bash
+# ウォッチモードでテストを実行（開発用）
+pnpm test
+
+# ブラウザUIでテスト結果を確認
+pnpm test:ui
+
+# 一度だけテストを実行（CI/CD用）
+pnpm test:run
+
+# カバレッジレポート付きでテストを実行
+pnpm test:coverage
+
+# 結合テストのみ実行
+pnpm test:integration
+```
+
+### E2Eテスト（Playwright）
+
+```bash
+# E2Eテストを実行
+pnpm test:e2e
+
+# E2EテストをUIモードで実行（ブラウザで確認）
+pnpm test:e2e:ui
+```
+
+**テストコマンドの違い：**
+
+- `test`: Vitestのウォッチモード。ファイル変更を検知して自動的に再実行
+- `test:ui`: VitestのUIモード。ブラウザでテスト結果を視覚的に確認
+- `test:run`: 一度だけテストを実行。CI/CDパイプラインで使用
+- `test:coverage`: コードカバレッジレポートを生成
+- `test:integration`: 結合テストのみを実行（Supabase Localが必要）
+- `test:e2e`: PlaywrightでE2Eテストを実行
+- `test:e2e:ui`: PlaywrightのUIモードでE2Eテストを実行
+
+---
+
+## 🔄 CI/CD
+
+GitHub Actionsでプッシュ時に自動的にテストが実行されます。
+
+### CI環境での動作
+
+GitHub Actionsでは、`supabase status -o env`コマンドを使用してSupabase Localの環境変数を自動的に取得します。これにより、手動で環境変数を設定する必要がありません。
+
+**動作の流れ：**
+
+1. `supabase start`でSupabase Localを起動
+2. `supabase db reset`でマイグレーションを適用
+3. `supabase status -o env >> $GITHUB_ENV`で環境変数を自動取得
+4. テスト実行時に環境変数が自動的に利用可能
+
+**ローカル開発での確認方法：**
+
+ローカルでSupabase Localを起動してキーを確認できます：
+
+```bash
+# Supabase Localを起動
+supabase start
+
+# 環境変数形式でキーを確認
+supabase status -o env
+```
+
+出力例：
+
+```
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+```
+
+**注意**:
+
+- Supabase Localのキーは、JWT secretがデフォルト値（`super-secret-jwt-token-with-at-least-32-characters-long`）の場合、同じキーが生成されます
+- これらのキーはローカル開発環境専用で、本番環境のキーとは完全に別物です
+- CI環境では自動的に環境変数が設定されるため、GitHub Environmentsでの手動設定は不要です
+
+**参考**: [Supabase CLI: Local Development](https://supabase.com/docs/guides/cli/local-development)
+
+### テストパイプライン
+
+`.github/workflows/test.yml`で以下のテストが並列実行されます：
+
+1. **単体テスト** (`pnpm test:run`)
+   - 最も軽量で高速
+   - 依存関係なし
+   - バリデーションスキーマやユーティリティ関数のテスト
+
+2. **結合テスト** (`pnpm test:integration`)
+   - Supabase Localが必要
+   - データベースとの連携をテスト
+   - 認証やCRUD操作のテスト
+
+3. **E2Eテスト** (`pnpm test:e2e`)
+   - Next.jsアプリのビルドとPlaywrightが必要
+   - ブラウザでの実際の動作をテスト
+   - ユーザーフローのテスト
+
+### テスト結果の確認
+
+- GitHubの「Actions」タブでテスト結果を確認できます
+- すべてのテストが成功した場合のみ、プルリクエストがマージ可能になります
+- テストが失敗した場合は、詳細なログを確認して修正してください
+
+---
+
 ## 🔮 Future Plans
 
 - モバイルアプリ（Expo / React Native）
