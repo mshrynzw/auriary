@@ -231,4 +231,4 @@ This project is licensed under the **AGPL-3.0**.
 ## 👤 Author
 
 **auriary Project Team**  
-Lead Developer: _mshr ynzw_
+Lead Developer: mshrynzw

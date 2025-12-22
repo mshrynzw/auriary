@@ -32,7 +32,7 @@ describe('createDiaryFormSchema', () => {
   it('sleep_quality が範囲外の値を拒否する', () => {
     const data = {
       journal_date: '2025-01-10',
-      sleep_quality: 6, // 1-5の範囲外
+      sleep_quality: 11, // 0-10の範囲外
     };
     expect(() => createDiaryFormSchema.parse(data)).toThrow();
   });
