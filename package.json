@@ -11,7 +11,7 @@
     "types": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
+    "test:unit": "vitest run --exclude src/test/integration/**/*",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run src/test/integration",
     "test:e2e": "playwright test",

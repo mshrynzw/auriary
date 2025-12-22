@@ -223,8 +223,8 @@ pnpm test
 # ブラウザUIでテスト結果を確認
 pnpm test:ui
 
-# 一度だけテストを実行（CI/CD用）
-pnpm test:run
+# 単体テストのみ実行（CI/CD用）
+pnpm test:unit
 
 # カバレッジレポート付きでテストを実行
 pnpm test:coverage
@@ -247,7 +247,7 @@ pnpm test:e2e:ui
 
 - `test`: Vitestのウォッチモード。ファイル変更を検知して自動的に再実行
 - `test:ui`: VitestのUIモード。ブラウザでテスト結果を視覚的に確認
-- `test:run`: 一度だけテストを実行。CI/CDパイプラインで使用
+- `test:unit`: 単体テストのみを実行。結合テストは除外される。CI/CDパイプラインで使用
 - `test:coverage`: コードカバレッジレポートを生成
 - `test:integration`: 結合テストのみを実行（Supabase Localが必要）
 - `test:e2e`: PlaywrightでE2Eテストを実行
@@ -303,7 +303,7 @@ SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
 `.github/workflows/test.yml`で以下のテストが並列実行されます：
 
-1. **単体テスト** (`pnpm test:run`)
+1. **単体テスト** (`pnpm test:unit`)
    - 最も軽量で高速
    - 依存関係なし
    - バリデーションスキーマやユーティリティ関数のテスト

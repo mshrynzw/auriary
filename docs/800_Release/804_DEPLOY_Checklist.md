@@ -19,7 +19,9 @@
 
 - [ ] 型チェックが通る（`pnpm run types`）
 - [ ] リントエラーがない（`pnpm run lint`）
-- [ ] テストが通る（`pnpm run test:run`）
+- [ ] 単体テストが通る（`pnpm test:unit`）
+- [ ] 結合テストが通る（`pnpm test:integration`）
+- [ ] 総合テストが通る（`pnpm test:e2e`）
 - [ ] ローカルでビルドが成功する（`pnpm build`）
 
 ### 環境変数の確認
