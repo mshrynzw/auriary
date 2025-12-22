@@ -44,6 +44,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Next.jsの動的コンテンツはService Workerで処理しない
+  // - HTMLページ: 認証状態が変わる可能性があるため、常に最新の状態を取得
+  // - Next.jsのデータフェッチ（/_next/data/）: 動的なデータが含まれるため
+  // - 認証関連ページ: セキュリティのため常にネットワークから取得
+  // Next.jsのServer ComponentsとMiddlewareの機能を最大限活用
+  if (
+    // HTMLページ
+    (request.method === 'GET' && request.headers.get('accept')?.includes('text/html')) ||
+    // Next.jsのデータフェッチ
+    url.pathname.startsWith('/_next/data/') ||
+    // 認証関連ページ
+    url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/register') ||
+    url.pathname.startsWith('/logout')
+  ) {
+    // Service Workerで処理せず、通常のネットワークリクエストを実行
+    return;
+  }
+
   // 静的アセットは Cache First
   if (
     url.pathname.startsWith('/_next/static/') ||
@@ -71,11 +90,12 @@ self.addEventListener('fetch', (event) => {
   }
 
   // API リクエストは Network First
+  // 認証が必要なAPIは常に最新の状態を取得
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // 成功したレスポンスをキャッシュに保存
+          // 成功したレスポンスをキャッシュに保存（オフライン対応のため）
           if (response.ok) {
             const clone = response.clone();
             caches.open(API_CACHE).then((cache) => {
@@ -85,7 +105,7 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // ネットワークエラー時はキャッシュから取得
+          // ネットワークエラー時はキャッシュから取得（オフライン対応）
           return caches.match(request).then((response) => {
             if (response) {
               return response;
@@ -97,31 +117,6 @@ self.addEventListener('fetch', (event) => {
             });
           });
         }),
-    );
-    return;
-  }
-
-  // HTML ページは Stale While Revalidate
-  if (request.method === 'GET' && request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        const fetchPromise = fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse.ok) {
-              const clone = networkResponse.clone();
-              caches.open(STATIC_CACHE).then((cache) => {
-                cache.put(request, clone);
-              });
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            // ネットワークエラー時はキャッシュを返す
-            return cachedResponse;
-          });
-
-        return cachedResponse || fetchPromise;
-      }),
     );
     return;
   }
