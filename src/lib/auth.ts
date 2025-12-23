@@ -38,41 +38,25 @@ export async function requireAuth() {
 }
 
 /**
- * 認証状態を取得（リダイレクトしない）
+ * UI表示用の認証状態を取得（getSession()ベース、即座に取得可能）
+ * ローカルストレージ（サーバーサイドではcookie）からセッションを取得するため、
+ * JWTリフレッシュの遅延が発生しません。
+ * セキュリティ上重要な操作には使用しないでください。
  */
 export async function getAuth() {
   try {
     const supabase = await createSupabaseServerClient();
     const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    // デバッグログ
-    console.log('getAuth() - Auth check:', {
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-      authError: authError ? { message: authError.message, code: authError.code } : null,
-    });
-
-    // Auth session missing! は未認証の正常な状態なので、エラーとして扱わない
-    // ただし、実際の接続エラー（CORS、ネットワークエラーなど）の場合はエラーとして扱う
-    if (authError && authError.message !== 'Auth session missing!') {
-      console.error('Failed to get user from Supabase auth:', {
-        message: authError.message,
-        code: authError.code,
-        // AuthErrorにはdetailsとhintプロパティがないため、削除
-      });
-      // 実際の接続エラーの場合のみ、supabase: nullを返す
-      return { user: null, userProfile: null, supabase: null };
-    }
-
-    // Auth session missing! または user が null の場合は、未認証状態として扱う
-    // ただし、supabaseクライアント自体は有効なので返す
-    if (!user) {
+    // セッションが存在しない場合は未認証状態として扱う
+    if (sessionError || !session?.user) {
       return { user: null, userProfile: null, supabase };
     }
+
+    const user = session.user;
 
     // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
     const { data: userProfile, error } = await supabase
@@ -105,6 +89,63 @@ export async function getAuth() {
   } catch (error) {
     // 環境変数が設定されていない場合など、Supabaseクライアントの作成に失敗した場合
     console.error('Failed to create Supabase client in getAuth():', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return { user: null, userProfile: null, supabase: null };
+  }
+}
+
+/**
+ * セキュリティ上重要な操作用の認証状態を取得（getUser()ベース、サーバー検証あり）
+ * データの保存・削除など、本人確認が必要な操作で使用してください。
+ * JWTリフレッシュが必要な場合は遅延が発生する可能性があります。
+ */
+export async function getAuthWithVerification() {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    // Auth session missing! は未認証の正常な状態なので、エラーとして扱わない
+    // ただし、実際の接続エラー（CORS、ネットワークエラーなど）の場合はエラーとして扱う
+    if (authError && authError.message !== 'Auth session missing!') {
+      console.error('Failed to get user from Supabase auth:', {
+        message: authError.message,
+        code: authError.code,
+      });
+      return { user: null, userProfile: null, supabase: null };
+    }
+
+    // Auth session missing! または user が null の場合は、未認証状態として扱う
+    if (!user) {
+      return { user: null, userProfile: null, supabase };
+    }
+
+    // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
+    const { data: userProfile, error } = await supabase
+      .from('m_users')
+      .select('id, display_name, email')
+      .eq('auth_user_id', user.id)
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      console.warn('Failed to fetch user profile:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      return { user, userProfile: null, supabase };
+    }
+
+    return { user, userProfile, supabase };
+  } catch (error) {
+    console.error('Failed to create Supabase client in getAuthWithVerification():', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });

@@ -63,9 +63,11 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  // UI表示用のため、getSession()を使用（即座に取得可能）
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   // 保護されたルート（/diaryと/dashboardは未認証でも閲覧可能）
   const protectedPaths = ['/calendar', '/analytics', '/settings'];
