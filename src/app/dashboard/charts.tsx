@@ -500,9 +500,9 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
     odTimes: '#dc2626', // 赤（OD回数用）
     odTimesBar: 'rgba(220, 38, 38, 0.3)', // 赤（薄い、棒グラフ用）
     paymentTotal: '#ad975a',
-    paymentTotalBar: 'rgba(234, 179, 8, 0.10)',
+    paymentTotalBar: 'rgba(234, 179, 8, 1.00)',
     depositTotal: '#06b6d4',
-    depositTotalBar: 'rgba(6, 182, 212, 0.10)',
+    depositTotalBar: 'rgba(6, 182, 212, 1.00)',
   };
 
   return (
