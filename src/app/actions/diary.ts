@@ -259,6 +259,32 @@ export async function deleteDiaryAction(id: number) {
 }
 
 /**
+ * ユーザーの最古の日記日付（無限スクロールの終了判定用）
+ */
+export async function getEarliestJournalDateAction(): Promise<{ journal_date: string | null }> {
+  const { userProfile, supabase } = await getAuth();
+
+  if (!userProfile || !supabase) {
+    return { journal_date: null };
+  }
+
+  const { data, error } = await supabase
+    .from('t_diaries')
+    .select('journal_date')
+    .eq('user_id', userProfile.id)
+    .is('deleted_at', null)
+    .order('journal_date', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data?.journal_date) {
+    return { journal_date: null };
+  }
+
+  return { journal_date: data.journal_date };
+}
+
+/**
  * 日記一覧を取得
  * 未認証の場合は空の配列を返す
  */
