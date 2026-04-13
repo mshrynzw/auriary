@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import {
@@ -22,7 +22,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { format } from 'date-fns';
+import { endOfWeek, format, startOfWeek } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { type DiaryRow } from '@/schemas';
 
@@ -60,6 +60,94 @@ const DEFAULT_VISIBILITY: VisibilitySettings = {
   odTimes: false,
 };
 
+type ChartDataPoint = {
+  date: Date;
+  dateLabel: string;
+  mood: number | null;
+  sleepHours: number | null;
+  sleepQuality: number | null;
+  wakeLevel: number | null;
+  daytimeLevel: number | null;
+  preSleepLevel: number | null;
+  medAdherenceLevel: number | null;
+  appetiteLevel: number | null;
+  sleepDesireLevel: number | null;
+  exerciseLevel: number | null;
+  odTimes: number | null;
+};
+
+function averageFields(rows: ChartDataPoint[], date: Date, dateLabel: string): ChartDataPoint {
+  const avgOf = (pick: (r: ChartDataPoint) => number | null) => {
+    const vals = rows.map(pick).filter((v): v is number => v !== null && v !== undefined);
+    if (vals.length === 0) return null;
+    return Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
+  };
+  return {
+    date,
+    dateLabel,
+    mood: avgOf((r) => r.mood),
+    sleepHours: avgOf((r) => r.sleepHours),
+    sleepQuality: avgOf((r) => r.sleepQuality),
+    wakeLevel: avgOf((r) => r.wakeLevel),
+    daytimeLevel: avgOf((r) => r.daytimeLevel),
+    preSleepLevel: avgOf((r) => r.preSleepLevel),
+    medAdherenceLevel: avgOf((r) => r.medAdherenceLevel),
+    appetiteLevel: avgOf((r) => r.appetiteLevel),
+    sleepDesireLevel: avgOf((r) => r.sleepDesireLevel),
+    exerciseLevel: avgOf((r) => r.exerciseLevel),
+    odTimes: avgOf((r) => r.odTimes),
+  };
+}
+
+function aggregateToWeekly(daily: ChartDataPoint[]): ChartDataPoint[] {
+  const groups = new Map<string, ChartDataPoint[]>();
+  for (const row of daily) {
+    const weekStart = startOfWeek(row.date, { weekStartsOn: 1 });
+    const key = format(weekStart, 'yyyy-MM-dd');
+    const list = groups.get(key) ?? [];
+    list.push(row);
+    groups.set(key, list);
+  }
+
+  const out: ChartDataPoint[] = [];
+  for (const [, rows] of groups) {
+    const first = rows[0].date;
+    const weekStart = startOfWeek(first, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(first, { weekStartsOn: 1 });
+    const dateLabel = `${format(weekStart, 'M/d', { locale: ja })}〜${format(weekEnd, 'M/d', { locale: ja })}`;
+    out.push(averageFields(rows, weekStart, dateLabel));
+  }
+  out.sort((a, b) => a.date.getTime() - b.date.getTime());
+  return out;
+}
+
+function aggregateToMonthly(daily: ChartDataPoint[]): ChartDataPoint[] {
+  const groups = new Map<string, ChartDataPoint[]>();
+  for (const row of daily) {
+    const key = format(row.date, 'yyyy-MM');
+    const list = groups.get(key) ?? [];
+    list.push(row);
+    groups.set(key, list);
+  }
+
+  const out: ChartDataPoint[] = [];
+  for (const [ym, rows] of groups) {
+    const [y, m] = ym.split('-').map(Number);
+    const date = new Date(y, m - 1, 1);
+    out.push(averageFields(rows, date, format(date, 'yyyy年M月', { locale: ja })));
+  }
+  out.sort((a, b) => a.date.getTime() - b.date.getTime());
+  return out;
+}
+
+type GranularityOption = 'daily' | 'weekly' | 'monthly';
+const GRANULARITY_STORAGE_KEY = 'dashboard-chart-granularity';
+const GRANULARITY_OPTIONS: { value: GranularityOption; label: string }[] = [
+  { value: 'daily', label: '日別' },
+  { value: 'weekly', label: '週別の平均' },
+  { value: 'monthly', label: '月別の平均' },
+];
+
 type PeriodOption = 'all' | '1week' | '2weeks' | '1month' | '3months' | '6months' | '1year';
 const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
   { value: 'all', label: '全期間' },
@@ -71,9 +159,62 @@ const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
   { value: '1year', label: '過去1年' },
 ];
 
+type ChartHeaderControlsProps = {
+  period: PeriodOption;
+  granularity: GranularityOption;
+  onPeriodChange: (value: PeriodOption) => void;
+  onGranularityChange: (value: GranularityOption) => void;
+  disabled?: boolean;
+};
+
+function ChartHeaderControls({
+  period,
+  granularity,
+  onPeriodChange,
+  onGranularityChange,
+  disabled,
+}: ChartHeaderControlsProps) {
+  return (
+    <>
+      <CardTitle>データ推移</CardTitle>
+      <CardAction className="flex flex-wrap items-center justify-end gap-3">
+        <Select
+          value={granularity}
+          onValueChange={(v) => onGranularityChange(v as GranularityOption)}
+          disabled={disabled}
+        >
+          <SelectTrigger className="w-[160px] cursor-pointer">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {GRANULARITY_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={period} onValueChange={onPeriodChange} disabled={disabled}>
+          <SelectTrigger className="w-[140px] cursor-pointer">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PERIOD_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardAction>
+    </>
+  );
+}
+
 export function UnifiedChart({ diaries }: ChartProps) {
   const [visibility, setVisibility] = useState<VisibilitySettings>(DEFAULT_VISIBILITY);
   const [period, setPeriod] = useState<PeriodOption>('all');
+  const [granularity, setGranularity] = useState<GranularityOption>('daily');
   const [isMounted, setIsMounted] = useState(false);
 
   // ローカルストレージから設定を読み込み
@@ -92,6 +233,10 @@ export function UnifiedChart({ diaries }: ChartProps) {
     if (savedPeriod && PERIOD_OPTIONS.some((opt) => opt.value === savedPeriod)) {
       setPeriod(savedPeriod as PeriodOption);
     }
+    const savedGranularity = localStorage.getItem(GRANULARITY_STORAGE_KEY);
+    if (savedGranularity && GRANULARITY_OPTIONS.some((opt) => opt.value === savedGranularity)) {
+      setGranularity(savedGranularity as GranularityOption);
+    }
   }, []);
 
   // 設定をローカルストレージに保存
@@ -105,6 +250,11 @@ export function UnifiedChart({ diaries }: ChartProps) {
   const handlePeriodChange = (value: PeriodOption) => {
     setPeriod(value);
     localStorage.setItem(PERIOD_STORAGE_KEY, value);
+  };
+
+  const handleGranularityChange = (value: GranularityOption) => {
+    setGranularity(value);
+    localStorage.setItem(GRANULARITY_STORAGE_KEY, value);
   };
 
   // 期間に基づいてデータをフィルタリング
@@ -166,11 +316,30 @@ export function UnifiedChart({ diaries }: ChartProps) {
     return Math.round(hours * 10) / 10; // 小数点第1位まで
   };
 
-  // 期間でフィルタリングされたデータを取得
-  const filteredDiaries = isMounted ? getFilteredData() : diaries;
+  // マウント前は期間フィルタを適用しないと、空データ判定とマウント後の表示が食い違い Select が消える原因になる
+  if (!isMounted) {
+    return (
+      <Card className="border-none bg-muted/50">
+        <CardHeader>
+          <ChartHeaderControls
+            period={period}
+            granularity={granularity}
+            onPeriodChange={handlePeriodChange}
+            onGranularityChange={handleGranularityChange}
+            disabled
+          />
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">読み込み中...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  // データを準備
-  const chartData = filteredDiaries
+  const filteredDiaries = getFilteredData();
+
+  // データを準備（日次）
+  const chartData: ChartDataPoint[] = filteredDiaries
     .map((d) => {
       const date = new Date(d.journal_date);
       // 当日の就寝時間と起床時間を使って計算
@@ -210,11 +379,23 @@ export function UnifiedChart({ diaries }: ChartProps) {
     )
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
+  const displayData =
+    granularity === 'monthly'
+      ? aggregateToMonthly(chartData)
+      : granularity === 'weekly'
+        ? aggregateToWeekly(chartData)
+        : chartData;
+
   if (chartData.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>データ推移</CardTitle>
+          <ChartHeaderControls
+            period={period}
+            granularity={granularity}
+            onPeriodChange={handlePeriodChange}
+            onGranularityChange={handleGranularityChange}
+          />
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">データがありません</div>
@@ -224,7 +405,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
   }
 
   // 睡眠時間の最大値を取得（Y軸の範囲設定用）
-  const maxSleepHours = Math.max(...chartData.map((d) => d.sleepHours || 0).filter((h) => h > 0));
+  const maxSleepHours = Math.max(...displayData.map((d) => d.sleepHours || 0).filter((h) => h > 0));
   const sleepYAxisMax = maxSleepHours > 0 ? Math.ceil(maxSleepHours / 2) * 2 + 2 : 12; // 2時間刻みで設定
 
   const colors = {
@@ -243,42 +424,19 @@ export function UnifiedChart({ diaries }: ChartProps) {
     odTimesBar: 'rgba(220, 38, 38, 0.3)', // 赤（薄い、棒グラフ用）
   };
 
-  // ハイドレーションエラーを防ぐため、マウント後にのみレンダリング
-  if (!isMounted) {
-    return (
-      <Card className="border-none bg-muted/50">
-        <CardHeader>
-          <CardTitle>データ推移</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">読み込み中...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="border-none bg-muted/80">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>データ推移</CardTitle>
-          <Select value={period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-[140px] cursor-pointer">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PERIOD_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="cursor-pointer">
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <ChartHeaderControls
+          period={period}
+          granularity={granularity}
+          onPeriodChange={handlePeriodChange}
+          onGranularityChange={handleGranularityChange}
+        />
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
+          <ComposedChart data={displayData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.129 0.042 264.695)" />
             <XAxis
               dataKey="dateLabel"
@@ -335,10 +493,18 @@ export function UnifiedChart({ diaries }: ChartProps) {
                             className="text-[0.70rem] uppercase"
                             style={{ color: 'oklch(0.129 0.042 264.695)' }}
                           >
-                            日付
+                            {granularity === 'daily' ? '日付' : '期間'}
                           </span>
                           <span className="font-bold">
-                            {format(data.date, 'yyyy年M月d日 (E)', { locale: ja })}
+                            {granularity === 'daily'
+                              ? format(data.date, 'yyyy年M月d日 (E)', { locale: ja })
+                              : granularity === 'monthly'
+                                ? format(data.date, 'yyyy年M月', { locale: ja })
+                                : (() => {
+                                    const ws = startOfWeek(data.date, { weekStartsOn: 1 });
+                                    const we = endOfWeek(data.date, { weekStartsOn: 1 });
+                                    return `${format(ws, 'yyyy年M月d日', { locale: ja })}〜${format(we, 'yyyy年M月d日 (E)', { locale: ja })}`;
+                                  })()}
                           </span>
                         </div>
                         {payload.map((entry, index) => {

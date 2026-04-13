@@ -5,10 +5,10 @@ import { BookOpen, Calendar, BarChart3, Plus, ArrowRight, Moon } from 'lucide-re
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { UnifiedChart } from './charts';
 import { SentimentText } from '@/components/diary/sentiment-text';
 import { getAuth } from '@/lib/auth';
 import { DiaryEditDeleteButtons } from '@/components/diary/diary-edit-delete-buttons';
+import { UnifiedChartClient } from './unified-chart-client';
 
 export default async function DashboardPage() {
   const { userProfile } = await getAuth();
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
 
         {/* 統合グラフ */}
         <div className="mb-8">
-          <UnifiedChart diaries={allDiaries} />
+          <UnifiedChartClient diaries={allDiaries} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
