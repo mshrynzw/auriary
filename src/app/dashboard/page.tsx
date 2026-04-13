@@ -9,13 +9,18 @@ import { SentimentText } from '@/components/diary/sentiment-text';
 import { getAuth } from '@/lib/auth';
 import { DiaryEditDeleteButtons } from '@/components/diary/diary-edit-delete-buttons';
 import { UnifiedChartClient } from './unified-chart-client';
+import { getBankTransactionsAction } from '@/app/actions/bank-transaction';
 
 export default async function DashboardPage() {
   const { userProfile } = await getAuth();
   const isAuthenticated = !!userProfile;
   // 全期間の日記を取得（統計用）
-  const allDiariesResult = await getDiariesAction();
+  const [allDiariesResult, allBankTransactionsResult] = await Promise.all([
+    getDiariesAction(),
+    getBankTransactionsAction(),
+  ]);
   const allDiaries = allDiariesResult.diaries || [];
+  const allBankTransactions = allBankTransactionsResult.transactions || [];
 
   // 今月の日記を取得
   const now = new Date();
@@ -104,7 +109,7 @@ export default async function DashboardPage() {
 
         {/* 統合グラフ */}
         <div className="mb-8">
-          <UnifiedChartClient diaries={allDiaries} />
+          <UnifiedChartClient diaries={allDiaries} transactions={allBankTransactions} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

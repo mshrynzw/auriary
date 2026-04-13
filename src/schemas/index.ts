@@ -16,6 +16,7 @@ export * from './tables/r_user_medications';
 export * from './tables/r_user_ext_accounts';
 export * from './tables/t_overdoses';
 export * from './tables/t_medication_intakes';
+export * from './tables/t_bank_transactions';
 
 // フォームスキーマ
 export * from './forms/diary-form';

@@ -4,7 +4,16 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { BookOpen, Calendar, BarChart3, ChartArea, Settings, LogOut, Menu } from 'lucide-react';
+import {
+  BookOpen,
+  Calendar,
+  BarChart3,
+  ChartArea,
+  Settings,
+  LogOut,
+  Menu,
+  Wallet,
+} from 'lucide-react';
 import Link from 'next/link';
 import { logoutAction } from '@/app/actions/auth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -25,6 +34,7 @@ export function Sidber({ displayName, userEmail, initials }: SidberProps) {
     { href: '/diary', icon: BookOpen, label: '日記' },
     { href: '/calendar', icon: Calendar, label: 'カレンダー' },
     { href: '/analytics', icon: BarChart3, label: '分析' },
+    { href: '/income-expense', icon: Wallet, label: '収支' },
     { href: '/settings', icon: Settings, label: '設定' },
   ];
 

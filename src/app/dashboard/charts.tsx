@@ -24,10 +24,11 @@ import {
 } from 'recharts';
 import { endOfWeek, format, startOfWeek } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { type DiaryRow } from '@/schemas';
+import { type BankTransactionRow, type DiaryRow } from '@/schemas';
 
 type ChartProps = {
   diaries: DiaryRow[];
+  transactions: BankTransactionRow[];
 };
 
 type VisibilitySettings = {
@@ -42,6 +43,8 @@ type VisibilitySettings = {
   sleepDesireLevel: boolean;
   exerciseLevel: boolean;
   odTimes: boolean;
+  paymentTotal: boolean;
+  depositTotal: boolean;
 };
 
 const STORAGE_KEY = 'dashboard-chart-visibility';
@@ -58,6 +61,8 @@ const DEFAULT_VISIBILITY: VisibilitySettings = {
   sleepDesireLevel: false,
   exerciseLevel: false,
   odTimes: false,
+  paymentTotal: true,
+  depositTotal: true,
 };
 
 type ChartDataPoint = {
@@ -74,13 +79,24 @@ type ChartDataPoint = {
   sleepDesireLevel: number | null;
   exerciseLevel: number | null;
   odTimes: number | null;
+  paymentTotal: number | null;
+  depositTotal: number | null;
+  paymentTotalDisplay?: number | null;
+  depositTotalDisplay?: number | null;
 };
+
+const MONEY_CHART_MAX = 10000;
 
 function averageFields(rows: ChartDataPoint[], date: Date, dateLabel: string): ChartDataPoint {
   const avgOf = (pick: (r: ChartDataPoint) => number | null) => {
     const vals = rows.map(pick).filter((v): v is number => v !== null && v !== undefined);
     if (vals.length === 0) return null;
     return Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
+  };
+  const sumOf = (pick: (r: ChartDataPoint) => number | null) => {
+    const vals = rows.map(pick).filter((v): v is number => v !== null && v !== undefined);
+    if (vals.length === 0) return null;
+    return vals.reduce((s, v) => s + v, 0);
   };
   return {
     date,
@@ -96,6 +112,8 @@ function averageFields(rows: ChartDataPoint[], date: Date, dateLabel: string): C
     sleepDesireLevel: avgOf((r) => r.sleepDesireLevel),
     exerciseLevel: avgOf((r) => r.exerciseLevel),
     odTimes: avgOf((r) => r.odTimes),
+    paymentTotal: sumOf((r) => r.paymentTotal),
+    depositTotal: sumOf((r) => r.depositTotal),
   };
 }
 
@@ -211,9 +229,9 @@ function ChartHeaderControls({
   );
 }
 
-export function UnifiedChart({ diaries }: ChartProps) {
+export function UnifiedChart({ diaries, transactions }: ChartProps) {
   const [visibility, setVisibility] = useState<VisibilitySettings>(DEFAULT_VISIBILITY);
-  const [period, setPeriod] = useState<PeriodOption>('all');
+  const [period, setPeriod] = useState<PeriodOption>('1month');
   const [granularity, setGranularity] = useState<GranularityOption>('daily');
   const [isMounted, setIsMounted] = useState(false);
 
@@ -257,10 +275,8 @@ export function UnifiedChart({ diaries }: ChartProps) {
     localStorage.setItem(GRANULARITY_STORAGE_KEY, value);
   };
 
-  // 期間に基づいてデータをフィルタリング
-  const getFilteredData = () => {
-    if (period === 'all') return diaries;
-
+  const getCutoffDate = () => {
+    if (period === 'all') return null;
     const now = new Date();
     const cutoffDate = new Date();
 
@@ -285,10 +301,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
         break;
     }
 
-    return diaries.filter((d) => {
-      const diaryDate = new Date(d.journal_date);
-      return diaryDate >= cutoffDate;
-    });
+    return cutoffDate;
   };
   // 睡眠時間を計算する関数（当日の就寝時間と起床時間を使用）
   const calculateSleepHours = (currentDiary: DiaryRow): number | null => {
@@ -336,10 +349,19 @@ export function UnifiedChart({ diaries }: ChartProps) {
     );
   }
 
-  const filteredDiaries = getFilteredData();
+  const cutoffDate = getCutoffDate();
+  const filteredDiaries = diaries.filter((d) => {
+    if (!cutoffDate) return true;
+    return new Date(d.journal_date) >= cutoffDate;
+  });
+  const filteredTransactions = transactions.filter((t) => {
+    if (!cutoffDate) return true;
+    return new Date(`${t.txn_date}T00:00:00`) >= cutoffDate;
+  });
 
   // データを準備（日次）
-  const chartData: ChartDataPoint[] = filteredDiaries
+  const dailyDiaryMap = new Map<string, Omit<ChartDataPoint, 'paymentTotal' | 'depositTotal'>>();
+  filteredDiaries
     .map((d) => {
       const date = new Date(d.journal_date);
       // 当日の就寝時間と起床時間を使って計算
@@ -363,6 +385,52 @@ export function UnifiedChart({ diaries }: ChartProps) {
         odTimes,
       };
     })
+    .forEach((d) => {
+      const key = format(d.date, 'yyyy-MM-dd');
+      dailyDiaryMap.set(key, d);
+    });
+
+  const dailyTransactionMap = new Map<
+    string,
+    { paymentTotal: number | null; depositTotal: number | null }
+  >();
+  for (const tx of filteredTransactions) {
+    const key = tx.txn_date;
+    const current = dailyTransactionMap.get(key) ?? { paymentTotal: null, depositTotal: null };
+    if (tx.txn_type === '支払') {
+      current.paymentTotal = (current.paymentTotal ?? 0) + tx.amount;
+    } else if (tx.txn_type === '入金') {
+      current.depositTotal = (current.depositTotal ?? 0) + tx.amount;
+    }
+    dailyTransactionMap.set(key, current);
+  }
+
+  const allDateKeys = new Set<string>([...dailyDiaryMap.keys(), ...dailyTransactionMap.keys()]);
+  const chartData: ChartDataPoint[] = Array.from(allDateKeys)
+    .sort()
+    .map((dateKey) => {
+      const diary = dailyDiaryMap.get(dateKey);
+      const tx = dailyTransactionMap.get(dateKey);
+      const date = new Date(`${dateKey}T00:00:00`);
+
+      return {
+        date,
+        dateLabel: format(date, 'M/d', { locale: ja }),
+        mood: diary?.mood ?? null,
+        sleepHours: diary?.sleepHours ?? null,
+        sleepQuality: diary?.sleepQuality ?? null,
+        wakeLevel: diary?.wakeLevel ?? null,
+        daytimeLevel: diary?.daytimeLevel ?? null,
+        preSleepLevel: diary?.preSleepLevel ?? null,
+        medAdherenceLevel: diary?.medAdherenceLevel ?? null,
+        appetiteLevel: diary?.appetiteLevel ?? null,
+        sleepDesireLevel: diary?.sleepDesireLevel ?? null,
+        exerciseLevel: diary?.exerciseLevel ?? null,
+        odTimes: diary?.odTimes ?? null,
+        paymentTotal: tx?.paymentTotal ?? null,
+        depositTotal: tx?.depositTotal ?? null,
+      };
+    })
     .filter(
       (d) =>
         d.mood !== null ||
@@ -375,9 +443,10 @@ export function UnifiedChart({ diaries }: ChartProps) {
         d.appetiteLevel !== null ||
         d.sleepDesireLevel !== null ||
         d.exerciseLevel !== null ||
-        d.odTimes !== null,
-    )
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
+        d.odTimes !== null ||
+        d.paymentTotal !== null ||
+        d.depositTotal !== null,
+    );
 
   const displayData =
     granularity === 'monthly'
@@ -385,6 +454,12 @@ export function UnifiedChart({ diaries }: ChartProps) {
       : granularity === 'weekly'
         ? aggregateToWeekly(chartData)
         : chartData;
+
+  const clippedDisplayData = displayData.map((d) => ({
+    ...d,
+    paymentTotalDisplay: d.paymentTotal === null ? null : Math.min(d.paymentTotal, MONEY_CHART_MAX),
+    depositTotalDisplay: d.depositTotal === null ? null : Math.min(d.depositTotal, MONEY_CHART_MAX),
+  }));
 
   if (chartData.length === 0) {
     return (
@@ -405,7 +480,9 @@ export function UnifiedChart({ diaries }: ChartProps) {
   }
 
   // 睡眠時間の最大値を取得（Y軸の範囲設定用）
-  const maxSleepHours = Math.max(...displayData.map((d) => d.sleepHours || 0).filter((h) => h > 0));
+  const maxSleepHours = Math.max(
+    ...clippedDisplayData.map((d) => d.sleepHours || 0).filter((h) => h > 0),
+  );
   const sleepYAxisMax = maxSleepHours > 0 ? Math.ceil(maxSleepHours / 2) * 2 + 2 : 12; // 2時間刻みで設定
 
   const colors = {
@@ -422,6 +499,10 @@ export function UnifiedChart({ diaries }: ChartProps) {
     exerciseLevel: '#14b8a6', // ティール
     odTimes: '#dc2626', // 赤（OD回数用）
     odTimesBar: 'rgba(220, 38, 38, 0.3)', // 赤（薄い、棒グラフ用）
+    paymentTotal: '#ad975a',
+    paymentTotalBar: 'rgba(234, 179, 8, 0.10)',
+    depositTotal: '#06b6d4',
+    depositTotalBar: 'rgba(6, 182, 212, 0.10)',
   };
 
   return (
@@ -436,7 +517,10 @@ export function UnifiedChart({ diaries }: ChartProps) {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart data={displayData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
+          <ComposedChart
+            data={clippedDisplayData}
+            margin={{ top: 5, right: 30, left: 0, bottom: 60 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.129 0.042 264.695)" />
             <XAxis
               dataKey="dateLabel"
@@ -481,6 +565,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
                 },
               }}
             />
+            <YAxis yAxisId="money" hide domain={[0, MONEY_CHART_MAX]} />
             <RechartsTooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
@@ -513,6 +598,15 @@ export function UnifiedChart({ diaries }: ChartProps) {
                             entry.dataKey?.toString().includes('Level') ||
                             entry.dataKey?.toString() === 'sleepQuality';
                           const isOdTimes = entry.dataKey?.toString() === 'odTimes';
+                          const isMoney =
+                            entry.dataKey?.toString() === 'paymentTotalDisplay' ||
+                            entry.dataKey?.toString() === 'depositTotalDisplay';
+                          const rawMoneyValue =
+                            entry.dataKey?.toString() === 'paymentTotalDisplay'
+                              ? data.paymentTotal
+                              : entry.dataKey?.toString() === 'depositTotalDisplay'
+                                ? data.depositTotal
+                                : null;
                           return (
                             <div key={index} className="flex flex-col font-bold">
                               <span
@@ -524,11 +618,13 @@ export function UnifiedChart({ diaries }: ChartProps) {
                               <span>
                                 {isLevel
                                   ? `${entry.value}/10`
-                                  : entry.dataKey === 'sleepHours'
-                                    ? `${entry.value}時間`
-                                    : isOdTimes
-                                      ? `${entry.value}回`
-                                      : `${entry.value}/10`}
+                                  : isMoney
+                                    ? `${Number(rawMoneyValue ?? entry.value).toLocaleString('ja-JP')}円`
+                                    : entry.dataKey === 'sleepHours'
+                                      ? `${entry.value}時間`
+                                      : isOdTimes
+                                        ? `${entry.value}回`
+                                        : `${entry.value}/10`}
                               </span>
                             </div>
                           );
@@ -551,6 +647,28 @@ export function UnifiedChart({ diaries }: ChartProps) {
                 strokeWidth={1}
                 name="睡眠時間"
                 radius={[4, 4, 0, 0]}
+              />
+            )}
+            {visibility.paymentTotal && (
+              <Bar
+                yAxisId="money"
+                dataKey="paymentTotalDisplay"
+                fill={colors.paymentTotalBar}
+                stroke={colors.paymentTotal}
+                strokeWidth={1}
+                name="支払（合計）"
+                barSize={8}
+              />
+            )}
+            {visibility.depositTotal && (
+              <Bar
+                yAxisId="money"
+                dataKey="depositTotalDisplay"
+                fill={colors.depositTotalBar}
+                stroke={colors.depositTotal}
+                strokeWidth={1}
+                name="入金（合計）"
+                barSize={8}
               />
             )}
             {/* 感情スコア（AI分析）（折れ線） */}
@@ -793,6 +911,26 @@ export function UnifiedChart({ diaries }: ChartProps) {
               />
               <Label htmlFor="odTimes" className="text-sm cursor-pointer">
                 OD回数
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="paymentTotal"
+                checked={visibility.paymentTotal}
+                onCheckedChange={(checked) => updateVisibility('paymentTotal', checked === true)}
+              />
+              <Label htmlFor="paymentTotal" className="text-sm cursor-pointer">
+                支払（合計）
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="depositTotal"
+                checked={visibility.depositTotal}
+                onCheckedChange={(checked) => updateVisibility('depositTotal', checked === true)}
+              />
+              <Label htmlFor="depositTotal" className="text-sm cursor-pointer">
+                入金（合計）
               </Label>
             </div>
           </div>

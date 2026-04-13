@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChartArea, BookOpen, Calendar, BarChart3 } from 'lucide-react';
+import { ChartArea, BookOpen, Calendar, BarChart3, Wallet } from 'lucide-react';
 
 export function NavMenu() {
   const pathname = usePathname();
@@ -48,6 +48,16 @@ export function NavMenu() {
         >
           <BarChart3 className="mr-2 h-4 w-4" />
           分析
+        </Button>
+      </Link>
+      <Link href="/income-expense">
+        <Button
+          variant="ghost"
+          size="sm"
+          className={pathname === '/income-expense' ? 'animate-dimlight' : 'cursor-pointer'}
+        >
+          <Wallet className="mr-2 h-4 w-4" />
+          収支
         </Button>
       </Link>
     </nav>

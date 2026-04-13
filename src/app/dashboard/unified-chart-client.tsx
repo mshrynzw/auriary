@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { type DiaryRow } from '@/schemas';
+import { type BankTransactionRow, type DiaryRow } from '@/schemas';
 
 const UnifiedChartNoSSR = dynamic(() => import('./charts').then((mod) => mod.UnifiedChart), {
   ssr: false,
@@ -10,8 +10,9 @@ const UnifiedChartNoSSR = dynamic(() => import('./charts').then((mod) => mod.Uni
 
 type UnifiedChartClientProps = {
   diaries: DiaryRow[];
+  transactions: BankTransactionRow[];
 };
 
-export function UnifiedChartClient({ diaries }: UnifiedChartClientProps) {
-  return <UnifiedChartNoSSR diaries={diaries} />;
+export function UnifiedChartClient({ diaries, transactions }: UnifiedChartClientProps) {
+  return <UnifiedChartNoSSR diaries={diaries} transactions={transactions} />;
 }
