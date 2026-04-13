@@ -7,8 +7,12 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { UnifiedChart } from './charts';
 import { SentimentText } from '@/components/diary/sentiment-text';
+import { getAuth } from '@/lib/auth';
+import { DiaryEditDeleteButtons } from '@/components/diary/diary-edit-delete-buttons';
 
 export default async function DashboardPage() {
+  const { userProfile } = await getAuth();
+  const isAuthenticated = !!userProfile;
   // 全期間の日記を取得（統計用）
   const allDiariesResult = await getDiariesAction();
   const allDiaries = allDiariesResult.diaries || [];
@@ -131,38 +135,41 @@ export default async function DashboardPage() {
               ) : (
                 <div className="space-y-4">
                   {recentDiaries.map((diary) => (
-                    <Link
+                    <div
                       key={diary.id}
-                      href={`/diary/${diary.id}`}
-                      className="block p-4 border rounded-lg hover:bg-accent transition-colors"
+                      className="flex items-stretch gap-4 p-4 border rounded-lg hover:bg-accent transition-colors"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold mb-1">
-                            {format(new Date(diary.journal_date), 'yyyy年M月d日 (E)', {
-                              locale: ja,
-                            })}
-                          </h3>
-                          <div className="text-sm text-muted-foreground line-clamp-2">
-                            {diary.note ? (
-                              <SentimentText
-                                text={diary.note}
-                                highlightedWords={
-                                  diary.sentiment_analysis_result?.highlighted_words || []
-                                }
-                              />
-                            ) : (
-                              <span>本文なし</span>
-                            )}
-                          </div>
+                      <Link href={`/diary/${diary.id}`} className="min-w-0 flex-1 block">
+                        <h3 className="font-semibold mb-1">
+                          {format(new Date(diary.journal_date), 'yyyy年M月d日 (E)', {
+                            locale: ja,
+                          })}
+                        </h3>
+                        <div className="text-sm text-muted-foreground line-clamp-2">
+                          {diary.note ? (
+                            <SentimentText
+                              text={diary.note}
+                              highlightedWords={
+                                diary.sentiment_analysis_result?.highlighted_words || []
+                              }
+                            />
+                          ) : (
+                            <span>本文なし</span>
+                          )}
                         </div>
+                      </Link>
+                      <div className="flex shrink-0 flex-col items-end justify-end gap-2">
                         {diary.mood && (
-                          <div className="ml-4 text-sm font-medium">
+                          <div className="text-sm font-medium text-right">
                             感情スコア（AI分析）: {diary.mood}/10
                           </div>
                         )}
+                        <DiaryEditDeleteButtons
+                          diaryId={diary.id}
+                          isAuthenticated={isAuthenticated}
+                        />
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}

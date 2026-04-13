@@ -1,29 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Calendar, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { deleteDiaryAction } from '@/app/actions/diary';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DiaryPreviewDialog } from './diary-preview-dialog';
+import { DiaryEditDeleteButtons } from '@/components/diary/diary-edit-delete-buttons';
 import { type DiaryRow } from '@/schemas';
 import { SentimentText } from '@/components/diary/sentiment-text';
 
@@ -33,28 +18,13 @@ type DiaryListProps = {
 };
 
 export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) {
-  const router = useRouter();
   const [previewDiary, setPreviewDiary] = useState<DiaryRow | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-
-  const handleDelete = async (id: number) => {
-    const result = await deleteDiaryAction(id);
-    if (result?.error) {
-      toast.error(result.error.message);
-    } else {
-      toast.success('日記を削除しました');
-      router.refresh();
-    }
-  };
 
   const handlePreview = (diary: DiaryRow) => {
     setPreviewDiary(diary);
     setIsPreviewOpen(true);
   };
-  const stopPropagation = (event: React.MouseEvent) => {
-    event.stopPropagation();
-  };
-
   if (diaries.length === 0) {
     return (
       <Card>
@@ -106,67 +76,7 @@ export function DiaryList({ diaries, isAuthenticated = false }: DiaryListProps) 
                   <span className="text-muted-foreground">本文なし</span>
                 )}
               </div>
-              {isAuthenticated && (
-                <div className="flex items-center justify-end gap-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link href={`/diary/${diary.id}/edit`} onClick={stopPropagation}>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={stopPropagation}
-                            className="cursor-pointer"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>日記を編集</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={stopPropagation}
-                              className="cursor-pointer"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>日記を削除しますか？</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                この操作は取り消せません。日記が完全に削除されます。
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(diary.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                削除
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>日記を削除</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              )}
+              <DiaryEditDeleteButtons diaryId={diary.id} isAuthenticated={isAuthenticated} />
             </CardContent>
           </Card>
         ))}
