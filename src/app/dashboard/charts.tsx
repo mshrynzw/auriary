@@ -290,25 +290,30 @@ export function UnifiedChart({ diaries }: ChartProps) {
             />
             <YAxis
               yAxisId="left"
-              domain={[0, 10]}
+              domain={[0, sleepYAxisMax]}
+              ticks={[0, 8, 16]}
               tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
               stroke="oklch(0.129 0.042 264.695)"
               label={{
-                value: 'スコア',
+                value: '睡眠時間 （時間）',
                 angle: -90,
                 position: 'left',
                 offset: -7.5,
                 fill: 'oklch(0.129 0.042 264.695)',
+                style: {
+                  textAnchor: 'middle',
+                },
               }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              domain={[0, sleepYAxisMax]}
+              domain={[0, 10]}
+              ticks={[0, 5, 10]}
               tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
               stroke="oklch(0.129 0.042 264.695)"
               label={{
-                value: '睡眠時間 （時間）・OD回数（回）',
+                value: 'スコア',
                 angle: 90,
                 position: 'right',
                 offset: -7.5,
@@ -373,7 +378,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             {/* 睡眠時間（棒グラフ） */}
             {visibility.sleepHours && (
               <Bar
-                yAxisId="right"
+                yAxisId="left"
                 dataKey="sleepHours"
                 fill={colors.sleepHoursBar}
                 stroke={colors.sleepHours}
@@ -385,7 +390,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             {/* 感情スコア（AI分析）（折れ線） */}
             {visibility.mood && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="mood"
                 stroke={colors.mood}
@@ -398,7 +403,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             {/* 7項目（折れ線） */}
             {visibility.sleepQuality && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="sleepQuality"
                 stroke={colors.sleepQuality}
@@ -410,7 +415,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             )}
             {visibility.wakeLevel && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="wakeLevel"
                 stroke={colors.wakeLevel}
@@ -422,7 +427,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             )}
             {visibility.daytimeLevel && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="daytimeLevel"
                 stroke={colors.daytimeLevel}
@@ -434,7 +439,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             )}
             {visibility.preSleepLevel && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="preSleepLevel"
                 stroke={colors.preSleepLevel}
@@ -446,7 +451,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             )}
             {visibility.medAdherenceLevel && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="medAdherenceLevel"
                 stroke={colors.medAdherenceLevel}
@@ -458,7 +463,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             )}
             {visibility.appetiteLevel && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="appetiteLevel"
                 stroke={colors.appetiteLevel}
@@ -470,7 +475,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             )}
             {visibility.sleepDesireLevel && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="sleepDesireLevel"
                 stroke={colors.sleepDesireLevel}
@@ -482,7 +487,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             )}
             {visibility.exerciseLevel && (
               <Line
-                yAxisId="left"
+                yAxisId="right"
                 type="monotone"
                 dataKey="exerciseLevel"
                 stroke={colors.exerciseLevel}
@@ -495,7 +500,7 @@ export function UnifiedChart({ diaries }: ChartProps) {
             {/* OD回数（棒グラフ） */}
             {visibility.odTimes && (
               <Bar
-                yAxisId="left"
+                yAxisId="right"
                 dataKey="odTimes"
                 fill={colors.odTimesBar}
                 stroke={colors.odTimes}
