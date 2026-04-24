@@ -1,15 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Loader2, Upload } from 'lucide-react';
+import { Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Bar,
   CartesianGrid,
   ComposedChart,
   Legend,
+  Line,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
   XAxis,
@@ -46,6 +47,32 @@ type ChartPoint = {
   dateLabel: string;
   paymentTotal: number;
   depositTotal: number;
+  actualBalance: number | null;
+  forecastBalance: number | null;
+  isForecast: boolean;
+};
+
+type RecurringDeposit = {
+  id: number;
+  name: string;
+  amount: number;
+  dayOfMonth: number;
+  evenMonthsOnly: boolean;
+  adjustToBusinessDay: boolean;
+};
+
+type RecurringWithdrawal = {
+  id: number;
+  name: string;
+  amount: number;
+  dayOfMonth: number;
+};
+
+type ForecastFormStorage = {
+  currentBalance: number;
+  dailyExpense: number;
+  recurringDeposits: RecurringDeposit[];
+  recurringWithdrawals: RecurringWithdrawal[];
 };
 
 const REQUIRED_COLUMNS = [
@@ -57,6 +84,7 @@ const REQUIRED_COLUMNS = [
   '金額',
   '摘要',
 ] as const;
+const FORECAST_FORM_STORAGE_KEY = 'incomeExpenseForecastFormV1';
 
 function parseCsvLine(line: string): string[] {
   const out: string[] = [];
@@ -149,6 +177,9 @@ function aggregateDaily(transactions: BankTransactionRow[]): ChartPoint[] {
       dateLabel: format(new Date(`${key}T00:00:00`), 'M/d', { locale: ja }),
       paymentTotal: 0,
       depositTotal: 0,
+      actualBalance: null,
+      forecastBalance: null,
+      isForecast: false,
     };
 
     if (row.txn_type === '支払') existing.paymentTotal += row.amount;
@@ -159,6 +190,115 @@ function aggregateDaily(transactions: BankTransactionRow[]): ChartPoint[] {
   return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
 }
 
+function toDateText(date: Date) {
+  return format(date, 'yyyy-MM-dd');
+}
+
+function addDays(base: Date, days: number) {
+  const next = new Date(base);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function daysInMonth(year: number, monthIndex: number) {
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+function adjustToPreviousBusinessDay(date: Date) {
+  const adjusted = new Date(date);
+  while (adjusted.getDay() === 0 || adjusted.getDay() === 6) {
+    adjusted.setDate(adjusted.getDate() - 1);
+  }
+  return adjusted;
+}
+
+function buildBalanceSeries(
+  dailyActuals: ChartPoint[],
+  currentBalance: number,
+  dailyExpense: number,
+  recurringDeposits: RecurringDeposit[],
+  recurringWithdrawals: RecurringWithdrawal[],
+  forecastDays: number,
+): ChartPoint[] {
+  const points: ChartPoint[] = [];
+  let balance = Math.trunc(currentBalance);
+
+  if (dailyActuals.length > 0) {
+    // `currentBalance` is treated as the latest actual-day balance.
+    // Build historical balances backward so the latest point matches the input value.
+    const actualPoints = dailyActuals.map((actual) => ({
+      ...actual,
+      actualBalance: 0,
+      forecastBalance: null,
+      isForecast: false,
+    }));
+
+    actualPoints[actualPoints.length - 1].actualBalance = balance;
+    for (let i = actualPoints.length - 2; i >= 0; i -= 1) {
+      const nextDay = dailyActuals[i + 1];
+      balance -= nextDay.depositTotal - nextDay.paymentTotal;
+      actualPoints[i].actualBalance = balance;
+    }
+
+    points.push(...actualPoints);
+    balance = Math.trunc(currentBalance);
+  } else {
+    const today = new Date();
+    points.push({
+      date: toDateText(today),
+      dateLabel: format(today, 'M/d', { locale: ja }),
+      paymentTotal: 0,
+      depositTotal: 0,
+      actualBalance: balance,
+      forecastBalance: null,
+      isForecast: false,
+    });
+  }
+
+  const lastDate = points[points.length - 1]?.date;
+  const startDate = lastDate ? addDays(new Date(`${lastDate}T00:00:00`), 1) : new Date();
+
+  for (let i = 0; i < forecastDays; i += 1) {
+    const date = addDays(startDate, i);
+    const yyyy = date.getFullYear();
+    const mm = date.getMonth();
+    const dd = date.getDate();
+
+    const scheduledDeposit = recurringDeposits.reduce((sum, item) => {
+      const monthNumber = mm + 1;
+      if (item.evenMonthsOnly && monthNumber % 2 !== 0) {
+        return sum;
+      }
+      const targetDay = Math.min(Math.max(1, item.dayOfMonth), daysInMonth(yyyy, mm));
+      const targetDate = new Date(yyyy, mm, targetDay);
+      const adjustedDate = item.adjustToBusinessDay
+        ? adjustToPreviousBusinessDay(targetDate)
+        : targetDate;
+      return dd === adjustedDate.getDate() ? sum + Math.trunc(item.amount) : sum;
+    }, 0);
+
+    const scheduledWithdrawal = recurringWithdrawals.reduce((sum, item) => {
+      const targetDay = Math.min(Math.max(1, item.dayOfMonth), daysInMonth(yyyy, mm));
+      return dd === targetDay ? sum + Math.trunc(item.amount) : sum;
+    }, 0);
+    const dailyExpenseAmount = Math.trunc(dailyExpense);
+    const totalPayment = dailyExpenseAmount + scheduledWithdrawal;
+
+    balance += scheduledDeposit - totalPayment;
+    points.push({
+      date: toDateText(date),
+      dateLabel: format(date, 'M/d', { locale: ja }),
+      paymentTotal: totalPayment,
+      depositTotal: scheduledDeposit,
+      actualBalance: null,
+      forecastBalance: balance,
+      isForecast: true,
+    });
+  }
+
+  return points;
+}
+
 export function IncomeExpenseView({
   initialTransactions,
   isAuthenticated = false,
@@ -166,8 +306,177 @@ export function IncomeExpenseView({
   const [transactions, setTransactions] = useState<BankTransactionRow[]>(initialTransactions);
   const [isImporting, setIsImporting] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [currentBalance, setCurrentBalance] = useState(0);
+  const [dailyExpense, setDailyExpense] = useState(0);
+  const [recurringDeposits, setRecurringDeposits] = useState<RecurringDeposit[]>([
+    {
+      id: 1,
+      name: '給与',
+      amount: 0,
+      dayOfMonth: 25,
+      evenMonthsOnly: false,
+      adjustToBusinessDay: false,
+    },
+  ]);
+  const [recurringWithdrawals, setRecurringWithdrawals] = useState<RecurringWithdrawal[]>([
+    { id: 1, name: '家賃', amount: 0, dayOfMonth: 27 },
+  ]);
+  const [isStorageLoaded, setIsStorageLoaded] = useState(false);
 
-  const chartData = useMemo(() => aggregateDaily(transactions), [transactions]);
+  const chartData = useMemo(
+    () =>
+      buildBalanceSeries(
+        aggregateDaily(transactions),
+        currentBalance,
+        dailyExpense,
+        recurringDeposits,
+        recurringWithdrawals,
+        365,
+      ),
+    [transactions, currentBalance, dailyExpense, recurringDeposits, recurringWithdrawals],
+  );
+
+  const onAddRecurringDeposit = () => {
+    setRecurringDeposits((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: '',
+        amount: 0,
+        dayOfMonth: 1,
+        evenMonthsOnly: false,
+        adjustToBusinessDay: false,
+      },
+    ]);
+  };
+
+  const onRemoveRecurringDeposit = (id: number) => {
+    setRecurringDeposits((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const onChangeRecurringDeposit = (
+    id: number,
+    key: keyof Omit<RecurringDeposit, 'id'>,
+    value: string | number | boolean,
+  ) => {
+    setRecurringDeposits((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        if (key === 'name') {
+          return { ...item, name: String(value) };
+        }
+        if (key === 'evenMonthsOnly') {
+          return { ...item, evenMonthsOnly: Boolean(value) };
+        }
+        if (key === 'adjustToBusinessDay') {
+          return { ...item, adjustToBusinessDay: Boolean(value) };
+        }
+        if (key === 'dayOfMonth') {
+          const day = Number(value);
+          return { ...item, dayOfMonth: Number.isFinite(day) ? Math.min(31, Math.max(1, day)) : 1 };
+        }
+        const amount = Number(value);
+        return { ...item, amount: Number.isFinite(amount) ? Math.max(0, Math.trunc(amount)) : 0 };
+      }),
+    );
+  };
+
+  const onAddRecurringWithdrawal = () => {
+    setRecurringWithdrawals((prev) => [
+      ...prev,
+      { id: Date.now(), name: '', amount: 0, dayOfMonth: 1 },
+    ]);
+  };
+
+  const onRemoveRecurringWithdrawal = (id: number) => {
+    setRecurringWithdrawals((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const onChangeRecurringWithdrawal = (
+    id: number,
+    key: keyof Omit<RecurringWithdrawal, 'id'>,
+    value: string | number,
+  ) => {
+    setRecurringWithdrawals((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        if (key === 'name') {
+          return { ...item, name: String(value) };
+        }
+        if (key === 'dayOfMonth') {
+          const day = Number(value);
+          return { ...item, dayOfMonth: Number.isFinite(day) ? Math.min(31, Math.max(1, day)) : 1 };
+        }
+        const amount = Number(value);
+        return { ...item, amount: Number.isFinite(amount) ? Math.max(0, Math.trunc(amount)) : 0 };
+      }),
+    );
+  };
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(FORECAST_FORM_STORAGE_KEY);
+      if (!raw) {
+        setIsStorageLoaded(true);
+        return;
+      }
+      const parsed = JSON.parse(raw) as Partial<ForecastFormStorage>;
+
+      const nextCurrentBalance = Number(parsed.currentBalance);
+      const nextDailyExpense = Number(parsed.dailyExpense);
+      setCurrentBalance(
+        Number.isFinite(nextCurrentBalance) ? Math.max(0, Math.trunc(nextCurrentBalance)) : 0,
+      );
+      setDailyExpense(
+        Number.isFinite(nextDailyExpense) ? Math.max(0, Math.trunc(nextDailyExpense)) : 0,
+      );
+
+      if (Array.isArray(parsed.recurringDeposits) && parsed.recurringDeposits.length > 0) {
+        const safeDeposits = parsed.recurringDeposits.map((item, index) => ({
+          id: Number.isFinite(Number(item.id)) ? Number(item.id) : Date.now() + index,
+          name: typeof item.name === 'string' ? item.name : '',
+          amount: Number.isFinite(Number(item.amount))
+            ? Math.max(0, Math.trunc(Number(item.amount)))
+            : 0,
+          dayOfMonth: Number.isFinite(Number(item.dayOfMonth))
+            ? Math.min(31, Math.max(1, Math.trunc(Number(item.dayOfMonth))))
+            : 1,
+          evenMonthsOnly: Boolean(item.evenMonthsOnly),
+          adjustToBusinessDay: Boolean(item.adjustToBusinessDay),
+        }));
+        setRecurringDeposits(safeDeposits);
+      }
+
+      if (Array.isArray(parsed.recurringWithdrawals) && parsed.recurringWithdrawals.length > 0) {
+        const safeWithdrawals = parsed.recurringWithdrawals.map((item, index) => ({
+          id: Number.isFinite(Number(item.id)) ? Number(item.id) : Date.now() + index,
+          name: typeof item.name === 'string' ? item.name : '',
+          amount: Number.isFinite(Number(item.amount))
+            ? Math.max(0, Math.trunc(Number(item.amount)))
+            : 0,
+          dayOfMonth: Number.isFinite(Number(item.dayOfMonth))
+            ? Math.min(31, Math.max(1, Math.trunc(Number(item.dayOfMonth))))
+            : 1,
+        }));
+        setRecurringWithdrawals(safeWithdrawals);
+      }
+    } catch (error) {
+      console.error('failed to load forecast form from localStorage', error);
+    } finally {
+      setIsStorageLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isStorageLoaded) return;
+    const payload: ForecastFormStorage = {
+      currentBalance,
+      dailyExpense,
+      recurringDeposits,
+      recurringWithdrawals,
+    };
+    window.localStorage.setItem(FORECAST_FORM_STORAGE_KEY, JSON.stringify(payload));
+  }, [isStorageLoaded, currentBalance, dailyExpense, recurringDeposits, recurringWithdrawals]);
 
   const onImportCsv = async (formData: FormData) => {
     if (!isAuthenticated) {
@@ -276,6 +585,167 @@ export function IncomeExpenseView({
 
       <Card className="border-none bg-muted/80">
         <CardHeader>
+          <CardTitle>未来推移の設定</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">現在残高（円）</label>
+              <Input
+                type="number"
+                min={0}
+                step={1000}
+                value={currentBalance}
+                onChange={(e) =>
+                  setCurrentBalance(Math.max(0, Math.trunc(Number(e.target.value) || 0)))
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">1日あたり消費額（円）</label>
+              <Input
+                type="number"
+                min={0}
+                step={100}
+                value={dailyExpense}
+                onChange={(e) =>
+                  setDailyExpense(Math.max(0, Math.trunc(Number(e.target.value) || 0)))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">毎月の入金予定</p>
+              <Button type="button" variant="outline" size="sm" onClick={onAddRecurringDeposit}>
+                <Plus className="mr-2 h-4 w-4" />
+                項目を追加
+              </Button>
+            </div>
+            {recurringDeposits.map((item) => (
+              <div
+                key={item.id}
+                className="grid gap-2 rounded-md border p-3 md:grid-cols-[1fr_140px_120px_140px_180px_auto]"
+              >
+                <Input
+                  placeholder="例: 年金"
+                  value={item.name}
+                  onChange={(e) => onChangeRecurringDeposit(item.id, 'name', e.target.value)}
+                />
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1000}
+                    placeholder="金額"
+                    value={item.amount}
+                    onChange={(e) => onChangeRecurringDeposit(item.id, 'amount', e.target.value)}
+                  />
+                  円
+                </div>
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={31}
+                    placeholder="入金日"
+                    value={item.dayOfMonth}
+                    onChange={(e) =>
+                      onChangeRecurringDeposit(item.id, 'dayOfMonth', e.target.value)
+                    }
+                  />
+                  日
+                </div>
+                <label className="flex items-center gap-2 rounded-md border px-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={item.evenMonthsOnly}
+                    onChange={(e) =>
+                      onChangeRecurringDeposit(item.id, 'evenMonthsOnly', e.target.checked)
+                    }
+                  />
+                  偶数月のみ
+                </label>
+                <label className="flex items-center gap-2 rounded-md border px-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={item.adjustToBusinessDay}
+                    onChange={(e) =>
+                      onChangeRecurringDeposit(item.id, 'adjustToBusinessDay', e.target.checked)
+                    }
+                  />
+                  休日は前営業日
+                </label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemoveRecurringDeposit(item.id)}
+                  disabled={recurringDeposits.length <= 1}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">毎月の出金予定</p>
+              <Button type="button" variant="outline" size="sm" onClick={onAddRecurringWithdrawal}>
+                <Plus className="mr-2 h-4 w-4" />
+                項目を追加
+              </Button>
+            </div>
+            {recurringWithdrawals.map((item) => (
+              <div
+                key={item.id}
+                className="grid gap-2 rounded-md border p-3 md:grid-cols-[1fr_140px_120px_auto]"
+              >
+                <Input
+                  placeholder="例: 家賃"
+                  value={item.name}
+                  onChange={(e) => onChangeRecurringWithdrawal(item.id, 'name', e.target.value)}
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  placeholder="金額"
+                  value={item.amount}
+                  onChange={(e) => onChangeRecurringWithdrawal(item.id, 'amount', e.target.value)}
+                />
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={31}
+                    placeholder="出金日"
+                    value={item.dayOfMonth}
+                    onChange={(e) =>
+                      onChangeRecurringWithdrawal(item.id, 'dayOfMonth', e.target.value)
+                    }
+                  />
+                  日
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemoveRecurringWithdrawal(item.id)}
+                  disabled={recurringWithdrawals.length <= 1}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-none bg-muted/80">
+        <CardHeader>
           <CardTitle>日次の入出金（合計）</CardTitle>
         </CardHeader>
         <CardContent>
@@ -305,8 +775,8 @@ export function IncomeExpenseView({
                 <Legend />
                 <Bar
                   dataKey="paymentTotal"
-                  fill="rgba(234, 179, 8, 0.10)"
-                  stroke="#b8ae93"
+                  fill="rgba(234, 179, 8, 1.00)"
+                  stroke="#f59e0b"
                   strokeWidth={1}
                   name="支払（合計）"
                   barSize={8}
@@ -318,6 +788,23 @@ export function IncomeExpenseView({
                   strokeWidth={1}
                   name="入金（合計）"
                   barSize={8}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="actualBalance"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  dot={false}
+                  name="残高推移（実績）"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="forecastBalance"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  strokeDasharray="6 6"
+                  dot={false}
+                  name="残高推移（予測）"
                 />
               </ComposedChart>
             </ResponsiveContainer>

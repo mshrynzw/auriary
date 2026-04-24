@@ -499,7 +499,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
     exerciseLevel: '#14b8a6', // ティール
     odTimes: '#dc2626', // 赤（OD回数用）
     odTimesBar: 'rgba(220, 38, 38, 0.3)', // 赤（薄い、棒グラフ用）
-    paymentTotal: '#ad975a',
+    paymentTotal: '#f59e0b',
     paymentTotalBar: 'rgba(234, 179, 8, 1.00)',
     depositTotal: '#06b6d4',
     depositTotalBar: 'rgba(6, 182, 212, 1.00)',
