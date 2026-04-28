@@ -52,6 +52,12 @@ type ChartPoint = {
   isForecast: boolean;
 };
 
+type DepositAmountOverride = {
+  id: number;
+  yearMonth: string;
+  amount: number;
+};
+
 type RecurringDeposit = {
   id: number;
   name: string;
@@ -59,6 +65,7 @@ type RecurringDeposit = {
   dayOfMonth: number;
   evenMonthsOnly: boolean;
   adjustToBusinessDay: boolean;
+  overrides: DepositAmountOverride[];
 };
 
 type RecurringWithdrawal = {
@@ -85,6 +92,35 @@ const REQUIRED_COLUMNS = [
   '摘要',
 ] as const;
 const FORECAST_FORM_STORAGE_KEY = 'incomeExpenseForecastFormV1';
+
+function formatYearMonth(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function addMonths(base: Date, months: number) {
+  const next = new Date(base);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+function isValidYearMonth(value: string) {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
+function sanitizeDepositOverrides(value: unknown): DepositAmountOverride[] {
+  if (!Array.isArray(value)) return [];
+  const deduped = new Map<string, DepositAmountOverride>();
+  for (const raw of value) {
+    const yearMonth = typeof raw?.yearMonth === 'string' ? raw.yearMonth : '';
+    if (!isValidYearMonth(yearMonth)) continue;
+    const rawAmount = Number(raw?.amount);
+    const amount = Number.isFinite(rawAmount) ? Math.max(0, Math.trunc(rawAmount)) : 0;
+    const rawId = Number(raw?.id);
+    const id = Number.isFinite(rawId) ? rawId : Date.now() + deduped.size;
+    deduped.set(yearMonth, { id, yearMonth, amount });
+  }
+  return Array.from(deduped.values()).sort((a, b) => a.yearMonth.localeCompare(b.yearMonth));
+}
 
 function parseCsvLine(line: string): string[] {
   const out: string[] = [];
@@ -263,6 +299,7 @@ function buildBalanceSeries(
     const yyyy = date.getFullYear();
     const mm = date.getMonth();
     const dd = date.getDate();
+    const yearMonth = formatYearMonth(new Date(yyyy, mm, 1));
 
     const scheduledDeposit = recurringDeposits.reduce((sum, item) => {
       const monthNumber = mm + 1;
@@ -274,7 +311,9 @@ function buildBalanceSeries(
       const adjustedDate = item.adjustToBusinessDay
         ? adjustToPreviousBusinessDay(targetDate)
         : targetDate;
-      return dd === adjustedDate.getDate() ? sum + Math.trunc(item.amount) : sum;
+      const overrideAmount =
+        item.overrides.find((override) => override.yearMonth === yearMonth)?.amount ?? item.amount;
+      return dd === adjustedDate.getDate() ? sum + Math.trunc(overrideAmount) : sum;
     }, 0);
 
     const scheduledWithdrawal = recurringWithdrawals.reduce((sum, item) => {
@@ -316,6 +355,7 @@ export function IncomeExpenseView({
       dayOfMonth: 25,
       evenMonthsOnly: false,
       adjustToBusinessDay: false,
+      overrides: [],
     },
   ]);
   const [recurringWithdrawals, setRecurringWithdrawals] = useState<RecurringWithdrawal[]>([
@@ -346,6 +386,7 @@ export function IncomeExpenseView({
         dayOfMonth: 1,
         evenMonthsOnly: false,
         adjustToBusinessDay: false,
+        overrides: [],
       },
     ]);
   };
@@ -356,7 +397,7 @@ export function IncomeExpenseView({
 
   const onChangeRecurringDeposit = (
     id: number,
-    key: keyof Omit<RecurringDeposit, 'id'>,
+    key: keyof Omit<RecurringDeposit, 'id' | 'overrides'>,
     value: string | number | boolean,
   ) => {
     setRecurringDeposits((prev) =>
@@ -377,6 +418,83 @@ export function IncomeExpenseView({
         }
         const amount = Number(value);
         return { ...item, amount: Number.isFinite(amount) ? Math.max(0, Math.trunc(amount)) : 0 };
+      }),
+    );
+  };
+
+  const onAddRecurringDepositOverride = (depositId: number) => {
+    setRecurringDeposits((prev) =>
+      prev.map((item) => {
+        if (item.id !== depositId) return item;
+        const usedYearMonths = new Set(item.overrides.map((override) => override.yearMonth));
+        let nextYearMonth = formatYearMonth(new Date());
+        let monthOffset = 0;
+        while (usedYearMonths.has(nextYearMonth) && monthOffset < 240) {
+          monthOffset += 1;
+          nextYearMonth = formatYearMonth(addMonths(new Date(), monthOffset));
+        }
+        return {
+          ...item,
+          overrides: [
+            ...item.overrides,
+            {
+              id: Date.now(),
+              yearMonth: nextYearMonth,
+              amount: Math.max(0, Math.trunc(item.amount)),
+            },
+          ].sort((a, b) => a.yearMonth.localeCompare(b.yearMonth)),
+        };
+      }),
+    );
+  };
+
+  const onRemoveRecurringDepositOverride = (depositId: number, overrideId: number) => {
+    setRecurringDeposits((prev) =>
+      prev.map((item) =>
+        item.id === depositId
+          ? { ...item, overrides: item.overrides.filter((override) => override.id !== overrideId) }
+          : item,
+      ),
+    );
+  };
+
+  const onChangeRecurringDepositOverride = (
+    depositId: number,
+    overrideId: number,
+    key: keyof Omit<DepositAmountOverride, 'id'>,
+    value: string | number,
+  ) => {
+    setRecurringDeposits((prev) =>
+      prev.map((item) => {
+        if (item.id !== depositId) return item;
+        const nextOverrides = item.overrides.map((override) => {
+          if (override.id !== overrideId) return override;
+          if (key === 'yearMonth') {
+            return { ...override, yearMonth: String(value) };
+          }
+          const amount = Number(value);
+          return {
+            ...override,
+            amount: Number.isFinite(amount) ? Math.max(0, Math.trunc(amount)) : 0,
+          };
+        });
+        if (key === 'yearMonth') {
+          const target = nextOverrides.find((override) => override.id === overrideId);
+          if (!target || !isValidYearMonth(target.yearMonth)) {
+            return { ...item, overrides: nextOverrides };
+          }
+          const duplicated = nextOverrides.some(
+            (override) => override.id !== overrideId && override.yearMonth === target.yearMonth,
+          );
+          if (duplicated) {
+            toast.error('同じ年月の確定額は1つだけ登録できます');
+            return item;
+          }
+        }
+        return {
+          ...item,
+          overrides: nextOverrides.sort((a, b) => a.yearMonth.localeCompare(b.yearMonth)),
+        };
       }),
     );
   };
@@ -443,6 +561,7 @@ export function IncomeExpenseView({
             : 1,
           evenMonthsOnly: Boolean(item.evenMonthsOnly),
           adjustToBusinessDay: Boolean(item.adjustToBusinessDay),
+          overrides: sanitizeDepositOverrides(item.overrides),
         }));
         setRecurringDeposits(safeDeposits);
       }
@@ -686,6 +805,69 @@ export function IncomeExpenseView({
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
+                <div className="space-y-2 rounded-md border border-dashed p-3 md:col-span-6">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">{item.name || '入金項目'}の確定額（年月別）</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onAddRecurringDepositOverride(item.id)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      確定額を追加
+                    </Button>
+                  </div>
+                  {item.overrides.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">未登録（予想額が使われます）</p>
+                  ) : (
+                    item.overrides.map((override) => (
+                      <div
+                        key={override.id}
+                        className="grid gap-2 md:grid-cols-[180px_1fr_auto] md:items-center"
+                      >
+                        <Input
+                          type="month"
+                          value={override.yearMonth}
+                          onChange={(e) =>
+                            onChangeRecurringDepositOverride(
+                              item.id,
+                              override.id,
+                              'yearMonth',
+                              e.target.value,
+                            )
+                          }
+                        />
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            min={0}
+                            step={1000}
+                            placeholder="入金予定額"
+                            value={override.amount}
+                            onChange={(e) =>
+                              onChangeRecurringDepositOverride(
+                                item.id,
+                                override.id,
+                                'amount',
+                                e.target.value,
+                              )
+                            }
+                          />
+                          円
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onRemoveRecurringDepositOverride(item.id, override.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             ))}
           </div>
