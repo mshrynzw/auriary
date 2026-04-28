@@ -376,6 +376,18 @@ export function IncomeExpenseView({
     [transactions, currentBalance, dailyExpense, recurringDeposits, recurringWithdrawals],
   );
 
+  const groupedTransactions = useMemo(() => {
+    let currentGroupDate = '';
+    let currentGroupIndex = -1;
+    return transactions.map((row) => {
+      if (row.txn_date !== currentGroupDate) {
+        currentGroupDate = row.txn_date;
+        currentGroupIndex += 1;
+      }
+      return { row, dateGroupIndex: currentGroupIndex };
+    });
+  }, [transactions]);
+
   const onAddRecurringDeposit = () => {
     setRecurringDeposits((prev) => [
       ...prev,
@@ -807,7 +819,9 @@ export function IncomeExpenseView({
                 </Button>
                 <div className="space-y-2 rounded-md border border-dashed p-3 md:col-span-6">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{item.name || '入金項目'}の確定額（年月別）</p>
+                    <p className="text-sm font-medium">
+                      {item.name || '入金項目'}の確定額（年月別）
+                    </p>
                     <Button
                       type="button"
                       variant="outline"
@@ -1012,8 +1026,11 @@ export function IncomeExpenseView({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((row, idx) => (
-                  <TableRow key={`${row.txn_date}-${row.id}-${idx}`}>
+                {groupedTransactions.map(({ row, dateGroupIndex }, idx) => (
+                  <TableRow
+                    key={`${row.txn_date}-${row.id}-${idx}`}
+                    className={dateGroupIndex % 2 === 0 ? 'bg-sky-50/40 dark:bg-sky-950/40' : ''}
+                  >
                     <TableCell>
                       {format(new Date(`${row.txn_date}T00:00:00`), 'yyyy/MM/dd', { locale: ja })}
                     </TableCell>
