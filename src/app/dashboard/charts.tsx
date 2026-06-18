@@ -509,8 +509,8 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
     exerciseLevel: '#14b8a6', // ティール
     odTimes: '#dc2626', // 赤（OD回数用）
     odTimesBar: 'rgba(220, 38, 38, 0.3)', // 赤（薄い、棒グラフ用）
-    alcoholTimes: '#d97706', // オレンジ（アルコール摂取回数用）
-    alcoholTimesBar: 'rgba(217, 119, 6, 0.3)', // オレンジ（薄い、棒グラフ用）
+    alcoholTimes: '#331c02', // オレンジ（アルコール摂取回数用）
+    alcoholTimesBar: 'rgba(74, 44, 1, 0.3)', // オレンジ（薄い、棒グラフ用）
     paymentTotal: '#f59e0b',
     paymentTotalBar: 'rgba(234, 179, 8, 1.00)',
     depositTotal: '#06b6d4',
