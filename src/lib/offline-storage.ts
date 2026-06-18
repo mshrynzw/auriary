@@ -19,6 +19,7 @@ interface DiaryDraft {
   appetite_level?: number;
   sleep_desire_level?: number;
   has_od?: boolean;
+  has_alcohol?: boolean;
   sleep_start_at?: string;
   sleep_end_at?: string;
   bath_start_at?: string;

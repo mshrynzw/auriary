@@ -43,6 +43,7 @@ type VisibilitySettings = {
   sleepDesireLevel: boolean;
   exerciseLevel: boolean;
   odTimes: boolean;
+  alcoholTimes: boolean;
   paymentTotal: boolean;
   depositTotal: boolean;
 };
@@ -61,6 +62,7 @@ const DEFAULT_VISIBILITY: VisibilitySettings = {
   sleepDesireLevel: false,
   exerciseLevel: false,
   odTimes: false,
+  alcoholTimes: false,
   paymentTotal: true,
   depositTotal: true,
 };
@@ -79,6 +81,7 @@ type ChartDataPoint = {
   sleepDesireLevel: number | null;
   exerciseLevel: number | null;
   odTimes: number | null;
+  alcoholTimes: number | null;
   paymentTotal: number | null;
   depositTotal: number | null;
   paymentTotalDisplay?: number | null;
@@ -112,6 +115,7 @@ function averageFields(rows: ChartDataPoint[], date: Date, dateLabel: string): C
     sleepDesireLevel: avgOf((r) => r.sleepDesireLevel),
     exerciseLevel: avgOf((r) => r.exerciseLevel),
     odTimes: avgOf((r) => r.odTimes),
+    alcoholTimes: avgOf((r) => r.alcoholTimes),
     paymentTotal: sumOf((r) => r.paymentTotal),
     depositTotal: sumOf((r) => r.depositTotal),
   };
@@ -368,6 +372,9 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
       const sleepHours = calculateSleepHours(d);
       // OD回数を計算（od_times配列の長さ）
       const odTimes = d.od_times && Array.isArray(d.od_times) ? d.od_times.length : null;
+      // アルコール摂取回数を計算（alcohol_times配列の長さ）
+      const alcoholTimes =
+        d.alcohol_times && Array.isArray(d.alcohol_times) ? d.alcohol_times.length : null;
 
       return {
         date,
@@ -383,6 +390,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
         sleepDesireLevel: d.sleep_desire_level,
         exerciseLevel: d.exercise_level,
         odTimes,
+        alcoholTimes,
       };
     })
     .forEach((d) => {
@@ -427,6 +435,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
         sleepDesireLevel: diary?.sleepDesireLevel ?? null,
         exerciseLevel: diary?.exerciseLevel ?? null,
         odTimes: diary?.odTimes ?? null,
+        alcoholTimes: diary?.alcoholTimes ?? null,
         paymentTotal: tx?.paymentTotal ?? null,
         depositTotal: tx?.depositTotal ?? null,
       };
@@ -444,6 +453,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
         d.sleepDesireLevel !== null ||
         d.exerciseLevel !== null ||
         d.odTimes !== null ||
+        d.alcoholTimes !== null ||
         d.paymentTotal !== null ||
         d.depositTotal !== null,
     );
@@ -499,6 +509,8 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
     exerciseLevel: '#14b8a6', // ティール
     odTimes: '#dc2626', // 赤（OD回数用）
     odTimesBar: 'rgba(220, 38, 38, 0.3)', // 赤（薄い、棒グラフ用）
+    alcoholTimes: '#d97706', // オレンジ（アルコール摂取回数用）
+    alcoholTimesBar: 'rgba(217, 119, 6, 0.3)', // オレンジ（薄い、棒グラフ用）
     paymentTotal: '#f59e0b',
     paymentTotalBar: 'rgba(234, 179, 8, 1.00)',
     depositTotal: '#06b6d4',
@@ -598,6 +610,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
                             entry.dataKey?.toString().includes('Level') ||
                             entry.dataKey?.toString() === 'sleepQuality';
                           const isOdTimes = entry.dataKey?.toString() === 'odTimes';
+                          const isAlcoholTimes = entry.dataKey?.toString() === 'alcoholTimes';
                           const isMoney =
                             entry.dataKey?.toString() === 'paymentTotalDisplay' ||
                             entry.dataKey?.toString() === 'depositTotalDisplay';
@@ -622,7 +635,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
                                     ? `${Number(rawMoneyValue ?? entry.value).toLocaleString('ja-JP')}円`
                                     : entry.dataKey === 'sleepHours'
                                       ? `${entry.value}時間`
-                                      : isOdTimes
+                                      : isOdTimes || isAlcoholTimes
                                         ? `${entry.value}回`
                                         : `${entry.value}/10`}
                               </span>
@@ -793,6 +806,18 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
                 radius={[4, 4, 0, 0]}
               />
             )}
+            {/* アルコール摂取回数（棒グラフ） */}
+            {visibility.alcoholTimes && (
+              <Bar
+                yAxisId="right"
+                dataKey="alcoholTimes"
+                fill={colors.alcoholTimesBar}
+                stroke={colors.alcoholTimes}
+                strokeWidth={1}
+                name="アルコール摂取回数"
+                radius={[4, 4, 0, 0]}
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
         {/* 表示設定コントロール */}
@@ -911,6 +936,16 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
               />
               <Label htmlFor="odTimes" className="text-sm cursor-pointer">
                 OD回数
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="alcoholTimes"
+                checked={visibility.alcoholTimes}
+                onCheckedChange={(checked) => updateVisibility('alcoholTimes', checked === true)}
+              />
+              <Label htmlFor="alcoholTimes" className="text-sm cursor-pointer">
+                アルコール摂取回数
               </Label>
             </div>
             <div className="flex items-center space-x-2">

@@ -101,6 +101,16 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                 source_id: item.source_id ?? null,
               }))
             : [],
+          has_alcohol: diary.has_alcohol || false,
+          alcohol_times: diary.alcohol_times
+            ? diary.alcohol_times.map((item) => ({
+                occurred_at: format(new Date(item.occurred_at), "yyyy-MM-dd'T'HH:mm"),
+                drink_name: item.drink_name ?? null,
+                amount: item.amount ?? null,
+                amount_unit: item.amount_unit ?? null,
+                context_memo: item.context_memo ?? null,
+              }))
+            : [],
           // 既存の時刻がある場合はそのまま使用、ない場合はデフォルト時刻を適用
           sleep_start_at: diary.sleep_start_at
             ? format(new Date(diary.sleep_start_at), "yyyy-MM-dd'T'HH:mm")
@@ -135,6 +145,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           sleep_desire_level: defaults?.sleep_desire_level_default,
           exercise_level: defaults?.exercise_level_default,
           od_times: [],
+          alcohol_times: [],
           // 時刻フィールドはuseEffectでクライアント側でのみ設定
           sleep_start_at: undefined,
           sleep_end_at: undefined,
@@ -154,6 +165,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
   const exerciseLevel = watch('exercise_level') ?? defaults?.exercise_level_default ?? 3;
   const hasOd = watch('has_od') ?? false;
   const odTimes = watch('od_times') ?? [];
+  const hasAlcohol = watch('has_alcohol') ?? false;
+  const alcoholTimes = watch('alcohol_times') ?? [];
 
   const journalDate = watch('journal_date');
 
@@ -241,6 +254,15 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
               amount_unit: item.amount_unit ?? null,
               context_memo: item.context_memo ?? null,
               source_id: item.source_id ?? null,
+            }))
+          : undefined,
+        alcohol_times: data.alcohol_times
+          ? data.alcohol_times.map((item) => ({
+              occurred_at: new Date(item.occurred_at).toISOString(),
+              drink_name: item.drink_name ?? null,
+              amount: item.amount ?? null,
+              amount_unit: item.amount_unit ?? null,
+              context_memo: item.context_memo ?? null,
             }))
           : undefined,
       };
@@ -840,6 +862,226 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                                   context_memo: e.target.value || null,
                                 };
                                 setValue('od_times', currentOdTimes);
+                              }}
+                              disabled={isLoading}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="has_alcohol"
+                  checked={hasAlcohol}
+                  onCheckedChange={(checked) => {
+                    const isChecked = checked === true;
+                    setValue('has_alcohol', isChecked);
+                    if (isChecked && alcoholTimes.length === 0) {
+                      const currentDate = journalDate || format(new Date(), 'yyyy-MM-dd');
+                      setValue('alcohol_times', [
+                        {
+                          occurred_at: `${currentDate}T00:00`,
+                          drink_name: null,
+                          amount: null,
+                          amount_unit: null,
+                          context_memo: null,
+                        },
+                      ]);
+                    }
+                    if (!isChecked) {
+                      setValue('alcohol_times', []);
+                    }
+                  }}
+                  disabled={isLoading}
+                />
+                <Label htmlFor="has_alcohol" className="cursor-pointer">
+                  アルコール摂取
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>その日にアルコールを摂取した場合にチェック</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              {hasAlcohol && (
+                <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold">アルコール記録</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const now = new Date();
+                        const currentAlcoholTimes = getValues('alcohol_times') ?? [];
+                        setValue('alcohol_times', [
+                          ...currentAlcoholTimes,
+                          {
+                            occurred_at: format(now, "yyyy-MM-dd'T'HH:mm"),
+                            drink_name: null,
+                            amount: null,
+                            amount_unit: null,
+                            context_memo: null,
+                          },
+                        ]);
+                      }}
+                      disabled={isLoading}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      追加
+                    </Button>
+                  </div>
+
+                  {alcoholTimes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      「追加」ボタンをクリックしてアルコール記録を追加してください
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {alcoholTimes.map((_, index) => (
+                        <div key={index} className="space-y-3 border rounded-md p-4 bg-background">
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-sm font-medium">
+                              アルコール記録 #{index + 1}
+                            </Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const currentAlcoholTimes = getValues('alcohol_times') ?? [];
+                                setValue(
+                                  'alcohol_times',
+                                  currentAlcoholTimes.filter((_, i) => i !== index),
+                                );
+                                if (currentAlcoholTimes.length === 1) {
+                                  setValue('has_alcohol', false);
+                                }
+                              }}
+                              disabled={isLoading}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Minus className="h-4 w-4 mr-1" />
+                              削除
+                            </Button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`alcohol_occurred_at_${index}`}>
+                                  摂取日時 <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                  id={`alcohol_occurred_at_${index}`}
+                                  type="datetime-local"
+                                  value={alcoholTimes[index]?.occurred_at || ''}
+                                  onChange={(e) => {
+                                    const currentAlcoholTimes = [
+                                      ...(getValues('alcohol_times') ?? []),
+                                    ];
+                                    currentAlcoholTimes[index] = {
+                                      ...currentAlcoholTimes[index],
+                                      occurred_at: e.target.value,
+                                    };
+                                    setValue('alcohol_times', currentAlcoholTimes);
+                                  }}
+                                  disabled={isLoading}
+                                  required
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor={`alcohol_drink_name_${index}`}>種類</Label>
+                                <Input
+                                  id={`alcohol_drink_name_${index}`}
+                                  type="text"
+                                  placeholder="例: ビール、ハイボール、日本酒"
+                                  value={alcoholTimes[index]?.drink_name ?? ''}
+                                  onChange={(e) => {
+                                    const currentAlcoholTimes = [
+                                      ...(getValues('alcohol_times') ?? []),
+                                    ];
+                                    currentAlcoholTimes[index] = {
+                                      ...currentAlcoholTimes[index],
+                                      drink_name: e.target.value || null,
+                                    };
+                                    setValue('alcohol_times', currentAlcoholTimes);
+                                  }}
+                                  disabled={isLoading}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor={`alcohol_amount_${index}`}>量</Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    id={`alcohol_amount_${index}`}
+                                    type="number"
+                                    step="0.1"
+                                    placeholder="例: 1"
+                                    value={alcoholTimes[index]?.amount ?? ''}
+                                    onChange={(e) => {
+                                      const currentAlcoholTimes = [
+                                        ...(getValues('alcohol_times') ?? []),
+                                      ];
+                                      currentAlcoholTimes[index] = {
+                                        ...currentAlcoholTimes[index],
+                                        amount: e.target.value
+                                          ? parseFloat(e.target.value)
+                                          : null,
+                                      };
+                                      setValue('alcohol_times', currentAlcoholTimes);
+                                    }}
+                                    disabled={isLoading}
+                                  />
+                                  <Input
+                                    id={`alcohol_amount_unit_${index}`}
+                                    type="text"
+                                    placeholder="例: 杯、缶、ml"
+                                    value={alcoholTimes[index]?.amount_unit ?? ''}
+                                    onChange={(e) => {
+                                      const currentAlcoholTimes = [
+                                        ...(getValues('alcohol_times') ?? []),
+                                      ];
+                                      currentAlcoholTimes[index] = {
+                                        ...currentAlcoholTimes[index],
+                                        amount_unit: e.target.value || null,
+                                      };
+                                      setValue('alcohol_times', currentAlcoholTimes);
+                                    }}
+                                    disabled={isLoading}
+                                    className="w-24"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`alcohol_context_memo_${index}`}>状況メモ</Label>
+                            <Textarea
+                              id={`alcohol_context_memo_${index}`}
+                              placeholder="きっかけや状況などを記録..."
+                              rows={2}
+                              value={alcoholTimes[index]?.context_memo ?? ''}
+                              onChange={(e) => {
+                                const currentAlcoholTimes = [...(getValues('alcohol_times') ?? [])];
+                                currentAlcoholTimes[index] = {
+                                  ...currentAlcoholTimes[index],
+                                  context_memo: e.target.value || null,
+                                };
+                                setValue('alcohol_times', currentAlcoholTimes);
                               }}
                               disabled={isLoading}
                             />

@@ -197,6 +197,35 @@ export function DiaryPreviewDialog({ diary, open, onOpenChange }: DiaryPreviewDi
             </div>
           )}
 
+          {/* アルコール摂取フラグ */}
+          {diary.has_alcohol !== null && (
+            <div className="space-y-2">
+              <h3 className="font-bold text-lg">アルコール摂取</h3>
+              <div className="flex items-center gap-2">
+                {diary.has_alcohol ? (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 text-amber-600" />
+                    <span className="text-sm font-medium text-amber-600">
+                      アルコールを摂取しました
+                      {diary.alcohol_times && diary.alcohol_times.length > 0 && (
+                        <span className="text-muted-foreground ml-1">
+                          （{diary.alcohol_times.length}回）
+                        </span>
+                      )}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">
+                      アルコールは摂取していません
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           <Separator />
 
           {/* メタ情報 */}

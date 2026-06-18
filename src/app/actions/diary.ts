@@ -32,6 +32,11 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
   const hasOd =
     validated.data.has_od || (validated.data.od_times && validated.data.od_times.length > 0);
 
+  // alcohol_timesが存在する場合、has_alcoholを自動設定
+  const hasAlcohol =
+    validated.data.has_alcohol ||
+    (validated.data.alcohol_times && validated.data.alcohol_times.length > 0);
+
   // 感情分析を実行（noteが存在する場合）
   let moodScore: number | null = null;
   let sentimentAnalysisResult: any = null;
@@ -75,6 +80,11 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       od_times:
         validated.data.od_times && validated.data.od_times.length > 0
           ? validated.data.od_times
+          : null,
+      has_alcohol: hasAlcohol,
+      alcohol_times:
+        validated.data.alcohol_times && validated.data.alcohol_times.length > 0
+          ? validated.data.alcohol_times
           : null,
       sleep_start_at: validated.data.sleep_start_at,
       sleep_end_at: validated.data.sleep_end_at,
@@ -154,6 +164,14 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
   } else if (updateData.has_od !== undefined && !updateData.has_od) {
     // has_odがfalseに設定された場合、od_timesもクリア
     updateData.od_times = null;
+  }
+  if (updateData.alcohol_times !== undefined) {
+    updateData.has_alcohol = updateData.alcohol_times && updateData.alcohol_times.length > 0;
+    if (!updateData.alcohol_times || updateData.alcohol_times.length === 0) {
+      updateData.alcohol_times = null;
+    }
+  } else if (updateData.has_alcohol !== undefined && !updateData.has_alcohol) {
+    updateData.alcohol_times = null;
   }
 
   // 感情分析を実行（noteが更新された場合）

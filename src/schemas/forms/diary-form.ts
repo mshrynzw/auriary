@@ -18,6 +18,20 @@ export const odTimeFormItemSchema = z.object({
 export type OdTimeFormItem = z.infer<typeof odTimeFormItemSchema>;
 
 /**
+ * アルコール摂取情報のフォーム用スキーマ
+ * occurred_atはdatetime-local形式の文字列として扱う
+ */
+export const alcoholTimeFormItemSchema = z.object({
+  occurred_at: z.string(), // datetime-local形式（yyyy-MM-ddTHH:mm）
+  drink_name: z.string().nullable().optional(),
+  amount: z.number().nullable().optional(),
+  amount_unit: z.string().nullable().optional(),
+  context_memo: z.string().nullable().optional(),
+});
+
+export type AlcoholTimeFormItem = z.infer<typeof alcoholTimeFormItemSchema>;
+
+/**
  * 日記作成用フォームスキーマ
  */
 export const createDiaryFormSchema = z.object({
@@ -33,6 +47,8 @@ export const createDiaryFormSchema = z.object({
   exercise_level: levelSchema.optional(),
   has_od: z.boolean().optional(),
   od_times: z.array(odTimeFormItemSchema).optional(),
+  has_alcohol: z.boolean().optional(),
+  alcohol_times: z.array(alcoholTimeFormItemSchema).optional(),
   // datetime-local入力はブラウザが自動的に正しい形式を強制するため、バリデーション不要
   sleep_start_at: z.string().optional(),
   sleep_end_at: z.string().optional(),
