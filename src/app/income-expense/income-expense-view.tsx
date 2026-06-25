@@ -1271,21 +1271,6 @@ export function IncomeExpenseView({
                   }}
                 />
                 <Legend />
-                {dailyExpense > 0 && (
-                  <ReferenceLine
-                    yAxisId="amount"
-                    y={dailyExpense}
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    strokeDasharray="4 4"
-                    label={{
-                      value: '1日あたり消費額',
-                      position: 'insideTopRight',
-                      fill: '#ef4444',
-                      fontSize: 12,
-                    }}
-                  />
-                )}
                 <Bar
                   yAxisId="amount"
                   dataKey="paymentTotalDisplay"
@@ -1323,6 +1308,23 @@ export function IncomeExpenseView({
                   dot={false}
                   name="残高推移（予測）"
                 />
+                {dailyExpense > 0 && (
+                  <ReferenceLine
+                    isFront
+                    yAxisId="amount"
+                    y={dailyExpense}
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    label={{
+                      value: '1日あたり消費額',
+                      position: 'insideTopRight',
+                      fill: '#ef4444',
+                      fontSize: 12,
+                      offset: 8,
+                    }}
+                  />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           )}
