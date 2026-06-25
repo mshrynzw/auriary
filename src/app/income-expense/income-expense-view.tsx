@@ -11,6 +11,7 @@ import {
   ComposedChart,
   Legend,
   Line,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
   XAxis,
@@ -375,6 +376,14 @@ export function IncomeExpenseView({
       ),
     [transactions, currentBalance, dailyExpense, recurringDeposits, recurringWithdrawals],
   );
+
+  const amountChartMax = useMemo(() => {
+    let max = dailyExpense;
+    for (const point of chartData) {
+      max = Math.max(max, point.paymentTotal, point.depositTotal);
+    }
+    return max > 0 ? Math.ceil(max * 1.1) : 1;
+  }, [chartData, dailyExpense]);
 
   const groupedTransactions = useMemo(() => {
     let currentGroupDate = '';
@@ -949,7 +958,7 @@ export function IncomeExpenseView({
             <div className="py-8 text-center text-muted-foreground">データがありません</div>
           ) : (
             <ResponsiveContainer width="100%" height={380}>
-              <ComposedChart data={chartData} margin={{ top: 5, right: 24, left: 0, bottom: 24 }}>
+              <ComposedChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 24 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.129 0.042 264.695)" />
                 <XAxis
                   dataKey="dateLabel"
@@ -957,6 +966,14 @@ export function IncomeExpenseView({
                   stroke="oklch(0.129 0.042 264.695)"
                 />
                 <YAxis
+                  yAxisId="amount"
+                  domain={[0, amountChartMax]}
+                  tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
+                  stroke="oklch(0.129 0.042 264.695)"
+                />
+                <YAxis
+                  yAxisId="balance"
+                  orientation="right"
                   tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
                   stroke="oklch(0.129 0.042 264.695)"
                 />
@@ -969,7 +986,23 @@ export function IncomeExpenseView({
                   }}
                 />
                 <Legend />
+                {dailyExpense > 0 && (
+                  <ReferenceLine
+                    yAxisId="amount"
+                    y={dailyExpense}
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    label={{
+                      value: '1日あたり消費額',
+                      position: 'insideTopRight',
+                      fill: '#ef4444',
+                      fontSize: 12,
+                    }}
+                  />
+                )}
                 <Bar
+                  yAxisId="amount"
                   dataKey="paymentTotal"
                   fill="rgba(234, 179, 8, 1.00)"
                   stroke="#f59e0b"
@@ -978,6 +1011,7 @@ export function IncomeExpenseView({
                   barSize={8}
                 />
                 <Bar
+                  yAxisId="amount"
                   dataKey="depositTotal"
                   fill="rgba(6, 182, 212, 0.25)"
                   stroke="#06b6d4"
@@ -986,6 +1020,7 @@ export function IncomeExpenseView({
                   barSize={8}
                 />
                 <Line
+                  yAxisId="balance"
                   type="monotone"
                   dataKey="actualBalance"
                   stroke="#22c55e"
@@ -994,6 +1029,7 @@ export function IncomeExpenseView({
                   name="残高推移（実績）"
                 />
                 <Line
+                  yAxisId="balance"
                   type="monotone"
                   dataKey="forecastBalance"
                   stroke="#22c55e"
