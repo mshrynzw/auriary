@@ -20,8 +20,15 @@ import {
 import { type BankTransactionRow } from '@/schemas';
 import { replaceBankTransactionsAction } from '@/app/actions/bank-transaction';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -93,6 +100,15 @@ const REQUIRED_COLUMNS = [
   '摘要',
 ] as const;
 const FORECAST_FORM_STORAGE_KEY = 'incomeExpenseForecastFormV1';
+
+type AmountAxisCap = 'auto' | '10000' | '30000' | '50000';
+
+const AMOUNT_AXIS_CAP_OPTIONS: { value: AmountAxisCap; label: string }[] = [
+  { value: 'auto', label: '全体' },
+  { value: '10000', label: '1万円' },
+  { value: '30000', label: '3万円' },
+  { value: '50000', label: '5万円' },
+];
 
 function formatYearMonth(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -363,6 +379,7 @@ export function IncomeExpenseView({
     { id: 1, name: '家賃', amount: 0, dayOfMonth: 27 },
   ]);
   const [isStorageLoaded, setIsStorageLoaded] = useState(false);
+  const [amountAxisCap, setAmountAxisCap] = useState<AmountAxisCap>('10000');
 
   const chartData = useMemo(
     () =>
@@ -384,6 +401,27 @@ export function IncomeExpenseView({
     }
     return max > 0 ? Math.ceil(max * 1.1) : 1;
   }, [chartData, dailyExpense]);
+
+  const amountYMax = useMemo(
+    () => (amountAxisCap === 'auto' ? amountChartMax : Number(amountAxisCap)),
+    [amountAxisCap, amountChartMax],
+  );
+
+  const displayChartData = useMemo(() => {
+    if (amountAxisCap === 'auto') {
+      return chartData.map((point) => ({
+        ...point,
+        paymentTotalDisplay: point.paymentTotal,
+        depositTotalDisplay: point.depositTotal,
+      }));
+    }
+    const cap = Number(amountAxisCap);
+    return chartData.map((point) => ({
+      ...point,
+      paymentTotalDisplay: Math.min(point.paymentTotal, cap),
+      depositTotalDisplay: Math.min(point.depositTotal, cap),
+    }));
+  }, [chartData, amountAxisCap]);
 
   const groupedTransactions = useMemo(() => {
     let currentGroupDate = '';
@@ -952,13 +990,38 @@ export function IncomeExpenseView({
       <Card className="border-none bg-muted/80">
         <CardHeader>
           <CardTitle>日次の入出金（合計）</CardTitle>
+          {chartData.length > 0 && (
+            <CardAction className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                入出金の表示上限
+              </span>
+              <Select
+                value={amountAxisCap}
+                onValueChange={(value) => setAmountAxisCap(value as AmountAxisCap)}
+              >
+                <SelectTrigger className="w-[160px] cursor-pointer">
+                  <SelectValue placeholder="入出金の表示上限" />
+                </SelectTrigger>
+                <SelectContent>
+                  {AMOUNT_AXIS_CAP_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           {chartData.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">データがありません</div>
           ) : (
             <ResponsiveContainer width="100%" height={380}>
-              <ComposedChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 24 }}>
+              <ComposedChart
+                data={displayChartData}
+                margin={{ top: 5, right: 30, left: 0, bottom: 24 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.129 0.042 264.695)" />
                 <XAxis
                   dataKey="dateLabel"
@@ -967,7 +1030,7 @@ export function IncomeExpenseView({
                 />
                 <YAxis
                   yAxisId="amount"
-                  domain={[0, amountChartMax]}
+                  domain={[0, amountYMax]}
                   tick={{ fontSize: 12, fill: 'oklch(0.129 0.042 264.695)' }}
                   stroke="oklch(0.129 0.042 264.695)"
                 />
@@ -978,11 +1041,57 @@ export function IncomeExpenseView({
                   stroke="oklch(0.129 0.042 264.695)"
                 />
                 <RechartsTooltip
-                  formatter={(value: number) => `${value.toLocaleString('ja-JP')}円`}
-                  labelFormatter={(label, payload) => {
-                    const date = payload?.[0]?.payload?.date;
-                    if (!date) return label;
-                    return format(new Date(`${date}T00:00:00`), 'yyyy年M月d日', { locale: ja });
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const data = payload[0].payload as (typeof displayChartData)[number];
+                    const cap = amountAxisCap === 'auto' ? null : Number(amountAxisCap);
+                    const dateLabel = data.date
+                      ? format(new Date(`${data.date}T00:00:00`), 'yyyy年M月d日', { locale: ja })
+                      : data.dateLabel;
+
+                    const rows: { label: string; value: number; clipped: boolean }[] = [];
+                    if (data.paymentTotal > 0) {
+                      rows.push({
+                        label: '支払（合計）',
+                        value: data.paymentTotal,
+                        clipped: cap !== null && data.paymentTotal > cap,
+                      });
+                    }
+                    if (data.depositTotal > 0) {
+                      rows.push({
+                        label: '入金（合計）',
+                        value: data.depositTotal,
+                        clipped: cap !== null && data.depositTotal > cap,
+                      });
+                    }
+                    if (data.actualBalance != null) {
+                      rows.push({
+                        label: '残高推移（実績）',
+                        value: data.actualBalance,
+                        clipped: false,
+                      });
+                    }
+                    if (data.forecastBalance != null) {
+                      rows.push({
+                        label: '残高推移（予測）',
+                        value: data.forecastBalance,
+                        clipped: false,
+                      });
+                    }
+
+                    return (
+                      <div className="rounded-lg border bg-background p-2 text-sm shadow-sm">
+                        <div className="mb-2 font-medium">{dateLabel}</div>
+                        <div className="space-y-1">
+                          {rows.map((row) => (
+                            <div key={row.label}>
+                              {row.label}: {row.value.toLocaleString('ja-JP')}円
+                              {row.clipped ? ' ※表示上限超え' : ''}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
                   }}
                 />
                 <Legend />
@@ -1003,7 +1112,7 @@ export function IncomeExpenseView({
                 )}
                 <Bar
                   yAxisId="amount"
-                  dataKey="paymentTotal"
+                  dataKey="paymentTotalDisplay"
                   fill="rgba(234, 179, 8, 1.00)"
                   stroke="#f59e0b"
                   strokeWidth={1}
@@ -1012,7 +1121,7 @@ export function IncomeExpenseView({
                 />
                 <Bar
                   yAxisId="amount"
-                  dataKey="depositTotal"
+                  dataKey="depositTotalDisplay"
                   fill="rgba(6, 182, 212, 0.25)"
                   stroke="#06b6d4"
                   strokeWidth={1}
