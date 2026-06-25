@@ -110,6 +110,103 @@ const AMOUNT_AXIS_CAP_OPTIONS: { value: AmountAxisCap; label: string }[] = [
   { value: '50000', label: '5万円' },
 ];
 
+type PeriodOption = 'all' | '1week' | '2weeks' | '1month' | '3months' | '6months' | '1year';
+
+const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
+  { value: 'all', label: '全期間' },
+  { value: '1week', label: '過去1週間' },
+  { value: '2weeks', label: '過去2週間' },
+  { value: '1month', label: '過去1ヶ月' },
+  { value: '3months', label: '過去3ヶ月' },
+  { value: '6months', label: '過去6ヶ月' },
+  { value: '1year', label: '過去1年' },
+];
+
+type ShowForecastOption = 'off' | 'on';
+
+const SHOW_FORECAST_OPTIONS: { value: ShowForecastOption; label: string }[] = [
+  { value: 'off', label: '非表示' },
+  { value: 'on', label: '表示' },
+];
+
+const CHART_PERIOD_STORAGE_KEY = 'incomeExpenseChartPeriod';
+const CHART_FORECAST_STORAGE_KEY = 'incomeExpenseChartShowForecast';
+
+function getCutoffDate(period: PeriodOption): Date | null {
+  if (period === 'all') return null;
+  const now = new Date();
+  const cutoffDate = new Date();
+
+  switch (period) {
+    case '1week':
+      cutoffDate.setDate(now.getDate() - 7);
+      break;
+    case '2weeks':
+      cutoffDate.setDate(now.getDate() - 14);
+      break;
+    case '1month':
+      cutoffDate.setMonth(now.getMonth() - 1);
+      break;
+    case '3months':
+      cutoffDate.setMonth(now.getMonth() - 3);
+      break;
+    case '6months':
+      cutoffDate.setMonth(now.getMonth() - 6);
+      break;
+    case '1year':
+      cutoffDate.setFullYear(now.getFullYear() - 1);
+      break;
+  }
+
+  return cutoffDate;
+}
+
+function getForecastDayLimit(period: PeriodOption): number {
+  switch (period) {
+    case '1week':
+      return 7;
+    case '2weeks':
+      return 14;
+    case '1month':
+      return 31;
+    case '3months':
+      return 92;
+    case '6months':
+      return 183;
+    case '1year':
+      return 365;
+    case 'all':
+      return 90;
+  }
+}
+
+function filterChartData(
+  chartData: ChartPoint[],
+  period: PeriodOption,
+  showForecast: boolean,
+): ChartPoint[] {
+  const cutoff = getCutoffDate(period);
+  const actualPoints = chartData.filter((point) => {
+    if (point.isForecast) return false;
+    if (cutoff === null) return true;
+    return new Date(`${point.date}T00:00:00`) >= cutoff;
+  });
+
+  if (!showForecast) return actualPoints;
+
+  const forecastLimit = getForecastDayLimit(period);
+  const forecastPoints = chartData.filter((point) => point.isForecast).slice(0, forecastLimit);
+  return [...actualPoints, ...forecastPoints];
+}
+
+function isPeriodOption(value: string): value is PeriodOption {
+  return PERIOD_OPTIONS.some((option) => option.value === value);
+}
+
+function isShowForecastOption(value: string): value is ShowForecastOption {
+  return SHOW_FORECAST_OPTIONS.some((option) => option.value === value);
+}
+
 function formatYearMonth(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
@@ -380,6 +477,8 @@ export function IncomeExpenseView({
   ]);
   const [isStorageLoaded, setIsStorageLoaded] = useState(false);
   const [amountAxisCap, setAmountAxisCap] = useState<AmountAxisCap>('10000');
+  const [chartPeriod, setChartPeriod] = useState<PeriodOption>('1month');
+  const [showForecast, setShowForecast] = useState<ShowForecastOption>('off');
 
   const chartData = useMemo(
     () =>
@@ -394,13 +493,18 @@ export function IncomeExpenseView({
     [transactions, currentBalance, dailyExpense, recurringDeposits, recurringWithdrawals],
   );
 
+  const filteredChartData = useMemo(
+    () => filterChartData(chartData, chartPeriod, showForecast === 'on'),
+    [chartData, chartPeriod, showForecast],
+  );
+
   const amountChartMax = useMemo(() => {
     let max = dailyExpense;
-    for (const point of chartData) {
+    for (const point of filteredChartData) {
       max = Math.max(max, point.paymentTotal, point.depositTotal);
     }
     return max > 0 ? Math.ceil(max * 1.1) : 1;
-  }, [chartData, dailyExpense]);
+  }, [filteredChartData, dailyExpense]);
 
   const amountYMax = useMemo(
     () => (amountAxisCap === 'auto' ? amountChartMax : Number(amountAxisCap)),
@@ -409,19 +513,19 @@ export function IncomeExpenseView({
 
   const displayChartData = useMemo(() => {
     if (amountAxisCap === 'auto') {
-      return chartData.map((point) => ({
+      return filteredChartData.map((point) => ({
         ...point,
         paymentTotalDisplay: point.paymentTotal,
         depositTotalDisplay: point.depositTotal,
       }));
     }
     const cap = Number(amountAxisCap);
-    return chartData.map((point) => ({
+    return filteredChartData.map((point) => ({
       ...point,
       paymentTotalDisplay: Math.min(point.paymentTotal, cap),
       depositTotalDisplay: Math.min(point.depositTotal, cap),
     }));
-  }, [chartData, amountAxisCap]);
+  }, [filteredChartData, amountAxisCap]);
 
   const groupedTransactions = useMemo(() => {
     let currentGroupDate = '';
@@ -592,6 +696,22 @@ export function IncomeExpenseView({
 
   useEffect(() => {
     try {
+      const savedPeriod = window.localStorage.getItem(CHART_PERIOD_STORAGE_KEY);
+      if (savedPeriod && isPeriodOption(savedPeriod)) {
+        setChartPeriod(savedPeriod);
+      }
+
+      const savedForecast = window.localStorage.getItem(CHART_FORECAST_STORAGE_KEY);
+      if (savedForecast && isShowForecastOption(savedForecast)) {
+        setShowForecast(savedForecast);
+      }
+    } catch (error) {
+      console.error('failed to load chart settings from localStorage', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
       const raw = window.localStorage.getItem(FORECAST_FORM_STORAGE_KEY);
       if (!raw) {
         setIsStorageLoaded(true);
@@ -655,6 +775,16 @@ export function IncomeExpenseView({
     };
     window.localStorage.setItem(FORECAST_FORM_STORAGE_KEY, JSON.stringify(payload));
   }, [isStorageLoaded, currentBalance, dailyExpense, recurringDeposits, recurringWithdrawals]);
+
+  const handleChartPeriodChange = (value: PeriodOption) => {
+    setChartPeriod(value);
+    window.localStorage.setItem(CHART_PERIOD_STORAGE_KEY, value);
+  };
+
+  const handleShowForecastChange = (value: ShowForecastOption) => {
+    setShowForecast(value);
+    window.localStorage.setItem(CHART_FORECAST_STORAGE_KEY, value);
+  };
 
   const onImportCsv = async (formData: FormData) => {
     if (!isAuthenticated) {
@@ -991,31 +1121,77 @@ export function IncomeExpenseView({
         <CardHeader>
           <CardTitle>日次の入出金（合計）</CardTitle>
           {chartData.length > 0 && (
-            <CardAction className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
-                入出金の表示上限
-              </span>
-              <Select
-                value={amountAxisCap}
-                onValueChange={(value) => setAmountAxisCap(value as AmountAxisCap)}
-              >
-                <SelectTrigger className="w-[160px] cursor-pointer">
-                  <SelectValue placeholder="入出金の表示上限" />
-                </SelectTrigger>
-                <SelectContent>
-                  {AMOUNT_AXIS_CAP_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="cursor-pointer">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <CardAction className="flex flex-wrap items-center justify-end gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">表示期間</span>
+                <Select
+                  value={chartPeriod}
+                  onValueChange={(value) => {
+                    if (isPeriodOption(value)) handleChartPeriodChange(value);
+                  }}
+                >
+                  <SelectTrigger className="w-[140px] cursor-pointer">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PERIOD_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">未来の表示</span>
+                <Select
+                  value={showForecast}
+                  onValueChange={(value) => {
+                    if (isShowForecastOption(value)) handleShowForecastChange(value);
+                  }}
+                >
+                  <SelectTrigger className="w-[100px] cursor-pointer">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SHOW_FORECAST_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  入出金の表示上限
+                </span>
+                <Select
+                  value={amountAxisCap}
+                  onValueChange={(value) => setAmountAxisCap(value as AmountAxisCap)}
+                >
+                  <SelectTrigger className="w-[100px] cursor-pointer">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AMOUNT_AXIS_CAP_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardAction>
           )}
         </CardHeader>
         <CardContent>
           {chartData.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">データがありません</div>
+          ) : displayChartData.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">
+              選択した期間にデータがありません
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height={380}>
               <ComposedChart
