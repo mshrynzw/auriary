@@ -76,6 +76,9 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       appetite_level: validated.data.appetite_level,
       sleep_desire_level: validated.data.sleep_desire_level,
       exercise_level: validated.data.exercise_level,
+      systolic: validated.data.systolic ?? null,
+      diastolic: validated.data.diastolic ?? null,
+      pulse: validated.data.pulse ?? null,
       has_od: hasOd,
       od_times:
         validated.data.od_times && validated.data.od_times.length > 0
@@ -115,6 +118,8 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
   }
 
   revalidatePath('/diary');
+  revalidatePath('/dashboard');
+  revalidatePath('/blood-pressure');
   return { diary: data };
 }
 
@@ -227,6 +232,8 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
 
   revalidatePath('/diary');
   revalidatePath(`/diary/${id}`);
+  revalidatePath('/dashboard');
+  revalidatePath('/blood-pressure');
   return { diary: data };
 }
 
@@ -273,6 +280,8 @@ export async function deleteDiaryAction(id: number) {
   }
 
   revalidatePath('/diary');
+  revalidatePath('/dashboard');
+  revalidatePath('/blood-pressure');
   return { success: true };
 }
 

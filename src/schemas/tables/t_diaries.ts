@@ -56,6 +56,9 @@ export const diaryRowSchema = commonColumnsSchema.extend({
   appetite_level: levelSchema.nullable(),
   sleep_desire_level: levelSchema.nullable(),
   exercise_level: levelSchema.nullable(),
+  systolic: z.number().int().min(50).max(250).nullable(),
+  diastolic: z.number().int().min(30).max(160).nullable(),
+  pulse: z.number().int().min(30).max(220).nullable(),
   note: z.string().nullable(),
   has_od: z.boolean().nullable(),
   od_times: z.array(odTimeItemSchema).nullable(), // JSONB配列

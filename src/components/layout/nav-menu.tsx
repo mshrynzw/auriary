@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ChartArea, BookOpen, Calendar, BarChart3, Wallet } from 'lucide-react';
+import { ChartArea, BookOpen, Calendar, BarChart3, Wallet, HeartPulse } from 'lucide-react';
 
 export function NavMenu() {
   const pathname = usePathname();
@@ -50,6 +50,16 @@ export function NavMenu() {
       >
         <BarChart3 className="mr-2 h-4 w-4" />
         分析
+      </Link>
+      <Link
+        href="/blood-pressure"
+        className={cn(
+          buttonVariants({ variant: 'ghost', size: 'sm' }),
+          pathname === '/blood-pressure' ? 'animate-dimlight' : 'cursor-pointer',
+        )}
+      >
+        <HeartPulse className="mr-2 h-4 w-4" />
+        血圧
       </Link>
       <Link
         href="/income-expense"

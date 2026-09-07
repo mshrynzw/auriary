@@ -31,10 +31,31 @@ export const alcoholTimeFormItemSchema = z.object({
 
 export type AlcoholTimeFormItem = z.infer<typeof alcoholTimeFormItemSchema>;
 
-/**
- * 日記作成用フォームスキーマ
- */
-export const createDiaryFormSchema = z.object({
+const nullableMeasuredInt = (min: number, max: number) =>
+  z
+    .union([z.number(), z.string(), z.null()])
+    .transform((val) => {
+      if (val === '' || val === null) return null;
+      const n = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(n) ? val : n;
+    })
+    .pipe(z.union([z.number().int().min(min).max(max), z.null()]));
+
+const withBloodPressureOrder = <T extends z.ZodType>(schema: T) =>
+  schema.refine(
+    (data) => {
+      const systolic = (data as { systolic?: number | null }).systolic;
+      const diastolic = (data as { diastolic?: number | null }).diastolic;
+      if (systolic == null || diastolic == null) return true;
+      return systolic >= diastolic;
+    },
+    {
+      message: '収縮期血圧は拡張期血圧以上である必要があります',
+      path: ['systolic'],
+    },
+  );
+
+const diaryFormObjectSchema = z.object({
   journal_date: z.string().date('有効な日付を入力してください'),
   note: z.string().max(10000, '日記本文は10000文字以下である必要があります').optional(),
   sleep_quality: levelSchema.optional(),
@@ -45,6 +66,9 @@ export const createDiaryFormSchema = z.object({
   appetite_level: levelSchema.optional(),
   sleep_desire_level: levelSchema.optional(),
   exercise_level: levelSchema.optional(),
+  systolic: nullableMeasuredInt(50, 250).optional(),
+  diastolic: nullableMeasuredInt(30, 160).optional(),
+  pulse: nullableMeasuredInt(30, 220).optional(),
   has_od: z.boolean().optional(),
   od_times: z.array(odTimeFormItemSchema).optional(),
   has_alcohol: z.boolean().optional(),
@@ -57,9 +81,14 @@ export const createDiaryFormSchema = z.object({
 });
 
 /**
+ * 日記作成用フォームスキーマ
+ */
+export const createDiaryFormSchema = withBloodPressureOrder(diaryFormObjectSchema);
+
+/**
  * 日記更新用フォームスキーマ（すべてオプショナル）
  */
-export const updateDiaryFormSchema = createDiaryFormSchema.partial();
+export const updateDiaryFormSchema = withBloodPressureOrder(diaryFormObjectSchema.partial());
 
 export type CreateDiaryFormInput = z.infer<typeof createDiaryFormSchema>;
 export type UpdateDiaryFormInput = z.infer<typeof updateDiaryFormSchema>;

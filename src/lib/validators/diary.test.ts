@@ -43,6 +43,48 @@ describe('createDiaryFormSchema', () => {
     };
     expect(createDiaryFormSchema.parse(data)).toEqual(data);
   });
+
+  it('血圧・脈拍の有効な値を受け入れる', () => {
+    const data = {
+      journal_date: '2025-01-10',
+      systolic: 120,
+      diastolic: 80,
+      pulse: 70,
+    };
+    expect(createDiaryFormSchema.parse(data)).toEqual(data);
+  });
+
+  it('血圧・脈拍が空でも有効', () => {
+    const data = {
+      journal_date: '2025-01-10',
+      systolic: '',
+      diastolic: '',
+      pulse: '',
+    };
+    expect(createDiaryFormSchema.parse(data)).toEqual({
+      journal_date: '2025-01-10',
+      systolic: null,
+      diastolic: null,
+      pulse: null,
+    });
+  });
+
+  it('収縮期血圧が範囲外なら拒否する', () => {
+    const data = {
+      journal_date: '2025-01-10',
+      systolic: 300,
+    };
+    expect(() => createDiaryFormSchema.parse(data)).toThrow();
+  });
+
+  it('収縮期血圧が拡張期血圧より低い場合は拒否する', () => {
+    const data = {
+      journal_date: '2025-01-10',
+      systolic: 80,
+      diastolic: 100,
+    };
+    expect(() => createDiaryFormSchema.parse(data)).toThrow();
+  });
 });
 
 describe('updateDiaryFormSchema', () => {

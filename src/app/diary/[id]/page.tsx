@@ -131,28 +131,46 @@ export default async function DiaryDetailPage({ params }: PageProps) {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              {diary.sleep_quality && (
+              {diary.sleep_quality != null && (
                 <div className="space-y-1">
                   <p className="text-sm font-medium">睡眠の質</p>
-                  <p className="text-2xl font-bold">{diary.sleep_quality}/5</p>
+                  <p className="text-2xl font-bold">{diary.sleep_quality}/10</p>
                 </div>
               )}
-              {diary.wake_level && (
+              {diary.wake_level != null && (
                 <div className="space-y-1">
                   <p className="text-sm font-medium">起床時の気分</p>
-                  <p className="text-2xl font-bold">{diary.wake_level}/5</p>
+                  <p className="text-2xl font-bold">{diary.wake_level}/10</p>
                 </div>
               )}
-              {diary.daytime_level && (
+              {diary.daytime_level != null && (
                 <div className="space-y-1">
                   <p className="text-sm font-medium">日中の気分</p>
-                  <p className="text-2xl font-bold">{diary.daytime_level}/5</p>
+                  <p className="text-2xl font-bold">{diary.daytime_level}/10</p>
                 </div>
               )}
-              {diary.pre_sleep_level && (
+              {diary.pre_sleep_level != null && (
                 <div className="space-y-1">
                   <p className="text-sm font-medium">就寝前の気分</p>
-                  <p className="text-2xl font-bold">{diary.pre_sleep_level}/5</p>
+                  <p className="text-2xl font-bold">{diary.pre_sleep_level}/10</p>
+                </div>
+              )}
+              {diary.systolic != null && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">収縮期血圧</p>
+                  <p className="text-2xl font-bold">{diary.systolic} mmHg</p>
+                </div>
+              )}
+              {diary.diastolic != null && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">拡張期血圧</p>
+                  <p className="text-2xl font-bold">{diary.diastolic} mmHg</p>
+                </div>
+              )}
+              {diary.pulse != null && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">脈拍</p>
+                  <p className="text-2xl font-bold">{diary.pulse} bpm</p>
                 </div>
               )}
             </div>

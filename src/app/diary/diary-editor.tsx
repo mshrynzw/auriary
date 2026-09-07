@@ -89,6 +89,9 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           appetite_level: diary.appetite_level || undefined,
           sleep_desire_level: diary.sleep_desire_level || undefined,
           exercise_level: diary.exercise_level || undefined,
+          systolic: diary.systolic ?? null,
+          diastolic: diary.diastolic ?? null,
+          pulse: diary.pulse ?? null,
           has_od: diary.has_od || false,
           od_times: diary.od_times
             ? diary.od_times.map((item) => ({
@@ -144,6 +147,9 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           appetite_level: defaults?.appetite_level_default,
           sleep_desire_level: defaults?.sleep_desire_level_default,
           exercise_level: defaults?.exercise_level_default,
+          systolic: null,
+          diastolic: null,
+          pulse: null,
           od_times: [],
           alcohol_times: [],
           // 時刻フィールドはuseEffectでクライアント側でのみ設定
@@ -540,6 +546,72 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                     step={1}
                     disabled={isLoading}
                   />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">血圧・脈拍</h3>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="systolic">収縮期血圧 (mmHg)</Label>
+                  <Input
+                    id="systolic"
+                    type="number"
+                    inputMode="numeric"
+                    min={50}
+                    max={250}
+                    placeholder="例: 120"
+                    className="w-full"
+                    {...register('systolic', {
+                      setValueAs: (v) =>
+                        v === '' || v === null || v === undefined ? null : Number(v),
+                    })}
+                    disabled={isLoading}
+                  />
+                  {errors.systolic && (
+                    <p className="text-sm text-destructive">{errors.systolic.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="diastolic">拡張期血圧 (mmHg)</Label>
+                  <Input
+                    id="diastolic"
+                    type="number"
+                    inputMode="numeric"
+                    min={30}
+                    max={160}
+                    placeholder="例: 80"
+                    className="w-full"
+                    {...register('diastolic', {
+                      setValueAs: (v) =>
+                        v === '' || v === null || v === undefined ? null : Number(v),
+                    })}
+                    disabled={isLoading}
+                  />
+                  {errors.diastolic && (
+                    <p className="text-sm text-destructive">{errors.diastolic.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pulse">脈拍 (bpm)</Label>
+                  <Input
+                    id="pulse"
+                    type="number"
+                    inputMode="numeric"
+                    min={30}
+                    max={220}
+                    placeholder="例: 70"
+                    className="w-full"
+                    {...register('pulse', {
+                      setValueAs: (v) =>
+                        v === '' || v === null || v === undefined ? null : Number(v),
+                    })}
+                    disabled={isLoading}
+                  />
+                  {errors.pulse && (
+                    <p className="text-sm text-destructive">{errors.pulse.message}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1037,9 +1109,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                                       ];
                                       currentAlcoholTimes[index] = {
                                         ...currentAlcoholTimes[index],
-                                        amount: e.target.value
-                                          ? parseFloat(e.target.value)
-                                          : null,
+                                        amount: e.target.value ? parseFloat(e.target.value) : null,
                                       };
                                       setValue('alcohol_times', currentAlcoholTimes);
                                     }}

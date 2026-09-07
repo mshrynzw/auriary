@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
   const user = session?.user ?? null;
 
   // 保護されたルート（/diaryと/dashboardは未認証でも閲覧可能）
-  const protectedPaths = ['/calendar', '/analytics', '/settings'];
+  const protectedPaths = ['/calendar', '/analytics', '/settings', '/blood-pressure'];
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
   // 編集・削除ページは認証が必要

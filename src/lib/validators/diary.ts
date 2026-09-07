@@ -11,6 +11,9 @@ export const createDiarySchema = z.object({
   appetite_level: z.number().min(0).max(10).optional(),
   sleep_desire_level: z.number().min(0).max(10).optional(),
   exercise_level: z.number().min(0).max(10).optional(),
+  systolic: z.number().int().min(50).max(250).nullable().optional(),
+  diastolic: z.number().int().min(30).max(160).nullable().optional(),
+  pulse: z.number().int().min(30).max(220).nullable().optional(),
   has_od: z.boolean().optional(),
   // datetime-local入力はブラウザが自動的に正しい形式を強制するため、バリデーション不要
   sleep_start_at: z.string().optional(),

@@ -9,6 +9,7 @@ import {
   Calendar,
   BarChart3,
   ChartArea,
+  HeartPulse,
   Settings,
   LogOut,
   Menu,
@@ -34,6 +35,7 @@ export function Sidber({ displayName, userEmail, initials }: SidberProps) {
     { href: '/diary', icon: BookOpen, label: '日記' },
     { href: '/calendar', icon: Calendar, label: 'カレンダー' },
     { href: '/analytics', icon: BarChart3, label: '分析' },
+    { href: '/blood-pressure', icon: HeartPulse, label: '血圧' },
     { href: '/income-expense', icon: Wallet, label: '収支' },
     { href: '/settings', icon: Settings, label: '設定' },
   ];

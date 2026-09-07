@@ -63,56 +63,82 @@ export function DiaryPreviewDialog({ diary, open, onOpenChange }: DiaryPreviewDi
           )}
 
           {/* 気分・体調スコア */}
-          {(diary.sleep_quality ||
-            diary.wake_level ||
-            diary.daytime_level ||
-            diary.pre_sleep_level ||
-            diary.med_adherence_level ||
-            diary.appetite_level ||
-            diary.sleep_desire_level) && (
+          {(diary.sleep_quality != null ||
+            diary.wake_level != null ||
+            diary.daytime_level != null ||
+            diary.pre_sleep_level != null ||
+            diary.med_adherence_level != null ||
+            diary.appetite_level != null ||
+            diary.sleep_desire_level != null) && (
             <div className="space-y-3">
               <h3 className="font-semibold text-lg">気分・体調</h3>
               <div className="grid gap-3 md:grid-cols-2">
-                {diary.sleep_quality && (
+                {diary.sleep_quality != null && (
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">睡眠の質</span>
-                    <Badge variant="outline">{diary.sleep_quality}/5</Badge>
+                    <Badge variant="outline">{diary.sleep_quality}/10</Badge>
                   </div>
                 )}
-                {diary.wake_level && (
+                {diary.wake_level != null && (
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">起床時の気分</span>
-                    <Badge variant="outline">{diary.wake_level}/5</Badge>
+                    <Badge variant="outline">{diary.wake_level}/10</Badge>
                   </div>
                 )}
-                {diary.daytime_level && (
+                {diary.daytime_level != null && (
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">日中の気分</span>
-                    <Badge variant="outline">{diary.daytime_level}/5</Badge>
+                    <Badge variant="outline">{diary.daytime_level}/10</Badge>
                   </div>
                 )}
-                {diary.pre_sleep_level && (
+                {diary.pre_sleep_level != null && (
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">就寝前の気分</span>
-                    <Badge variant="outline">{diary.pre_sleep_level}/5</Badge>
+                    <Badge variant="outline">{diary.pre_sleep_level}/10</Badge>
                   </div>
                 )}
-                {diary.med_adherence_level && (
+                {diary.med_adherence_level != null && (
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">服薬遵守度</span>
-                    <Badge variant="outline">{diary.med_adherence_level}/5</Badge>
+                    <Badge variant="outline">{diary.med_adherence_level}/10</Badge>
                   </div>
                 )}
-                {diary.appetite_level && (
+                {diary.appetite_level != null && (
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">食欲レベル</span>
-                    <Badge variant="outline">{diary.appetite_level}/5</Badge>
+                    <Badge variant="outline">{diary.appetite_level}/10</Badge>
                   </div>
                 )}
-                {diary.sleep_desire_level && (
+                {diary.sleep_desire_level != null && (
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">睡眠欲レベル</span>
-                    <Badge variant="outline">{diary.sleep_desire_level}/5</Badge>
+                    <Badge variant="outline">{diary.sleep_desire_level}/10</Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {(diary.systolic != null || diary.diastolic != null || diary.pulse != null) && (
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">血圧・脈拍</h3>
+              <div className="grid gap-3 md:grid-cols-3">
+                {diary.systolic != null && (
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <span className="text-sm font-medium">収縮期血圧</span>
+                    <Badge variant="outline">{diary.systolic} mmHg</Badge>
+                  </div>
+                )}
+                {diary.diastolic != null && (
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <span className="text-sm font-medium">拡張期血圧</span>
+                    <Badge variant="outline">{diary.diastolic} mmHg</Badge>
+                  </div>
+                )}
+                {diary.pulse != null && (
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <span className="text-sm font-medium">脈拍</span>
+                    <Badge variant="outline">{diary.pulse} bpm</Badge>
                   </div>
                 )}
               </div>
