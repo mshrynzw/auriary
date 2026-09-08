@@ -667,7 +667,8 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
                 dataKey="systolic"
                 stroke={COLORS.systolic}
                 strokeWidth={2}
-                dot={false}
+                connectNulls
+                dot={{ r: 3 }}
                 activeDot={{ r: 6 }}
                 name="収縮期血圧"
               />
@@ -677,7 +678,8 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
                 dataKey="diastolic"
                 stroke={COLORS.diastolic}
                 strokeWidth={2}
-                dot={false}
+                connectNulls
+                dot={{ r: 3 }}
                 activeDot={{ r: 6 }}
                 name="拡張期血圧"
               />
@@ -687,7 +689,8 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
                 dataKey="pulse"
                 stroke={COLORS.pulse}
                 strokeWidth={2}
-                dot={false}
+                connectNulls
+                dot={{ r: 3 }}
                 activeDot={{ r: 6 }}
                 name="脈拍"
               />
@@ -741,7 +744,8 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
                 dataKey="systolic"
                 stroke={COLORS.systolic}
                 strokeWidth={2}
-                dot={false}
+                connectNulls
+                dot={{ r: 3 }}
                 activeDot={{ r: 6 }}
                 name="収縮期血圧"
               />
@@ -751,7 +755,8 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
                 dataKey="diastolic"
                 stroke={COLORS.diastolic}
                 strokeWidth={2}
-                dot={false}
+                connectNulls
+                dot={{ r: 3 }}
                 activeDot={{ r: 6 }}
                 name="拡張期血圧"
               />
@@ -804,7 +809,8 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
                 dataKey="pulse"
                 stroke={COLORS.pulse}
                 strokeWidth={2}
-                dot={false}
+                connectNulls
+                dot={{ r: 3 }}
                 activeDot={{ r: 6 }}
                 name="脈拍"
               />
