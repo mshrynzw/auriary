@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Loader2, Plus, Trash2, Upload } from 'lucide-react';
+import { Check, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Bar,
@@ -17,8 +17,11 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { type BankTransactionRow } from '@/schemas';
-import { replaceBankTransactionsAction } from '@/app/actions/bank-transaction';
+import { bankTransactionMemoMaxLength, type BankTransactionRow } from '@/schemas';
+import {
+  replaceBankTransactionsAction,
+  updateBankTransactionMemoAction,
+} from '@/app/actions/bank-transaction';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -452,6 +455,91 @@ function buildBalanceSeries(
   return points;
 }
 
+function TransactionMemoInput({
+  transactionId,
+  savedMemo,
+  disabled,
+  onSaved,
+}: {
+  transactionId: number;
+  savedMemo: string | null;
+  disabled: boolean;
+  onSaved: (id: number, memo: string | null) => void;
+}) {
+  const [value, setValue] = useState(savedMemo ?? '');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const requestIdRef = useRef(0);
+  const valueRef = useRef(value);
+  valueRef.current = value;
+
+  useEffect(() => {
+    setValue(savedMemo ?? '');
+  }, [savedMemo]);
+
+  useEffect(() => {
+    if (status !== 'saved') return;
+    const timer = window.setTimeout(() => setStatus('idle'), 2000);
+    return () => window.clearTimeout(timer);
+  }, [status]);
+
+  const onBlur = async () => {
+    const next = value.trim() === '' ? null : value.trim();
+    if (next === savedMemo) {
+      if (value !== (savedMemo ?? '')) setValue(savedMemo ?? '');
+      return;
+    }
+    if (disabled || transactionId <= 0) return;
+
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    setStatus('saving');
+    try {
+      const result = await updateBankTransactionMemoAction({ id: transactionId, memo: next });
+      if (requestIdRef.current !== requestId) return;
+      const latest = valueRef.current.trim() === '' ? null : valueRef.current.trim();
+      if (latest !== next) {
+        setStatus('idle');
+        return;
+      }
+      if ('error' in result && result.error) {
+        setStatus('error');
+        toast.error(result.error.message);
+        return;
+      }
+      setValue(result.memo ?? '');
+      setStatus('saved');
+      onSaved(transactionId, result.memo);
+    } catch (error) {
+      console.error(error);
+      if (requestIdRef.current !== requestId) return;
+      setStatus('error');
+      toast.error('メモの保存に失敗しました');
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        value={value}
+        onChange={(event) => {
+          setValue(event.target.value);
+          if (status === 'saved' || status === 'error') setStatus('idle');
+        }}
+        onBlur={onBlur}
+        maxLength={bankTransactionMemoMaxLength}
+        disabled={disabled}
+        placeholder={transactionId <= 0 ? '再読み込み後に入力できます' : '何に使ったか'}
+        aria-label="メモ"
+        className="h-8 bg-background text-sm"
+      />
+      {status === 'saving' && (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+      )}
+      {status === 'saved' && <Check className="h-4 w-4 shrink-0 text-emerald-600" />}
+    </div>
+  );
+}
+
 export function IncomeExpenseView({
   initialTransactions,
   isAuthenticated = false,
@@ -786,6 +874,10 @@ export function IncomeExpenseView({
     window.localStorage.setItem(CHART_FORECAST_STORAGE_KEY, value);
   };
 
+  const onMemoSaved = (id: number, memo: string | null) => {
+    setTransactions((prev) => prev.map((row) => (row.id === id ? { ...row, memo } : row)));
+  };
+
   const onImportCsv = async (formData: FormData) => {
     if (!isAuthenticated) {
       toast.error('ログイン後にご利用ください');
@@ -823,24 +915,7 @@ export function IncomeExpenseView({
         (t) => t.txn_date < replacedStart || t.txn_date > replacedEnd,
       );
 
-      const importedRows: BankTransactionRow[] = records.map((r, idx) => ({
-        id: -(idx + 1),
-        user_id: 0 as BankTransactionRow['user_id'],
-        txn_date: r.txn_date,
-        txn_type: r.txn_type,
-        amount: r.amount,
-        description: r.description,
-        source_file_name: file.name,
-        source_id: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        deleted_at: null,
-        created_by: '' as BankTransactionRow['created_by'],
-        updated_by: '' as BankTransactionRow['updated_by'],
-        deleted_by: null,
-      }));
-
-      const merged = [...untouched, ...importedRows].sort((a, b) =>
+      const merged = [...untouched, ...result.transactions].sort((a, b) =>
         a.txn_date === b.txn_date ? b.id - a.id : b.txn_date.localeCompare(a.txn_date),
       );
       setTransactions(merged);
@@ -1346,6 +1421,7 @@ export function IncomeExpenseView({
                   <TableHead>取引名</TableHead>
                   <TableHead className="text-right">金額</TableHead>
                   <TableHead>摘要</TableHead>
+                  <TableHead>メモ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1367,6 +1443,14 @@ export function IncomeExpenseView({
                     </TableCell>
                     <TableCell className="max-w-[460px] truncate">
                       {row.description ?? '-'}
+                    </TableCell>
+                    <TableCell className="min-w-[240px]">
+                      <TransactionMemoInput
+                        transactionId={row.id}
+                        savedMemo={row.memo ?? null}
+                        disabled={!isAuthenticated || row.id <= 0}
+                        onSaved={onMemoSaved}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

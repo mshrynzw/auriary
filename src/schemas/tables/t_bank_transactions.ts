@@ -3,6 +3,8 @@ import { commonColumnsSchema, userIdSchema } from '../base';
 
 export const bankTransactionTypeSchema = z.enum(['支払', '入金']);
 
+export const bankTransactionMemoMaxLength = 500;
+
 /**
  * t_bank_transactions（銀行取引明細）のデータベース行スキーマ
  */
@@ -12,6 +14,7 @@ export const bankTransactionRowSchema = commonColumnsSchema.extend({
   txn_type: bankTransactionTypeSchema,
   amount: z.number().int().nonnegative(),
   description: z.string().nullable(),
+  memo: z.string().max(bankTransactionMemoMaxLength).nullable(),
   source_file_name: z.string().nullable(),
 });
 
