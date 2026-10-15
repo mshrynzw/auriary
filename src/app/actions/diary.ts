@@ -312,6 +312,11 @@ export async function getEarliestJournalDateAction(): Promise<{ journal_date: st
   return { journal_date: data.journal_date };
 }
 
+/** ILIKE のワイルドカード（%、_、PostgREST の *）をリテラルとして検索する */
+function escapeIlike(value: string) {
+  return value.replace(/[\\%_*]/g, (char) => `\\${char}`);
+}
+
 /**
  * 日記一覧を取得
  * 未認証の場合は空の配列を返す
@@ -319,6 +324,7 @@ export async function getEarliestJournalDateAction(): Promise<{ journal_date: st
 export async function getDiariesAction(params?: {
   start_date?: string;
   end_date?: string;
+  keyword?: string;
   limit?: number;
   offset?: number;
 }) {
@@ -350,6 +356,10 @@ export async function getDiariesAction(params?: {
   }
   if (params?.end_date) {
     query = query.lte('journal_date', params.end_date);
+  }
+  const keyword = params?.keyword?.trim();
+  if (keyword) {
+    query = query.ilike('note', `%${escapeIlike(keyword)}%`);
   }
 
   if (params?.limit) {
