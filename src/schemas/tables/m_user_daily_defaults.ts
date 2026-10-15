@@ -7,6 +7,7 @@ import { commonColumnsSchema, userIdSchema, levelSchema, timeStringSchema } from
 export const userDailyDefaultsRowSchema = commonColumnsSchema.extend({
   user_id: userIdSchema,
   sleep_quality_default: levelSchema,
+  bipolar_self_level_default: levelSchema,
   wake_level_default: levelSchema,
   daytime_level_default: levelSchema,
   pre_sleep_level_default: levelSchema,

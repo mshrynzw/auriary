@@ -33,6 +33,7 @@ type BloodPressureChartsProps = {
 
 type DiarySeriesKey =
   | 'sleepQuality'
+  | 'bipolarSelfLevel'
   | 'wakeLevel'
   | 'daytimeLevel'
   | 'preSleepLevel'
@@ -64,6 +65,7 @@ const GRANULARITY_STORAGE_KEY = 'blood-pressure-chart-granularity';
 
 const DEFAULT_VISIBILITY: VisibilitySettings = {
   sleepQuality: true,
+  bipolarSelfLevel: true,
   wakeLevel: true,
   daytimeLevel: true,
   preSleepLevel: true,
@@ -99,6 +101,7 @@ const DIARY_SERIES: {
   kind: 'line' | 'bar';
 }[] = [
   { key: 'sleepQuality', name: '睡眠の質', color: '#8b5cf6', kind: 'line' },
+  { key: 'bipolarSelfLevel', name: '躁鬱（自己判定）', color: '#6366f1', kind: 'line' },
   { key: 'wakeLevel', name: '起床時の気分', color: '#f59e0b', kind: 'line' },
   { key: 'daytimeLevel', name: '日中の気分', color: '#22c55e', kind: 'line' },
   { key: 'preSleepLevel', name: '就寝前の気分', color: '#ec4899', kind: 'line' },
@@ -153,6 +156,7 @@ function averageFields(rows: ChartDataPoint[], date: Date, dateLabel: string): C
     diastolic: avgOf((r) => r.diastolic),
     pulse: avgOf((r) => r.pulse),
     sleepQuality: avgOf((r) => r.sleepQuality),
+    bipolarSelfLevel: avgOf((r) => r.bipolarSelfLevel),
     wakeLevel: avgOf((r) => r.wakeLevel),
     daytimeLevel: avgOf((r) => r.daytimeLevel),
     preSleepLevel: avgOf((r) => r.preSleepLevel),
@@ -537,6 +541,7 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
         diastolic: d.diastolic ?? null,
         pulse: d.pulse ?? null,
         sleepQuality: d.sleep_quality,
+        bipolarSelfLevel: d.bipolar_self_level,
         wakeLevel: d.wake_level,
         daytimeLevel: d.daytime_level,
         preSleepLevel: d.pre_sleep_level,
@@ -554,6 +559,7 @@ export function BloodPressureCharts({ diaries }: BloodPressureChartsProps) {
         d.diastolic !== null ||
         d.pulse !== null ||
         d.sleepQuality !== null ||
+        d.bipolarSelfLevel !== null ||
         d.wakeLevel !== null ||
         d.daytimeLevel !== null ||
         d.preSleepLevel !== null ||

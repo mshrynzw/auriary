@@ -64,6 +64,7 @@ export function DiaryPreviewDialog({ diary, open, onOpenChange }: DiaryPreviewDi
 
           {/* 気分・体調スコア */}
           {(diary.sleep_quality != null ||
+            diary.bipolar_self_level != null ||
             diary.wake_level != null ||
             diary.daytime_level != null ||
             diary.pre_sleep_level != null ||
@@ -77,6 +78,12 @@ export function DiaryPreviewDialog({ diary, open, onOpenChange }: DiaryPreviewDi
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="text-sm font-medium">睡眠の質</span>
                     <Badge variant="outline">{diary.sleep_quality}/10</Badge>
+                  </div>
+                )}
+                {diary.bipolar_self_level != null && (
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <span className="text-sm font-medium">躁鬱（自己判定）</span>
+                    <Badge variant="outline">{diary.bipolar_self_level}/10</Badge>
                   </div>
                 )}
                 {diary.wake_level != null && (

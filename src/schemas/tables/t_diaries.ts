@@ -49,6 +49,7 @@ export const diaryRowSchema = commonColumnsSchema.extend({
   bath_start_at: z.string().datetime().nullable(),
   bath_end_at: z.string().datetime().nullable(),
   sleep_quality: levelSchema.nullable(),
+  bipolar_self_level: levelSchema.nullable(),
   wake_level: levelSchema.nullable(),
   daytime_level: levelSchema.nullable(),
   pre_sleep_level: levelSchema.nullable(),

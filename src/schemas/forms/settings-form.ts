@@ -6,6 +6,7 @@ import { levelSchema, timeStringSchema } from '../base';
  */
 export const dailyDefaultsFormSchema = z.object({
   sleep_quality_default: levelSchema,
+  bipolar_self_level_default: levelSchema,
   wake_level_default: levelSchema,
   daytime_level_default: levelSchema,
   pre_sleep_level_default: levelSchema,

@@ -137,6 +137,12 @@ export default async function DiaryDetailPage({ params }: PageProps) {
                   <p className="text-2xl font-bold">{diary.sleep_quality}/10</p>
                 </div>
               )}
+              {diary.bipolar_self_level != null && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">躁鬱（自己判定）</p>
+                  <p className="text-2xl font-bold">{diary.bipolar_self_level}/10</p>
+                </div>
+              )}
               {diary.wake_level != null && (
                 <div className="space-y-1">
                   <p className="text-sm font-medium">起床時の気分</p>

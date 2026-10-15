@@ -23,6 +23,7 @@ export async function getDailyDefaultsAction() {
       return {
         defaults: {
           sleep_quality_default: 5,
+          bipolar_self_level_default: 5,
           wake_level_default: 5,
           daytime_level_default: 5,
           pre_sleep_level_default: 5,

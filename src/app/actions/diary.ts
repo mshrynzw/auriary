@@ -69,6 +69,7 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       mood: moodScore,
       sentiment_analysis_result: sentimentAnalysisResult,
       sleep_quality: validated.data.sleep_quality,
+      bipolar_self_level: validated.data.bipolar_self_level,
       wake_level: validated.data.wake_level,
       daytime_level: validated.data.daytime_level,
       pre_sleep_level: validated.data.pre_sleep_level,

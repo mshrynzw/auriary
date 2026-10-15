@@ -35,6 +35,7 @@ type VisibilitySettings = {
   mood: boolean;
   sleepHours: boolean;
   sleepQuality: boolean;
+  bipolarSelfLevel: boolean;
   wakeLevel: boolean;
   daytimeLevel: boolean;
   preSleepLevel: boolean;
@@ -54,6 +55,7 @@ const DEFAULT_VISIBILITY: VisibilitySettings = {
   mood: true,
   sleepHours: true,
   sleepQuality: false,
+  bipolarSelfLevel: false,
   wakeLevel: false,
   daytimeLevel: false,
   preSleepLevel: false,
@@ -73,6 +75,7 @@ type ChartDataPoint = {
   mood: number | null;
   sleepHours: number | null;
   sleepQuality: number | null;
+  bipolarSelfLevel: number | null;
   wakeLevel: number | null;
   daytimeLevel: number | null;
   preSleepLevel: number | null;
@@ -107,6 +110,7 @@ function averageFields(rows: ChartDataPoint[], date: Date, dateLabel: string): C
     mood: avgOf((r) => r.mood),
     sleepHours: avgOf((r) => r.sleepHours),
     sleepQuality: avgOf((r) => r.sleepQuality),
+    bipolarSelfLevel: avgOf((r) => r.bipolarSelfLevel),
     wakeLevel: avgOf((r) => r.wakeLevel),
     daytimeLevel: avgOf((r) => r.daytimeLevel),
     preSleepLevel: avgOf((r) => r.preSleepLevel),
@@ -382,6 +386,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
         mood: d.mood,
         sleepHours,
         sleepQuality: d.sleep_quality,
+        bipolarSelfLevel: d.bipolar_self_level,
         wakeLevel: d.wake_level,
         daytimeLevel: d.daytime_level,
         preSleepLevel: d.pre_sleep_level,
@@ -427,6 +432,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
         mood: diary?.mood ?? null,
         sleepHours: diary?.sleepHours ?? null,
         sleepQuality: diary?.sleepQuality ?? null,
+        bipolarSelfLevel: diary?.bipolarSelfLevel ?? null,
         wakeLevel: diary?.wakeLevel ?? null,
         daytimeLevel: diary?.daytimeLevel ?? null,
         preSleepLevel: diary?.preSleepLevel ?? null,
@@ -445,6 +451,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
         d.mood !== null ||
         d.sleepHours !== null ||
         d.sleepQuality !== null ||
+        d.bipolarSelfLevel !== null ||
         d.wakeLevel !== null ||
         d.daytimeLevel !== null ||
         d.preSleepLevel !== null ||
@@ -500,6 +507,7 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
     sleepHours: '#3b82f6', // 青
     sleepHoursBar: 'rgba(59, 130, 246, 0.3)', // 青（薄い、棒グラフ用）
     sleepQuality: '#8b5cf6', // 紫
+    bipolarSelfLevel: '#6366f1', // 藍
     wakeLevel: '#f59e0b', // オレンジ
     daytimeLevel: '#22c55e', // 緑
     preSleepLevel: '#ec4899', // ピンク
@@ -710,6 +718,18 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
                 name="睡眠の質"
               />
             )}
+            {visibility.bipolarSelfLevel && (
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="bipolarSelfLevel"
+                stroke={colors.bipolarSelfLevel}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 6 }}
+                name="躁鬱（自己判定）"
+              />
+            )}
             {visibility.wakeLevel && (
               <Line
                 yAxisId="right"
@@ -852,6 +872,18 @@ export function UnifiedChart({ diaries, transactions }: ChartProps) {
               />
               <Label htmlFor="sleepQuality" className="text-sm cursor-pointer">
                 睡眠の質
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="bipolarSelfLevel"
+                checked={visibility.bipolarSelfLevel}
+                onCheckedChange={(checked) =>
+                  updateVisibility('bipolarSelfLevel', checked === true)
+                }
+              />
+              <Label htmlFor="bipolarSelfLevel" className="text-sm cursor-pointer">
+                躁鬱（自己判定）
               </Label>
             </div>
             <div className="flex items-center space-x-2">

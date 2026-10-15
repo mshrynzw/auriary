@@ -26,6 +26,7 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
   const [isSavingDefaults, setIsSavingDefaults] = useState(false);
   const [defaults, setDefaults] = useState({
     sleep_quality_default: 3,
+    bipolar_self_level_default: 5,
     wake_level_default: 3,
     daytime_level_default: 3,
     pre_sleep_level_default: 3,
@@ -46,6 +47,7 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
       if (result?.defaults) {
         setDefaults({
           sleep_quality_default: result.defaults.sleep_quality_default || 3,
+          bipolar_self_level_default: result.defaults.bipolar_self_level_default ?? 5,
           wake_level_default: result.defaults.wake_level_default || 3,
           daytime_level_default: result.defaults.daytime_level_default || 3,
           pre_sleep_level_default: result.defaults.pre_sleep_level_default || 3,
@@ -169,6 +171,32 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
                     }
                     min={1}
                     max={5}
+                    step={1}
+                    disabled={isSavingDefaults}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>躁鬱（自己判定）: {defaults.bipolar_self_level_default}/10</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>0=最悪の鬱、5=どちらでもない、10=最高の躁（自己判定）</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[defaults.bipolar_self_level_default]}
+                    onValueChange={(value) =>
+                      setDefaults({ ...defaults, bipolar_self_level_default: value[0] })
+                    }
+                    min={0}
+                    max={10}
                     step={1}
                     disabled={isSavingDefaults}
                   />

@@ -12,6 +12,7 @@ interface DiaryDraft {
   journal_date: string;
   note?: string;
   sleep_quality?: number;
+  bipolar_self_level?: number;
   wake_level?: number;
   daytime_level?: number;
   pre_sleep_level?: number;

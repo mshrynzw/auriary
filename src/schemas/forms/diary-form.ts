@@ -59,6 +59,7 @@ const diaryFormObjectSchema = z.object({
   journal_date: z.string().date('有効な日付を入力してください'),
   note: z.string().max(10000, '日記本文は10000文字以下である必要があります').optional(),
   sleep_quality: levelSchema.optional(),
+  bipolar_self_level: levelSchema.optional(),
   wake_level: levelSchema.optional(),
   daytime_level: levelSchema.optional(),
   pre_sleep_level: levelSchema.optional(),

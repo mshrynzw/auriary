@@ -42,6 +42,7 @@ import { medicationIdSchema } from '@/schemas';
 type DailyDefaults = Pick<
   UserDailyDefaults,
   | 'sleep_quality_default'
+  | 'bipolar_self_level_default'
   | 'wake_level_default'
   | 'daytime_level_default'
   | 'pre_sleep_level_default'
@@ -82,6 +83,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           journal_date: diary.journal_date,
           note: diary.note || '',
           sleep_quality: diary.sleep_quality || undefined,
+          bipolar_self_level: diary.bipolar_self_level ?? undefined,
           wake_level: diary.wake_level || undefined,
           daytime_level: diary.daytime_level || undefined,
           pre_sleep_level: diary.pre_sleep_level || undefined,
@@ -140,6 +142,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
           // 日付はuseEffectでクライアント側でのみ設定（ハイドレーションエラーを防ぐため）
           journal_date: '',
           sleep_quality: defaults?.sleep_quality_default,
+          bipolar_self_level: defaults?.bipolar_self_level_default ?? 5,
           wake_level: defaults?.wake_level_default,
           daytime_level: defaults?.daytime_level_default,
           pre_sleep_level: defaults?.pre_sleep_level_default,
@@ -161,6 +164,8 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
   });
 
   const sleepQuality = watch('sleep_quality') ?? defaults?.sleep_quality_default ?? 3;
+  const bipolarSelfLevel =
+    watch('bipolar_self_level') ?? defaults?.bipolar_self_level_default ?? 5;
   const wakeLevel = watch('wake_level') ?? defaults?.wake_level_default ?? 3;
   const daytimeLevel = watch('daytime_level') ?? defaults?.daytime_level_default ?? 3;
   const preSleepLevel = watch('pre_sleep_level') ?? defaults?.pre_sleep_level_default ?? 3;
@@ -373,6 +378,30 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
                   <Slider
                     value={[sleepQuality]}
                     onValueChange={(value) => setValue('sleep_quality', value[0])}
+                    min={0}
+                    max={10}
+                    step={1}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>躁鬱（自己判定）: {bipolarSelfLevel}/10</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>0=最悪の鬱、5=どちらでもない、10=最高の躁（自己判定）</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Slider
+                    value={[bipolarSelfLevel]}
+                    onValueChange={(value) => setValue('bipolar_self_level', value[0])}
                     min={0}
                     max={10}
                     step={1}

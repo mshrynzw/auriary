@@ -29,6 +29,26 @@ describe('createDiaryFormSchema', () => {
     expect(() => createDiaryFormSchema.parse(data)).toThrow();
   });
 
+  it('bipolar_self_level は 0 から 10 を受け入れる', () => {
+    expect(
+      createDiaryFormSchema.parse({ journal_date: '2025-01-10', bipolar_self_level: 0 })
+        .bipolar_self_level,
+    ).toBe(0);
+    expect(
+      createDiaryFormSchema.parse({ journal_date: '2025-01-10', bipolar_self_level: 10 })
+        .bipolar_self_level,
+    ).toBe(10);
+  });
+
+  it('bipolar_self_level が範囲外の値を拒否する', () => {
+    expect(() =>
+      createDiaryFormSchema.parse({ journal_date: '2025-01-10', bipolar_self_level: -1 }),
+    ).toThrow();
+    expect(() =>
+      createDiaryFormSchema.parse({ journal_date: '2025-01-10', bipolar_self_level: 11 }),
+    ).toThrow();
+  });
+
   it('sleep_quality が範囲外の値を拒否する', () => {
     const data = {
       journal_date: '2025-01-10',

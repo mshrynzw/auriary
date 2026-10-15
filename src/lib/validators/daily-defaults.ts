@@ -18,6 +18,7 @@ const timeFieldSchema = z
 
 export const dailyDefaultsSchema = z.object({
   sleep_quality_default: z.number().min(0).max(10),
+  bipolar_self_level_default: z.number().min(0).max(10),
   wake_level_default: z.number().min(0).max(10),
   daytime_level_default: z.number().min(0).max(10),
   pre_sleep_level_default: z.number().min(0).max(10),

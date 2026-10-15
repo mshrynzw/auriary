@@ -4,6 +4,7 @@ export const createDiarySchema = z.object({
   journal_date: z.string().date('有効な日付を入力してください'), // ISO8601 date string (e.g. "2025-01-10")
   note: z.string().max(10000, '日記本文は10000文字以下である必要があります').optional(),
   sleep_quality: z.number().min(0).max(10).optional(),
+  bipolar_self_level: z.number().min(0).max(10).optional(),
   wake_level: z.number().min(0).max(10).optional(),
   daytime_level: z.number().min(0).max(10).optional(),
   pre_sleep_level: z.number().min(0).max(10).optional(),
