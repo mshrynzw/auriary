@@ -1,5 +1,7 @@
 # 詳細設計書：API設計（App Router）
 
+日記などの更新は Server Actions です。同じ処理の Route Handler は増やしません。以下の `/api/diaries` は未実装の案です。
+
 ## 6. API設計（App Router）
 
 ### 6.1 Route Handlers（/app/api/**）

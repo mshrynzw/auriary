@@ -1,5 +1,7 @@
 # 詳細設計書：非機能要件
 
+ホスティングの現行は Cloudflare Workers、データベースは D1 です。この文書の Vercel と Supabase は旧構成の記述です。
+
 ## 10. 非機能要件
 
 ### 10.1 パフォーマンス要件
@@ -29,13 +31,12 @@ export const getCachedDiaries = unstable_cache(
 );
 ```
 
-#### 10.1.2 Vercel 最適化
+#### 10.1.2 Workers 上の配信
 
 **実装方針:**
 
-- Vercel が Next.js を自動的に最適化
-- Edge Network によるグローバル CDN 配信
-- 自動的な静的生成とキャッシング
+- OpenNext で Next.js を Workers に載せる
+- 画面は動的で、増分キャッシュ用の R2 は作らない
 
 #### 10.1.3 パフォーマンス目標
 
@@ -110,8 +111,8 @@ export const getCachedDiaries = unstable_cache(
 
 **実装方針:**
 
-- Supabase の自動スケーリング機能を活用
-- Vercel の Edge Network によるグローバル配信
+- D1 は SQLite。クエリはセッションの user_id で絞る
+- Workers から D1 の binding で読む
 - データベースクエリの最適化
 - インデックスの適切な設定
 
@@ -180,7 +181,7 @@ export const getCachedDiaries = unstable_cache(
 
 **実装方針:**
 
-- HTTPS 必須（Vercel で自動対応）
+- HTTPS 必須（Workers の公開 URL は HTTPS）
   - PWAのインストールにはHTTPSが必須要件
   - Service Worker の登録にもHTTPSが必要
 - Service Worker のスコープ制限

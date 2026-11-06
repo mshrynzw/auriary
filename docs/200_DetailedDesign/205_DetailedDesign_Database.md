@@ -2,6 +2,14 @@
 
 ## 5. データベース設計
 
+現行のデータベースは Cloudflare D1（SQLite）です。定義の実体は `migrations/0001_initial_schema.sql` です。
+
+- 主キーは `INTEGER PRIMARY KEY AUTOINCREMENT`
+- 日時と JSON は TEXT。`updated_at` はアプリが更新する
+- 真偽値は INTEGER の 0 と 1
+- `created_by`、`updated_by`、`deleted_by` は `m_users.id`。PostgreSQL のトリガー、RLS、`auth.uid()` は置かない
+- `m_users.auth_user_id` は無い。メールアドレスと `password_hash` をユーザー行に持つ
+
 ### 5.1 ER図
 
 詳細な ER 図は以下のドキュメントを参照してください。
@@ -18,17 +26,31 @@
 
 #### 5.3.1 m_users（ユーザーマスタ）
 
-Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
+ログインするユーザーの行。Supabase の `auth.users` とは紐づけない。
 
 **主要カラム:**
-- `id`：アプリ内で一意となるユーザーID（BIGINT, PK）
-- `auth_user_id`：Supabase `auth.users.id`（UUID）
-- `display_name`：表示名（TEXT, NOT NULL）
-- `email`：メールアドレス（TEXT, NULL）
-- `is_active`：有効フラグ（BOOLEAN, NOT NULL）
 
-**RLS ポリシー:**
-- ユーザーは自身のレコードのみ参照・更新可能
+- `id`：ユーザー ID（INTEGER, PK）
+- `display_name`：表示名（TEXT, NOT NULL）
+- `email`：メールアドレス（TEXT, NOT NULL, 小文字で一意）
+- `password_hash`：PBKDF2-SHA-256 のハッシュ（TEXT, NOT NULL）
+- `is_active`：有効フラグ（INTEGER 0/1, NOT NULL）
+
+**アクセス:**
+
+- アプリがセッションの `user_id` で自分の行だけを読む。RLS はない
+
+#### 5.3.1a t_sessions（セッション）
+
+Cookie に載せるトークンの SHA-256 だけを保存する。
+
+**主要カラム:**
+
+- `id`：セッション ID（INTEGER, PK）
+- `user_id`：ユーザー ID（INTEGER, FK → m_users.id）
+- `token_hash`：トークンの SHA-256 を 64 文字の 16 進で保存（TEXT, UNIQUE）
+- `expires_at`：期限（TEXT）
+- `revoked_at`：失効日時（TEXT, NULL）
 
 #### 5.3.2 t_diaries（日記・日次記録）
 
@@ -57,8 +79,9 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 - `ai_topics`：AI 抽出トピック（JSON, NULL）
 - `mood`：感情スコア（SMALLINT, 1-5, NULL）
 
-**RLS ポリシー:**
-- ユーザーは自身の日記のみ参照・作成・更新・削除可能
+**アクセス:**
+
+- アプリがセッションの `user_id` で、本人の日記だけを読む、作る、更新する、ソフトデリートする
 
 #### 5.3.3 t_diary_attachments（日記添付）
 
@@ -67,7 +90,7 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 **主要カラム:**
 - `id`：日記添付ID（BIGINT, PK）
 - `diary_id`：日記ID（BIGINT, FK → t_diaries.id）
-- `file_path`：ファイルパス（Supabase Storage）（TEXT, NOT NULL）
+- `file_path`：ファイルパス（TEXT, NOT NULL）
 - `file_type`：ファイル種別（TEXT, NOT NULL）
 - `file_size`：ファイルサイズ（BIGINT, NULL）
 - `thumbnail_path`：サムネイルファイルパス（TEXT, NULL）
@@ -128,8 +151,9 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 - `is_active`：有効フラグ（BOOLEAN, NOT NULL）
 - `created_at`：作成日時（TIMESTAMPTZ, NOT NULL）
 
-**RLS ポリシー:**
-- ユーザーは自身の通知・設定・購読情報のみ参照・更新可能
+**アクセス:**
+
+- 本人の通知、設定、購読だけを読む。RLS は使わない
 
 #### 5.3.6 r_diary_overdoses（日記とODの関連）
 
@@ -141,8 +165,9 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
 - `diary_id`：日記ID（BIGINT, FK → t_diaries.id）
 - `overdose_id`：OD記録ID（BIGINT, FK → t_overdoses.id）
 
-**RLS ポリシー:**
-- ユーザーは自身の日記に関連するOD記録のみ参照・更新可能
+**アクセス:**
+
+- 本人の日記に紐づく行だけを読む
 
 #### 5.3.7 その他のテーブル
 
@@ -186,17 +211,13 @@ Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
   - 1 → 0, 2 → 3, 3 → 5, 4 → 8, 5 → 10
 
 **マイグレーションファイル:**
-- `supabase/migrations/20250116000005_convert_level_1_5_to_0_10.sql`
 
-**実装詳細:**
-- データ更新前にCHECK制約を削除し、データ更新後に新しい制約を追加
-- PostgreSQLの自動生成制約名に対応するため、動的な制約削除を実装
-- スキーマ（`levelSchema`）とバリデーターも0-10に更新
-- フロントエンド表示も`/5`から`/10`に変更
+- 現行: `migrations/0001_initial_schema.sql`
+- 0〜10 への換算を行った旧 PostgreSQL マイグレーション: `supabase/migrations/20250116000005_convert_level_1_5_to_0_10.sql`
 
-### 5.5 Supabase 高度な機能
+### 5.5 旧構成の Supabase 資料
 
-Supabase の高度な機能（Edge Functions、View、RLS ポリシー詳細、トリガー、ストアドプロシージャ）については、以下のドキュメントを参照してください。
+Edge Functions、View、RLS、トリガーは現行の D1 では使いません。経緯は次の文書に残しています。
 
 → [205_DetailedDesign_Supabase_Advanced.md](./205_DetailedDesign_Supabase_Advanced.md)
 

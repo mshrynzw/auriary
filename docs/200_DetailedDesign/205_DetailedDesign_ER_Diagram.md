@@ -1,22 +1,34 @@
+物理型の現行は SQLite です。下の図のうち `m_users` と `t_sessions` 以外は、旧 PostgreSQL の型名のままです。INTEGER、TEXT、0/1 への対応は `migrations/0001_initial_schema.sql` を見てください。
+
+```mermaid
 erDiagram
 	direction TB
 	m_users {
-		BIGINT id PK "NOT NULL"  
-		UUID auth_user_id  "NOT NULL"  
-		TEXT display_name  "NOT NULL"  
-		TEXT family_name  "NULL"  
-		TEXT first_name  "NULL"  
-		TEXT family_name_kana  "NULL"  
-		TEXT first_name_kana  "NULL"  
-		TEXT email  "NULL"  
-		BOOLEAN is_active  "NOT NULL"  
-		BIGINT source_id  "NULL"  
-		TIMESTAMPTZ created_at  "NOT NULL"  
-		TIMESTAMPTZ updated_at  "NOT NULL"  
-		TIMESTAMPTZ deleted_at  "NULL"  
-		UUID created_by  "NOT NULL"  
-		UUID updated_by  "NOT NULL"  
-		UUID deleted_by  "NULL"  
+		INTEGER id PK "NOT NULL"
+		TEXT display_name "NOT NULL"
+		TEXT family_name "NULL"
+		TEXT first_name "NULL"
+		TEXT family_name_kana "NULL"
+		TEXT first_name_kana "NULL"
+		TEXT email "NOT NULL UNIQUE"
+		TEXT password_hash "NOT NULL"
+		INTEGER is_active "NOT NULL"
+		INTEGER source_id "NULL"
+		TEXT created_at "NOT NULL"
+		TEXT updated_at "NOT NULL"
+		TEXT deleted_at "NULL"
+		INTEGER created_by "NULL"
+		INTEGER updated_by "NULL"
+		INTEGER deleted_by "NULL"
+	}
+
+	t_sessions {
+		INTEGER id PK "NOT NULL"
+		INTEGER user_id FK "NOT NULL"
+		TEXT token_hash "NOT NULL UNIQUE"
+		TEXT expires_at "NOT NULL"
+		TEXT revoked_at "NULL"
+		TEXT created_at "NOT NULL"
 	}
 
 	m_user_daily_defaults {
@@ -177,6 +189,7 @@ erDiagram
 		UUID deleted_by  "NULL"  
 	}
 
+	m_users||--o{t_sessions:"user_id"
 	m_users||--o{m_user_daily_defaults:"user_id"
 	m_users||--o{r_user_medications:"user_id"
 	m_users||--o{t_diaries:"user_id"
@@ -199,4 +212,5 @@ erDiagram
 	style t_diary_attachments fill:#FFFFFF,stroke:#2962FF
 	style t_overdoses fill:#FFFFFF,stroke:#2962FF
 	style t_medication_intakes fill:#FFFFFF
+```
 

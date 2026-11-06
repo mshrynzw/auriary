@@ -1,0 +1,23 @@
+---
+description: サーバーとブラウザで同じ要素になる JSX にする
+globs: src/**/*.tsx
+alwaysApply: false
+---
+
+# 画面の要素
+
+サーバーが描いた HTML と、ブラウザが描く HTML を同じ要素にする。食い違うとハイドレーションが失敗し、`removeChild` で描画が崩れる。ページが 200 でも、コンソールの Hydration failed は未修正として扱う。
+
+## クリックできる要素
+
+- `Link` の中に `Button` を置かない。`Button` の中に `Link` を置かない。ホスト要素は一つにする。
+- 見た目がボタンの遷移は、`Link` に `buttonVariants()` を付ける。
+- Radix の `asChild`（`TooltipTrigger`、`DialogTrigger`、`AlertDialogTrigger`、`DropdownMenuTrigger`）の直接の子は、`button` か、`Button` のように一つの DOM 要素を描くコンポーネントにする。
+- `asChild` の直接の子を `Link`、`Dialog`、`AlertDialog` にしない。`Link` はサーバーではコンポーネントのまま、ブラウザでは `a` になり、ツールチップはサーバー側で `button` を足す。
+- ツールチップとダイアログを重ねるときは、両方の Trigger を同じ `Button` に載せる。`Dialog` 全体をツールチップで包まない。
+
+## スクリプト
+
+- React の描画の中に `<script>` を置かない。
+- Service Worker の登録はクライアントの `useEffect` で行う。開発中（`next dev`）は登録しない。
+- `controllerchange` で `location.reload()` しない。登録と解除が再読み込みを繰り返し、`/register` と `/diary` が往復する。

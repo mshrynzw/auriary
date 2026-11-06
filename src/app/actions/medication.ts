@@ -1,22 +1,43 @@
 'use server';
 
 import { requireAuth } from '@/lib/auth';
-import { medicationRowSchema } from '@/schemas';
+import { getDatabase } from '@/lib/db';
+import { queryAll, readId, readRows } from '@/lib/sql';
 
 /**
  * 薬マスタ一覧を取得
  */
 export async function getMedicationsAction() {
-  const { supabase } = await requireAuth();
+  await requireAuth();
 
-  const { data, error } = await supabase
-    .from('m_medications')
-    .select('*')
-    .is('deleted_at', null)
-    .order('name', { ascending: true });
-
-  if (error) {
-    console.error('Failed to fetch medications:', error);
+  try {
+    const db = await getDatabase();
+    const rows = readRows(
+      await queryAll(
+        db,
+        'SELECT id, name, generic_name, memo FROM m_medications WHERE deleted_at IS NULL ORDER BY name ASC',
+      ),
+    );
+    const medications = rows.flatMap((row) => {
+      const id = readId(row.id);
+      if (id === null || typeof row.name !== 'string') {
+        return [];
+      }
+      return [
+        {
+          id,
+          name: row.name,
+          generic_name: typeof row.generic_name === 'string' ? row.generic_name : null,
+          memo: typeof row.memo === 'string' ? row.memo : null,
+        },
+      ];
+    });
+    return { medications };
+  } catch (error) {
+    console.error(
+      '薬マスタの取得に失敗しました',
+      error instanceof Error ? error.message : 'unknown',
+    );
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -24,19 +45,4 @@ export async function getMedicationsAction() {
       },
     };
   }
-
-  // 型安全性を確保するためにZodスキーマで検証
-  const parsedMedications = medicationRowSchema.array().safeParse(data);
-
-  if (!parsedMedications.success) {
-    console.error('Failed to parse medications:', parsedMedications.error);
-    return {
-      error: {
-        code: 'PARSE_ERROR',
-        message: '薬マスタのデータ形式が不正です',
-      },
-    };
-  }
-
-  return { medications: parsedMedications.data };
 }

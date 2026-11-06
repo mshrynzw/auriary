@@ -4,43 +4,44 @@ import { useEffect } from 'react';
 
 export default function PwaScript() {
   useEffect(() => {
-    // Service Worker の登録
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      const registerServiceWorker = async () => {
-        try {
-          const registration = await navigator.serviceWorker.register('/sw.js', {
-            scope: '/',
-          });
+    if (process.env.NODE_ENV !== 'production') {
+      if ('serviceWorker' in navigator) {
+        void navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            void registration.unregister();
+          }
+        });
+      }
+      return;
+    }
 
-          console.log('Service Worker registered:', registration.scope);
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
 
-          // 更新チェック
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // 新しいService Workerが利用可能
-                  console.log('New Service Worker available');
-                  // 必要に応じて更新通知を表示
-                }
-              });
+    const registerServiceWorker = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+        });
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (!newWorker) {
+            return;
+          }
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('New Service Worker available');
             }
           });
+        });
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+      }
+    };
 
-          // コントローラーの変更を監視
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('Service Worker controller changed');
-            // ページをリロードして新しいService Workerを有効化
-            window.location.reload();
-          });
-        } catch (error) {
-          console.error('Service Worker registration failed:', error);
-        }
-      };
-
-      registerServiceWorker();
-    }
+    void registerServiceWorker();
   }, []);
 
   return null;

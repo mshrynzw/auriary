@@ -9,7 +9,7 @@ auriary（日記アプリ）の実装ガイド。詳細は `docs/` にあり、�
 3. `src/` の既存実装
 4. `docs/` と `README.md`
 
-`docs/` と `README.md` はまだ Vercel + Supabase を現行構成として書いている。移行が終わるまで、それは現行の実装説明であり、新しい作業の目標ではない。設計を変えた箇所は、対応する `docs/` を同じ作業で更新する。
+`docs/` と `README.md` のうち、アーキテクチャ、認証、データベース、セキュリティ、デプロイは Workers + D1 に合わせて更新済みです。`docs/300_Cording/` の一部と `205_DetailedDesign_Supabase_Advanced.md` には、旧 Supabase の例が残っています。そこは現行の実装説明ではありません。
 
 ## 現在の移行
 
@@ -29,7 +29,9 @@ SQLite に合わせる。`BIGSERIAL` は整数の主キー、日時と JSON は 
 
 感情分析 API は Railway のままにする。この移行の対象外。
 
-本番データの移行は未決定。指示があるまで Supabase のデータを消す操作、本番 D1 への投入、既存ユーザーのパスワード移行をしない。Supabase のパスワードハッシュは取り出せない前提で扱う。
+アプリの画面と Server Actions は D1 の binding `DB` を使う。`next dev` では OpenNext がローカル D1 をその binding に載せる。binding が無い開発時だけ、`.wrangler` の SQLite を直接開く。`src/lib/supabase.ts` は廃止した。Supabase を読むのは、日記コピーと感情分析のバックフィルスクリプトだけ。
+
+本番データの移行は未決定。指示があるまで Supabase のデータを消す操作、本番 D1 への投入、既存ユーザーのパスワード移行をしない。Supabase のパスワードハッシュは取り出せない前提で扱う。遠隔 D1 は未作成で、`wrangler.jsonc` の `database_id` はプレースホルダのまま。
 
 作業順は次のとおり。
 
@@ -37,7 +39,7 @@ SQLite に合わせる。`BIGSERIAL` は整数の主キー、日時と JSON は 
 2. ログイン、登録、ログアウト、`src/proxy.ts` のルート保護
 3. Server Actions（日記、入出金、服薬、デフォルト設定、AI）を D1 に置き換え
 4. OpenNext で Workers にデプロイし、Supabase クライアントを外す
-5. 無効になった設計書（アーキテクチャ、認証、データベース、セキュリティ、デプロイ）を更新する
+5. 無効になった設計書（アーキテクチャ、認証、データベース、セキュリティ、デプロイ）を更新する。この5つは更新済み。遠隔の D1 作成と本番データの投入は、別の指示までしない。
 
 ## 守る実装
 
@@ -52,7 +54,7 @@ SQLite に合わせる。`BIGSERIAL` は整数の主キー、日時と JSON は 
 
 ## このリポジトリの書き方
 
-パッケージマネージャは pnpm。
+パッケージマネージャは pnpm 10 以降。`pnpm-workspace.yaml` の `allowBuilds` を pnpm 9 は読めない。
 
 Prettier（`.cursor/settings.json`）: シングルクォート、セミコロンあり、trailing comma は es5、幅 100、インデント 2、LF。
 
@@ -66,7 +68,7 @@ Prettier（`.cursor/settings.json`）: シングルクォート、セミコロ�
 - リント: `pnpm lint`（`next lint` は使わない）
 - 型: `pnpm types`
 - 単体: `pnpm test:unit`
-- 結合: `pnpm test:integration`（現状は Supabase Local が必要。D1 へ移したらこの前提も更新する）
+- 結合: `pnpm test:integration`（ローカルの SQLite。Supabase Local は不要）
 - E2E: `pnpm test:e2e`
 
 変更した層のテストを更新する。認証とクエリの所有者チェックは、実装と一緒にテストする。
@@ -83,4 +85,14 @@ Prettier（`.cursor/settings.json`）: シングルクォート、セミコロ�
 | Server Actions | `docs/300_Cording/325_NextJS_ServerActions.md` |
 | エラー | `docs/300_Cording/306_ErrorHandling.md`、`328_NextJS_ErrorHandling.md` |
 | テスト | `docs/500_Unit_Test/500_Strategy.md`、`600_Integration_Test/600_Strategy.md`、`700_E2E_Test/700Strategy.md` |
-| デプロイ | `docs/800_Release/`。Workers 化後はここを新しい手順に書き換える |
+| デプロイ | `docs/800_Release/801_Deploy_Workers.md` |
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

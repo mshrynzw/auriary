@@ -1,17 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { getDiariesAction } from '@/app/actions/diary';
 import { AnalyticsView } from './analytics-view';
-import { Info } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScreenHelpButton } from '@/components/layout/screen-help-button';
 
 export default async function AnalyticsPage() {
   await requireAuth();
@@ -32,38 +22,15 @@ export default async function AnalyticsPage() {
     <div className="aurialy ">
       <div className="container mx-auto pb-8 px-4">
         <div className="flex items-center justify-between">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Info className="h-5 w-5" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>分析画面について</DialogTitle>
-                      <DialogDescription>
-                        分析画面では、感情スコア（AI分析）・トピック分析の可視化を確認できます。
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-2">
-                      <h4 className="font-semibold">主な機能:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-sm">
-                        <li>過去30日間の感情スコア推移グラフ（AI分析）</li>
-                        <li>トピック分布（円グラフ）</li>
-                        <li>統計サマリー（カード表示）</li>
-                      </ul>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>画面の説明を表示</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <ScreenHelpButton
+            title="分析画面について"
+            description="分析画面では、感情スコア（AI分析）・トピック分析の可視化を確認できます。"
+            items={[
+              '過去30日間の感情スコア推移グラフ（AI分析）',
+              'トピック分布（円グラフ）',
+              '統計サマリー（カード表示）',
+            ]}
+          />
         </div>
 
         <AnalyticsView diaries={diaries} />

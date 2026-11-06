@@ -6,18 +6,25 @@ import {
   updateDiaryFormSchema,
   type CreateDiaryFormInput,
   type UpdateDiaryFormInput,
-  type DiaryRow,
 } from '@/schemas';
 import { revalidatePath } from 'next/cache';
 import { analyzeSentiment } from '@/lib/ai/sentiment-api';
+import { getDatabase } from '@/lib/db';
+import {
+  findEarliestJournalDate,
+  findOwnedDiary,
+  insertDiary,
+  listDiaries,
+  softDeleteDiary,
+  updateDiary,
+} from '@/lib/diary-store';
 
 /**
  * 日記を作成
  */
 export async function createDiaryAction(input: CreateDiaryFormInput) {
-  const { user, userProfile, supabase } = await requireAuth();
+  const { user } = await requireAuth();
 
-  // バリデーション
   const validated = createDiaryFormSchema.safeParse(input);
   if (!validated.success) {
     return {
@@ -28,23 +35,18 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
     };
   }
 
-  // od_timesが存在する場合、has_odを自動設定
   const hasOd =
     validated.data.has_od || (validated.data.od_times && validated.data.od_times.length > 0);
-
-  // alcohol_timesが存在する場合、has_alcoholを自動設定
   const hasAlcohol =
     validated.data.has_alcohol ||
     (validated.data.alcohol_times && validated.data.alcohol_times.length > 0);
 
-  // 感情分析を実行（noteが存在する場合）
   let moodScore: number | null = null;
-  let sentimentAnalysisResult: any = null;
+  let sentimentAnalysisResult: unknown = null;
   if (validated.data.note && validated.data.note.trim().length > 0) {
     try {
       const sentimentResult = await analyzeSentiment(validated.data.note);
       moodScore = sentimentResult.score;
-      // 完全な結果を保存
       sentimentAnalysisResult = {
         sentiment: sentimentResult.sentiment,
         score: sentimentResult.score,
@@ -54,62 +56,36 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
         model_used: sentimentResult.model_used,
       };
     } catch (error) {
-      // 感情分析に失敗しても日記の保存は続行
-      console.error('Failed to analyze sentiment:', error);
+      console.error('感情分析に失敗しました', error instanceof Error ? error.message : 'unknown');
     }
   }
 
-  // 日記を作成
-  const { data, error } = await supabase
-    .from('t_diaries')
-    .insert({
-      user_id: userProfile!.id,
-      journal_date: validated.data.journal_date,
-      note: validated.data.note,
-      mood: moodScore,
-      sentiment_analysis_result: sentimentAnalysisResult,
-      sleep_quality: validated.data.sleep_quality,
-      bipolar_self_level: validated.data.bipolar_self_level,
-      wake_level: validated.data.wake_level,
-      daytime_level: validated.data.daytime_level,
-      pre_sleep_level: validated.data.pre_sleep_level,
-      med_adherence_level: validated.data.med_adherence_level,
-      appetite_level: validated.data.appetite_level,
-      sleep_desire_level: validated.data.sleep_desire_level,
-      exercise_level: validated.data.exercise_level,
-      systolic: validated.data.systolic ?? null,
-      diastolic: validated.data.diastolic ?? null,
-      pulse: validated.data.pulse ?? null,
+  try {
+    const db = await getDatabase();
+    const created = await insertDiary(db, user.id, {
+      ...validated.data,
       has_od: hasOd,
+      has_alcohol: hasAlcohol,
       od_times:
         validated.data.od_times && validated.data.od_times.length > 0
           ? validated.data.od_times
           : null,
-      has_alcohol: hasAlcohol,
       alcohol_times:
         validated.data.alcohol_times && validated.data.alcohol_times.length > 0
           ? validated.data.alcohol_times
           : null,
-      sleep_start_at: validated.data.sleep_start_at,
-      sleep_end_at: validated.data.sleep_end_at,
-      bath_start_at: validated.data.bath_start_at,
-      bath_end_at: validated.data.bath_end_at,
-      created_by: user.id,
-      updated_by: user.id,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    if (error.code === '23505') {
-      // ユニーク制約違反（同じ日付の日記が既に存在）
-      return {
-        error: {
-          code: 'DUPLICATE_ERROR',
-          message: 'この日付の日記は既に存在します',
-        },
-      };
+      mood: moodScore,
+      sentiment_analysis_result: sentimentAnalysisResult,
+    });
+    if (!created.ok) {
+      return { error: { code: created.code, message: created.message } };
     }
+    revalidatePath('/diary');
+    revalidatePath('/dashboard');
+    revalidatePath('/blood-pressure');
+    return { diary: created.diary };
+  } catch (error) {
+    console.error('日記の作成に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -117,20 +93,14 @@ export async function createDiaryAction(input: CreateDiaryFormInput) {
       },
     };
   }
-
-  revalidatePath('/diary');
-  revalidatePath('/dashboard');
-  revalidatePath('/blood-pressure');
-  return { diary: data };
 }
 
 /**
  * 日記を更新
  */
 export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput) {
-  const { user, userProfile, supabase } = await requireAuth();
+  const { user } = await requireAuth();
 
-  // バリデーション
   const validated = updateDiaryFormSchema.safeParse(input);
   if (!validated.success) {
     return {
@@ -141,52 +111,28 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
     };
   }
 
-  // 日記が存在し、ユーザーが所有しているか確認
-  const { data: existingDiary, error: fetchError } = await supabase
-    .from('t_diaries')
-    .select('id, user_id')
-    .eq('id', id)
-    .eq('user_id', userProfile!.id)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !existingDiary) {
-    return {
-      error: {
-        code: 'NOT_FOUND',
-        message: '日記が見つかりません',
-      },
-    };
-  }
-
-  // od_timesが存在する場合、has_odを自動設定
-  const updateData: any = { ...validated.data };
+  const updateData: Record<string, unknown> = { ...validated.data };
   if (updateData.od_times !== undefined) {
-    updateData.has_od = updateData.od_times && updateData.od_times.length > 0;
-    // od_timesが空の場合はnullに設定
-    if (!updateData.od_times || updateData.od_times.length === 0) {
-      updateData.od_times = null;
-    }
-  } else if (updateData.has_od !== undefined && !updateData.has_od) {
-    // has_odがfalseに設定された場合、od_timesもクリア
+    const times = Array.isArray(updateData.od_times) ? updateData.od_times : [];
+    updateData.has_od = times.length > 0;
+    updateData.od_times = times.length > 0 ? times : null;
+  } else if (updateData.has_od === false) {
     updateData.od_times = null;
   }
   if (updateData.alcohol_times !== undefined) {
-    updateData.has_alcohol = updateData.alcohol_times && updateData.alcohol_times.length > 0;
-    if (!updateData.alcohol_times || updateData.alcohol_times.length === 0) {
-      updateData.alcohol_times = null;
-    }
-  } else if (updateData.has_alcohol !== undefined && !updateData.has_alcohol) {
+    const times = Array.isArray(updateData.alcohol_times) ? updateData.alcohol_times : [];
+    updateData.has_alcohol = times.length > 0;
+    updateData.alcohol_times = times.length > 0 ? times : null;
+  } else if (updateData.has_alcohol === false) {
     updateData.alcohol_times = null;
   }
 
-  // 感情分析を実行（noteが更新された場合）
   if (updateData.note !== undefined) {
-    if (updateData.note && updateData.note.trim().length > 0) {
+    const note = typeof updateData.note === 'string' ? updateData.note : '';
+    if (note.trim().length > 0) {
       try {
-        const sentimentResult = await analyzeSentiment(updateData.note);
+        const sentimentResult = await analyzeSentiment(note);
         updateData.mood = sentimentResult.score;
-        // 完全な結果を保存
         updateData.sentiment_analysis_result = {
           sentiment: sentimentResult.sentiment,
           score: sentimentResult.score,
@@ -196,33 +142,31 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
           model_used: sentimentResult.model_used,
         };
       } catch (error) {
-        // 感情分析に失敗しても日記の更新は続行
-        console.error('Failed to analyze sentiment:', error);
-        // noteが空になった場合はmoodもnullに設定
-        if (!updateData.note || updateData.note.trim().length === 0) {
+        console.error('感情分析に失敗しました', error instanceof Error ? error.message : 'unknown');
+        if (note.trim().length === 0) {
           updateData.mood = null;
           updateData.sentiment_analysis_result = null;
         }
       }
     } else {
-      // noteが空になった場合はmoodもnullに設定
       updateData.mood = null;
       updateData.sentiment_analysis_result = null;
     }
   }
 
-  // 日記を更新
-  const { data, error } = await supabase
-    .from('t_diaries')
-    .update({
-      ...updateData,
-      updated_by: user.id,
-    })
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) {
+  try {
+    const db = await getDatabase();
+    const updated = await updateDiary(db, user.id, id, updateData);
+    if (!updated.ok) {
+      return { error: { code: updated.code, message: updated.message } };
+    }
+    revalidatePath('/diary');
+    revalidatePath(`/diary/${id}`);
+    revalidatePath('/dashboard');
+    revalidatePath('/blood-pressure');
+    return { diary: updated.diary };
+  } catch (error) {
+    console.error('日記の更新に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -230,48 +174,26 @@ export async function updateDiaryAction(id: number, input: UpdateDiaryFormInput)
       },
     };
   }
-
-  revalidatePath('/diary');
-  revalidatePath(`/diary/${id}`);
-  revalidatePath('/dashboard');
-  revalidatePath('/blood-pressure');
-  return { diary: data };
 }
 
 /**
  * 日記を削除（ソフトデリート）
  */
 export async function deleteDiaryAction(id: number) {
-  const { user, userProfile, supabase } = await requireAuth();
+  const { user } = await requireAuth();
 
-  // 日記が存在し、ユーザーが所有しているか確認
-  const { data: existingDiary, error: fetchError } = await supabase
-    .from('t_diaries')
-    .select('id, user_id')
-    .eq('id', id)
-    .eq('user_id', userProfile!.id)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !existingDiary) {
-    return {
-      error: {
-        code: 'NOT_FOUND',
-        message: '日記が見つかりません',
-      },
-    };
-  }
-
-  // ソフトデリート
-  const { error } = await supabase
-    .from('t_diaries')
-    .update({
-      deleted_at: new Date().toISOString(),
-      deleted_by: user.id,
-    })
-    .eq('id', id);
-
-  if (error) {
+  try {
+    const db = await getDatabase();
+    const deleted = await softDeleteDiary(db, user.id, id);
+    if (!deleted.ok) {
+      return { error: { code: deleted.code, message: deleted.message } };
+    }
+    revalidatePath('/diary');
+    revalidatePath('/dashboard');
+    revalidatePath('/blood-pressure');
+    return { success: true };
+  } catch (error) {
+    console.error('日記の削除に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -279,42 +201,27 @@ export async function deleteDiaryAction(id: number) {
       },
     };
   }
-
-  revalidatePath('/diary');
-  revalidatePath('/dashboard');
-  revalidatePath('/blood-pressure');
-  return { success: true };
 }
 
 /**
  * ユーザーの最古の日記日付（無限スクロールの終了判定用）
  */
 export async function getEarliestJournalDateAction(): Promise<{ journal_date: string | null }> {
-  const { userProfile, supabase } = await getAuth();
-
-  if (!userProfile || !supabase) {
+  const { userProfile } = await getAuth();
+  if (!userProfile) {
     return { journal_date: null };
   }
 
-  const { data, error } = await supabase
-    .from('t_diaries')
-    .select('journal_date')
-    .eq('user_id', userProfile.id)
-    .is('deleted_at', null)
-    .order('journal_date', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !data?.journal_date) {
+  try {
+    const db = await getDatabase();
+    return { journal_date: await findEarliestJournalDate(db, userProfile.id) };
+  } catch (error) {
+    console.error(
+      '最古の日記日付の取得に失敗しました',
+      error instanceof Error ? error.message : 'unknown',
+    );
     return { journal_date: null };
   }
-
-  return { journal_date: data.journal_date };
-}
-
-/** ILIKE のワイルドカード（%、_、PostgREST の *）をリテラルとして検索する */
-function escapeIlike(value: string) {
-  return value.replace(/[\\%_*]/g, (char) => `\\${char}`);
 }
 
 /**
@@ -328,50 +235,16 @@ export async function getDiariesAction(params?: {
   limit?: number;
   offset?: number;
 }) {
-  const { userProfile, supabase } = await getAuth();
-
-  // デバッグログ
-  console.log('getDiariesAction() - Auth state:', {
-    hasUserProfile: !!userProfile,
-    userProfileId: userProfile?.id,
-    hasSupabase: !!supabase,
-    params,
-  });
-
-  // 未認証の場合は空の配列を返す
-  if (!userProfile || !supabase) {
-    console.warn('getDiariesAction() - Unauthenticated or missing supabase client');
+  const { userProfile } = await getAuth();
+  if (!userProfile) {
     return { diaries: [] };
   }
 
-  let query = supabase
-    .from('t_diaries')
-    .select('*')
-    .eq('user_id', userProfile.id)
-    .is('deleted_at', null)
-    .order('journal_date', { ascending: false });
-
-  if (params?.start_date) {
-    query = query.gte('journal_date', params.start_date);
-  }
-  if (params?.end_date) {
-    query = query.lte('journal_date', params.end_date);
-  }
-  const keyword = params?.keyword?.trim();
-  if (keyword) {
-    query = query.ilike('note', `%${escapeIlike(keyword)}%`);
-  }
-
-  if (params?.limit) {
-    query = query.limit(params.limit);
-  }
-  if (params?.offset) {
-    query = query.range(params.offset, params.offset + (params.limit || 20) - 1);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
+  try {
+    const db = await getDatabase();
+    return { diaries: await listDiaries(db, userProfile.id, params) };
+  } catch (error) {
+    console.error('日記の取得に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -379,8 +252,6 @@ export async function getDiariesAction(params?: {
       },
     };
   }
-
-  return { diaries: (data || []) as DiaryRow[] };
 }
 
 /**
@@ -388,10 +259,8 @@ export async function getDiariesAction(params?: {
  * 未認証の場合はエラーを返す
  */
 export async function getDiaryAction(id: number) {
-  const { userProfile, supabase } = await getAuth();
-
-  // 未認証の場合はエラーを返す
-  if (!userProfile || !supabase) {
+  const { userProfile } = await getAuth();
+  if (!userProfile) {
     return {
       error: {
         code: 'UNAUTHORIZED',
@@ -400,15 +269,20 @@ export async function getDiaryAction(id: number) {
     };
   }
 
-  const { data, error } = await supabase
-    .from('t_diaries')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', userProfile.id)
-    .is('deleted_at', null)
-    .single();
-
-  if (error || !data) {
+  try {
+    const db = await getDatabase();
+    const diary = await findOwnedDiary(db, userProfile.id, id);
+    if (!diary) {
+      return {
+        error: {
+          code: 'NOT_FOUND',
+          message: '日記が見つかりません',
+        },
+      };
+    }
+    return { diary };
+  } catch (error) {
+    console.error('日記の取得に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'NOT_FOUND',
@@ -416,6 +290,4 @@ export async function getDiaryAction(id: number) {
       },
     };
   }
-
-  return { diary: data as DiaryRow };
 }

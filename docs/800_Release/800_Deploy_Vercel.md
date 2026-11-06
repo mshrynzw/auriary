@@ -1,6 +1,8 @@
 # Vercel デプロイ手順書
 
-このドキュメントでは、auriaryプロジェクトをVercelにデプロイする手順を説明します。
+この文書は、以前の Vercel + Supabase への手順です。現行のデプロイ先は Cloudflare Workers + D1 です。手順は [801_Deploy_Workers.md](./801_Deploy_Workers.md) を見てください。
+
+以下は当時の手順として残しています。
 
 ## ⚡ クイックスタート（3分でデプロイ）
 

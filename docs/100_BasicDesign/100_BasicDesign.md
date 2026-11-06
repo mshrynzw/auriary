@@ -8,20 +8,20 @@
 
 ### 1.2 コンセプト
 
-日々の記録を楽に・幻想的に残せる次世代の日記アプリ。ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自動生成などを自動化します。
+日々の記録を残す日記アプリ。感情分析は Railway の API を使い、日記本文は Cloudflare D1 に保存する。
 
 ### 1.3 使用技術
 
 | カテゴリ          | 技術スタック                                                        |
 | ----------------- | ------------------------------------------------------------------- |
-| フレームワーク    | **Next.js 16**（App Router / Server Components / Cache Components） |
-| データベース      | **Supabase（PostgreSQL + RLS）**                                    |
-| ホスティング      | **Vercel**（Next.js 最適化）                                        |
+| フレームワーク    | **Next.js 16**（App Router / Server Components / Server Actions） |
+| データベース      | **Cloudflare D1**（SQLite。RLS は無く、セッションの user_id で絞る） |
+| ホスティング      | **Cloudflare Workers**（`@opennextjs/cloudflare`）                 |
 | UI フレームワーク | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント）              |
-| 認証              | Supabase Auth（Email / OAuth）                                      |
-| AI                | OpenAI / ChatGPT API                                                |
-| PWA               | Service Worker、manifest.json、IndexedDB（将来実装）                |
-| 開発ツール        | ESLint + Prettier, TypeScript 5, pnpm                               |
+| 認証              | メールとパスワード（PBKDF2、セッショントークンの SHA-256）          |
+| AI                | 感情分析は Railway。文章補完は未実装のモック                        |
+| PWA               | Service Worker、manifest.json                                       |
+| 開発ツール        | ESLint + Prettier, TypeScript 5, pnpm 10 以降                       |
 
 ### 1.4 想定ユーザー
 
@@ -35,8 +35,8 @@
 - **AI による文章補完・推敲**：日記作成の負担を軽減
 - **自動タグ生成**：AI による自動カテゴリ分類
 - **感情・傾向分析**：過去の記録から感情シーケンスを可視化
-- **セキュアなデータ管理**：Supabase RLS による完全なユーザースコープ
-- **クロスデバイス同期**：Supabase を利用したリアルタイム同期
+- **セキュアなデータ管理**：セッションの user_id で本人の行だけを読み書きする
+- **クロスデバイス同期**：D1 に保存した日記を、ログインしたブラウザから読む
 - **PWA対応**（将来実装）：オフライン対応、ホーム画面へのインストール、ネイティブアプリのような体験
 
 ---
@@ -47,44 +47,44 @@
 
 ### 2. 全体アーキテクチャ
 
-→ [202_DetailedDesign_Architecture.md](../202_DetailedDesign/202_DetailedDesign_Architecture.md)
+→ [202_DetailedDesign_Architecture.md](../200_DetailedDesign/202_DetailedDesign_Architecture.md)
 
 ### 3. 画面一覧（UI設計）
 
-→ [203_DetailedDesign_UI.md](../202_DetailedDesign/203_DetailedDesign_UI.md)
+→ [203_DetailedDesign_UI.md](../200_DetailedDesign/203_DetailedDesign_UI.md)
 
 ### 4. 機能設計
 
-→ [204_DetailedDesign_Functions.md](../202_DetailedDesign/204_DetailedDesign_Functions.md)
+→ [204_DetailedDesign_Functions.md](../200_DetailedDesign/204_DetailedDesign_Functions.md)
 
 ### 5. データベース設計
 
-→ [205_DetailedDesign_Database.md](../202_DetailedDesign/205_DetailedDesign_Database.md)
+→ [205_DetailedDesign_Database.md](../200_DetailedDesign/205_DetailedDesign_Database.md)
 
 **関連ドキュメント:**
 
-- [205_DetailedDesign_ER_Diagram.md](../202_DetailedDesign/205_DetailedDesign_ER_Diagram.md) - ER図
-- [205_DetailedDesign_Table_Definition.md](../202_DetailedDesign/205_DetailedDesign_Table_Definition.md) - テーブル定義書
+- [205_DetailedDesign_ER_Diagram.md](../200_DetailedDesign/205_DetailedDesign_ER_Diagram.md) - ER図
+- [205_DetailedDesign_Table_Definition.md](../200_DetailedDesign/205_DetailedDesign_Table_Definition.md) - テーブル定義書
 
 ### 6. API設計（App Router）
 
-→ [206_DetailedDesign_API.md](../202_DetailedDesign/206_DetailedDesign_API.md)
+→ [206_DetailedDesign_API.md](../200_DetailedDesign/206_DetailedDesign_API.md)
 
 ### 7. コンポーネント設計
 
-→ [207_DetailedDesign_Components.md](../202_DetailedDesign/207_DetailedDesign_Components.md)
+→ [207_DetailedDesign_Components.md](../200_DetailedDesign/207_DetailedDesign_Components.md)
 
 ### 8. セキュリティ設計
 
-→ [208_DetailedDesign_Security.md](../202_DetailedDesign/208_DetailedDesign_Security.md)
+→ [208_DetailedDesign_Security.md](../200_DetailedDesign/208_DetailedDesign_Security.md)
 
 ### 9. ログ・監査
 
-→ [209_DetailedDesign_Logging.md](../202_DetailedDesign/209_DetailedDesign_Logging.md)
+→ [209_DetailedDesign_Logging.md](../200_DetailedDesign/209_DetailedDesign_Logging.md)
 
 ### 10. 非機能要件
 
-→ [210_DetailedDesign_NonFunctional.md](../202_DetailedDesign/210_DetailedDesign_NonFunctional.md)
+→ [210_DetailedDesign_NonFunctional.md](../200_DetailedDesign/210_DetailedDesign_NonFunctional.md)
 
 ### 11. Next.js 16 実装方針
 

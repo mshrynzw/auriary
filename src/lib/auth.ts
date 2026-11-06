@@ -1,154 +1,63 @@
-import { createSupabaseServerClient } from './supabase';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { findActiveUserById, type SessionUser } from './auth/accounts';
+import { SESSION_COOKIE, verifySession } from './auth/session';
+import { getDatabase } from './db';
+
+export type { SessionUser };
 
 /**
- * 認証が必要なページで使用するヘルパー関数
- * 未認証の場合は /login にリダイレクト
+ * 認証が必要なページで使用する。未認証なら /login へ送る。
  */
 export async function requireAuth() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
+  const current = await readCurrentUser();
+  if (!current) {
     redirect('/login');
   }
 
-  // m_users テーブルからユーザー情報を取得
-  const { data: userProfile, error: profileError } = await supabase
-    .from('m_users')
-    .select('id, display_name, email')
-    .eq('auth_user_id', user.id)
-    .eq('is_active', true)
-    .is('deleted_at', null)
-    .single();
-
-  if (profileError) {
-    console.error('Failed to fetch user profile:', profileError);
-    throw new Error('ユーザープロフィールの取得に失敗しました');
-  }
-
-  if (!userProfile) {
-    throw new Error('ユーザープロフィールが見つかりません');
-  }
-
-  return { user, userProfile, supabase };
+  return {
+    user: current,
+    userProfile: current,
+  };
 }
 
 /**
- * UI表示用の認証状態を取得（getSession()ベース、即座に取得可能）
- * ローカルストレージ（サーバーサイドではcookie）からセッションを取得するため、
- * JWTリフレッシュの遅延が発生しません。
- * セキュリティ上重要な操作には使用しないでください。
+ * 画面表示用の認証状態。セッションは D1 で検証する。
  */
 export async function getAuth() {
   try {
-    const supabase = await createSupabaseServerClient();
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    // セッションが存在しない場合は未認証状態として扱う
-    if (sessionError || !session?.user) {
-      return { user: null, userProfile: null, supabase };
+    const current = await readCurrentUser();
+    if (!current) {
+      return { user: null, userProfile: null };
     }
-
-    const user = session.user;
-
-    // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
-    const { data: userProfile, error } = await supabase
-      .from('m_users')
-      .select('id, display_name, email')
-      .eq('auth_user_id', user.id)
-      .eq('is_active', true)
-      .is('deleted_at', null)
-      .single();
-
-    // エラーが発生した場合（テーブルが存在しない、RLSポリシーの問題など）はnullを返す
-    if (error) {
-      console.warn('Failed to fetch user profile:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-        // RLSエラーの可能性を確認
-        isRLSError: error.code === 'PGRST301' || error.message?.includes('RLS'),
-        // テーブルが存在しない可能性を確認
-        isTableNotFound:
-          error.code === 'PGRST116' ||
-          error.message?.includes('relation') ||
-          error.message?.includes('does not exist'),
-      });
-      return { user, userProfile: null, supabase };
-    }
-
-    return { user, userProfile, supabase };
+    return { user: current, userProfile: current };
   } catch (error) {
-    // 環境変数が設定されていない場合など、Supabaseクライアントの作成に失敗した場合
-    console.error('Failed to create Supabase client in getAuth():', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    return { user: null, userProfile: null, supabase: null };
+    console.error(
+      '認証状態の取得に失敗しました',
+      error instanceof Error ? error.message : 'unknown',
+    );
+    return { user: null, userProfile: null };
   }
 }
 
 /**
- * セキュリティ上重要な操作用の認証状態を取得（getUser()ベース、サーバー検証あり）
- * データの保存・削除など、本人確認が必要な操作で使用してください。
- * JWTリフレッシュが必要な場合は遅延が発生する可能性があります。
+ * 保存や削除の前に使う。getAuth と同じく D1 のセッションを検証する。
  */
 export async function getAuthWithVerification() {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  return getAuth();
+}
 
-    // Auth session missing! は未認証の正常な状態なので、エラーとして扱わない
-    // ただし、実際の接続エラー（CORS、ネットワークエラーなど）の場合はエラーとして扱う
-    if (authError && authError.message !== 'Auth session missing!') {
-      console.error('Failed to get user from Supabase auth:', {
-        message: authError.message,
-        code: authError.code,
-      });
-      return { user: null, userProfile: null, supabase: null };
-    }
-
-    // Auth session missing! または user が null の場合は、未認証状態として扱う
-    if (!user) {
-      return { user: null, userProfile: null, supabase };
-    }
-
-    // m_users テーブルからユーザー情報を取得（エラー時はnullを返す）
-    const { data: userProfile, error } = await supabase
-      .from('m_users')
-      .select('id, display_name, email')
-      .eq('auth_user_id', user.id)
-      .eq('is_active', true)
-      .is('deleted_at', null)
-      .single();
-
-    if (error) {
-      console.warn('Failed to fetch user profile:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      });
-      return { user, userProfile: null, supabase };
-    }
-
-    return { user, userProfile, supabase };
-  } catch (error) {
-    console.error('Failed to create Supabase client in getAuthWithVerification():', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    return { user: null, userProfile: null, supabase: null };
+async function readCurrentUser(): Promise<SessionUser | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE.name)?.value;
+  if (!token) {
+    return null;
   }
+
+  const db = await getDatabase();
+  const userId = await verifySession(db, token);
+  if (!userId) {
+    return null;
+  }
+  return findActiveUserById(db, userId);
 }

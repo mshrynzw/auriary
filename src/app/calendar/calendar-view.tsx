@@ -3,7 +3,8 @@
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -99,10 +100,11 @@ export function CalendarView({ diaries }: CalendarViewProps) {
                   <span>本文なし</span>
                 )}
               </div>
-              <Link href={`/diary/${selectedDiary.id}`}>
-                <Button variant="outline" className="w-full cursor-pointer">
-                  詳細を見る
-                </Button>
+              <Link
+                href={`/diary/${selectedDiary.id}`}
+                className={cn(buttonVariants({ variant: 'outline' }), 'w-full cursor-pointer')}
+              >
+                詳細を見る
               </Link>
             </div>
           ) : (

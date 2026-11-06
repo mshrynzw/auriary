@@ -4,6 +4,8 @@ import { requireAuth, getAuth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { bankTransactionMemoMaxLength, type BankTransactionRow } from '@/schemas';
+import { getDatabase } from '@/lib/db';
+import { execute, isRecord, queryAll, queryFirst, readId, readRows } from '@/lib/sql';
 
 const importRecordSchema = z.object({
   txn_date: z.string().date(),
@@ -80,7 +82,7 @@ function normalizeMemo(memo: string | null) {
 }
 
 export async function replaceBankTransactionsAction(payload: ImportPayload) {
-  const { user, userProfile, supabase } = await requireAuth();
+  const { user } = await requireAuth();
 
   const validated = importPayloadSchema.safeParse(payload);
   if (!validated.success) {
@@ -96,60 +98,83 @@ export async function replaceBankTransactionsAction(payload: ImportPayload) {
   const dates = records.map((r) => r.txn_date).sort();
   const startDate = dates[0];
   const endDate = dates[dates.length - 1];
-
-  const { data: existingRows, error: existingError } = await supabase
-    .from('t_bank_transactions')
-    .select('id, txn_date, txn_type, amount, description, memo')
-    .eq('user_id', userProfile.id)
-    .gte('txn_date', startDate)
-    .lte('txn_date', endDate)
-    .is('deleted_at', null);
-
-  if (existingError) {
+  if (!startDate || !endDate) {
     return {
       error: {
-        code: 'INTERNAL_ERROR',
-        message: '既存明細の取得に失敗しました',
+        code: 'VALIDATION_ERROR',
+        message: 'CSVデータの形式が正しくありません',
       },
     };
   }
 
-  const preservedMemos = assignPreservedMemos((existingRows ?? []) as MemoSourceRow[], records);
+  try {
+    const db = await getDatabase();
+    const existingRows = readRows(
+      await queryAll(
+        db,
+        'SELECT id, txn_date, txn_type, amount, description, memo FROM t_bank_transactions WHERE user_id = ? AND txn_date >= ? AND txn_date <= ? AND deleted_at IS NULL ORDER BY id ASC',
+        [user.id, startDate, endDate],
+      ),
+    ).flatMap((row) => {
+      const id = readId(row.id);
+      if (id === null || typeof row.txn_date !== 'string' || typeof row.txn_type !== 'string') {
+        return [];
+      }
+      const amount = typeof row.amount === 'number' ? row.amount : Number(row.amount);
+      return [
+        {
+          id,
+          txn_date: row.txn_date,
+          txn_type: row.txn_type,
+          amount,
+          description: typeof row.description === 'string' ? row.description : null,
+          memo: typeof row.memo === 'string' ? row.memo : null,
+        } satisfies MemoSourceRow,
+      ];
+    });
+    const preservedMemos = assignPreservedMemos(existingRows, records);
+    const now = new Date().toISOString();
 
-  // 同じ期間の既存データを削除してから再挿入（再アップロード時の上書き）
-  const { error: deleteError } = await supabase
-    .from('t_bank_transactions')
-    .delete()
-    .eq('user_id', userProfile.id)
-    .gte('txn_date', startDate)
-    .lte('txn_date', endDate);
+    await execute(
+      db,
+      'DELETE FROM t_bank_transactions WHERE user_id = ? AND txn_date >= ? AND txn_date <= ?',
+      [user.id, startDate, endDate],
+    );
 
-  if (deleteError) {
+    for (const [index, record] of records.entries()) {
+      await execute(
+        db,
+        'INSERT INTO t_bank_transactions (user_id, txn_date, txn_type, amount, description, memo, source_file_name, created_at, updated_at, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          user.id,
+          record.txn_date,
+          record.txn_type,
+          record.amount,
+          record.description ?? null,
+          preservedMemos[index] ?? null,
+          validated.data.source_file_name ?? null,
+          now,
+          now,
+          user.id,
+          user.id,
+        ],
+      );
+    }
+
+    const inserted = await listBankTransactions(db, user.id, {
+      start_date: startDate,
+      end_date: endDate,
+    });
+    revalidatePath('/income-expense');
     return {
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: '既存明細の削除に失敗しました',
-      },
+      success: true,
+      importedCount: records.length,
+      startDate,
+      endDate,
+      transactions: inserted,
     };
-  }
-
-  const insertRows = records.map((record, index) => ({
-    user_id: userProfile.id,
-    txn_date: record.txn_date,
-    txn_type: record.txn_type,
-    amount: record.amount,
-    description: record.description ?? null,
-    memo: preservedMemos[index] ?? null,
-    source_file_name: validated.data.source_file_name ?? null,
-    created_by: user.id,
-    updated_by: user.id,
-  }));
-
-  const { data: inserted, error: insertError } = await supabase
-    .from('t_bank_transactions')
-    .insert(insertRows)
-    .select('*');
-  if (insertError || !inserted) {
+  } catch (error) {
+    console.error('明細の保存に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -157,19 +182,10 @@ export async function replaceBankTransactionsAction(payload: ImportPayload) {
       },
     };
   }
-
-  revalidatePath('/income-expense');
-  return {
-    success: true,
-    importedCount: records.length,
-    startDate,
-    endDate,
-    transactions: inserted as BankTransactionRow[],
-  };
 }
 
 export async function updateBankTransactionMemoAction(input: { id: number; memo: string | null }) {
-  const { user, userProfile, supabase } = await requireAuth();
+  const { user } = await requireAuth();
 
   const validated = updateMemoSchema.safeParse(input);
   if (!validated.success) {
@@ -191,19 +207,29 @@ export async function updateBankTransactionMemoAction(input: { id: number; memo:
     };
   }
 
-  const { data, error } = await supabase
-    .from('t_bank_transactions')
-    .update({
-      memo: normalized.memo,
-      updated_by: user.id,
-    })
-    .eq('id', validated.data.id)
-    .eq('user_id', userProfile.id)
-    .is('deleted_at', null)
-    .select('memo')
-    .maybeSingle();
-
-  if (error) {
+  try {
+    const db = await getDatabase();
+    const existing = await queryFirst(
+      db,
+      'SELECT id FROM t_bank_transactions WHERE id = ? AND user_id = ? AND deleted_at IS NULL',
+      [validated.data.id, user.id],
+    );
+    if (!isRecord(existing)) {
+      return {
+        error: {
+          code: 'NOT_FOUND',
+          message: '明細が見つかりません',
+        },
+      };
+    }
+    await execute(
+      db,
+      'UPDATE t_bank_transactions SET memo = ?, updated_at = ?, updated_by = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL',
+      [normalized.memo, new Date().toISOString(), user.id, validated.data.id, user.id],
+    );
+    return { memo: normalized.memo };
+  } catch (error) {
+    console.error('メモの保存に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -211,17 +237,6 @@ export async function updateBankTransactionMemoAction(input: { id: number; memo:
       },
     };
   }
-
-  if (!data) {
-    return {
-      error: {
-        code: 'NOT_FOUND',
-        message: '明細が見つかりません',
-      },
-    };
-  }
-
-  return { memo: (data.memo ?? null) as string | null };
 }
 
 export async function getBankTransactionsAction(params?: {
@@ -230,26 +245,19 @@ export async function getBankTransactionsAction(params?: {
   limit?: number;
   offset?: number;
 }) {
-  const { userProfile, supabase } = await getAuth();
-  if (!userProfile || !supabase) {
+  const { userProfile } = await getAuth();
+  if (!userProfile) {
     return { transactions: [] as BankTransactionRow[] };
   }
 
-  let query = supabase
-    .from('t_bank_transactions')
-    .select('*')
-    .eq('user_id', userProfile.id)
-    .is('deleted_at', null)
-    .order('txn_date', { ascending: false })
-    .order('id', { ascending: false });
-
-  if (params?.start_date) query = query.gte('txn_date', params.start_date);
-  if (params?.end_date) query = query.lte('txn_date', params.end_date);
-  if (params?.limit) query = query.limit(params.limit);
-  if (params?.offset) query = query.range(params.offset, params.offset + (params.limit || 20) - 1);
-
-  const { data, error } = await query;
-  if (error) {
+  try {
+    const db = await getDatabase();
+    return { transactions: await listBankTransactions(db, userProfile.id, params) };
+  } catch (error) {
+    console.error(
+      '収支明細の取得に失敗しました',
+      error instanceof Error ? error.message : 'unknown',
+    );
     return {
       error: {
         code: 'INTERNAL_ERROR',
@@ -257,6 +265,32 @@ export async function getBankTransactionsAction(params?: {
       },
     };
   }
+}
 
-  return { transactions: (data || []) as BankTransactionRow[] };
+async function listBankTransactions(
+  db: Awaited<ReturnType<typeof getDatabase>>,
+  userId: number,
+  params?: {
+    start_date?: string;
+    end_date?: string;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<BankTransactionRow[]> {
+  const where = ['user_id = ?', 'deleted_at IS NULL'];
+  const values: Array<string | number | null> = [userId];
+  if (params?.start_date) {
+    where.push('txn_date >= ?');
+    values.push(params.start_date);
+  }
+  if (params?.end_date) {
+    where.push('txn_date <= ?');
+    values.push(params.end_date);
+  }
+  let sql = `SELECT * FROM t_bank_transactions WHERE ${where.join(' AND ')} ORDER BY txn_date DESC, id DESC`;
+  if (params?.limit !== undefined || params?.offset !== undefined) {
+    sql += ' LIMIT ? OFFSET ?';
+    values.push(params.limit ?? -1, params.offset ?? 0);
+  }
+  return readRows(await queryAll(db, sql, values)) as BankTransactionRow[];
 }

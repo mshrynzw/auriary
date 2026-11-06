@@ -1,9 +1,9 @@
 # auriary — AI Diary App
 
-**Next.js 16 + Supabase + Tailwind CSS v4 + shadcn/ui**
+**Next.js 16 + Cloudflare Workers + D1 + Tailwind CSS v4 + shadcn/ui**
 
-auriary（オーリアリー）は、**日々の記録を楽に・幻想的に残せる次世代の日記アプリ**です。  
-ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自動生成などを自動化します。
+auriary（オーリアリー）は、**日々の記録を楽に残せる日記アプリ**です。
+日記の保存時に、Railway の感情分析 API で気分のスコアを付けます。
 
 <img width="1093" height="870" alt="image" src="https://github.com/user-attachments/assets/7dcc19da-f407-4e86-957c-d134f8ee1f96" />
 
@@ -23,8 +23,8 @@ ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自
 
 ### 🔐 セキュア認証
 
-- Supabase Auth（Email / OAuth）
-- RLS（Row Level Security）対応
+- メールアドレスとパスワード
+- セッションは本人の行だけを読む
 
 ### 📅 カレンダー管理
 
@@ -38,22 +38,20 @@ ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自
 
 ### ☁️ クロスデバイス同期
 
-- Supabase を利用したリアルタイム同期
-- Vercel のエッジネットワークで高速化
-
----
+- D1 に保存し、ログインしたブラウザから読む
+- Cloudflare Workers に載せる
 
 ## 🏗️ Tech Stack
 
 | Category  | Technology                                                          |
 | --------- | ------------------------------------------------------------------- |
-| Framework | **Next.js 16**（App Router / Server Components / Cache Components） |
-| Database  | **Supabase（PostgreSQL + RLS）**                                    |
-| Hosting   | **Vercel**（Next.js 最適化）                                        |
-| UI        | **Tailwind CSS v4**, **shadcn/ui**（全コンポーネント）              |
-| Auth      | Supabase Auth                                                       |
-| AI        | OpenAI / ChatGPT API                                                |
-| Tools     | ESLint + Prettier, GitHub Actions                                   |
+| Framework | **Next.js 16**（App Router / Server Components / Server Actions）   |
+| Database  | **Cloudflare D1**（SQLite）                                         |
+| Hosting   | **Cloudflare Workers**（`@opennextjs/cloudflare`）                  |
+| UI        | **Tailwind CSS v4**, **shadcn/ui**                                  |
+| Auth      | メールとパスワード（PBKDF2、セッションの SHA-256）                  |
+| AI        | 感情分析は Railway                                                  |
+| Tools     | ESLint + Prettier, GitHub Actions, pnpm 10 以降                     |
 
 ---
 
@@ -62,22 +60,15 @@ ChatGPT とリアルタイム連携し、文章補助・感情分析・タグ自
 ```
 
 auriary/
-├─ app/
-│  ├─ (dashboard)/
-│  ├─ diary/
-│  ├─ api/
-│  └─ layout.tsx
-├─ components/
-├─ lib/
-│  ├─ supabase.ts
-│  ├─ validators/
-│  └─ ai/
-├─ styles/
-├─ supabase/
-│  ├─ migrations/
-│  ├─ seeds/
-│  └─ config.toml
-└─ README.md
+├─ src/
+│  ├─ app/
+│  ├─ lib/
+│  │  ├─ db.ts
+│  │  └─ auth/
+│  └─ proxy.ts
+├─ migrations/
+├─ wrangler.jsonc
+└─ open-next.config.ts
 
 ```
 
@@ -85,30 +76,26 @@ auriary/
 
 ## 🗄️ Database Schema (概要)
 
-主要テーブル（Mermaid ER 図は DB/設計資料に準拠）：
+詳細は `migrations/0001_initial_schema.sql` と `docs/200_DetailedDesign/205_DetailedDesign_Database.md` です。
 
-### **m_users（ユーザーマスタ）**
+### m_users
 
-- id / auth_user_id（UUID）
+- id（整数）
 - display_name
 - email
-- created_at / updated_at / deleted_at
-- created_by / updated_by / deleted_by
+- password_hash
 
-### **t_diaries（日記）**
+### t_diaries
 
 - id
 - user_id
-- title
-- body
-- mood（感情スコア）
+- journal_date
+- note
+- mood
 - ai_summary
 - ai_topics
-- created_at / updated_at / deleted_at
 
-### **t_diary_tags（タグ紐付け）**
-
-Supabase の RLS により、ユーザー自身のみ参照可能。
+セッションの `user_id` で、本人の日記だけを読みます。
 
 ---
 
@@ -116,85 +103,42 @@ Supabase の RLS により、ユーザー自身のみ参照可能。
 
 ### 1. Clone
 
-```
-
-git clone [https://github.com/yourname/auriary.git](https://github.com/yourname/auriary.git)
+```bash
+git clone https://github.com/yourname/auriary.git
 cd auriary
-
 ```
 
 ### 2. Install
 
-```
+pnpm 10 以降を使います。
 
+```bash
 pnpm install
-
 ```
 
-### 3. Supabase Setup
+### 3. ローカル D1
 
+```bash
+pnpm d1:migrate:local
 ```
 
-supabase start
-supabase db push
-supabase gen types typescript --project-id "local" > lib/types/supabase.ts
+`.env.local` に感情分析 API の URL を置きます。
 
-```
-
-.env.local を設定：
-
-```
-
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-OPENAI_API_KEY=...
+```text
 NEXT_PUBLIC_SENTIMENT_API_URL=http://localhost:8000
-
 ```
+
+Supabase の URL と鍵は、日記のコピーと感情分析のバックフィルだけが読みます。画面は読みません。
 
 ### 4. Dev Server
 
-```
-
+```bash
 pnpm dev
-
 ```
 
-### 5. ☁️ Vercel へのデプロイ
+### 5. Workers へのデプロイ
 
-**デプロイ手順:**
-
-1. **Vercel にプロジェクトをインポート**
-   - [Vercel Dashboard](https://vercel.com/dashboard) にログイン
-   - 「**Add New Project**」をクリック
-   - GitHubリポジトリを選択してインポート
-
-2. **環境変数を設定**
-   - Vercel Dashboard → プロジェクト → **Settings** → **Environment Variables**
-   - 以下の環境変数を追加：
-     - `NEXT_PUBLIC_SUPABASE_URL`
-     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-3. **デプロイ**
-   - 「**Deploy**」をクリック
-   - ビルドが完了すると自動的にデプロイされます
-
-4. **完了！**
-   - デプロイされたURL（例: `https://auriary.vercel.app`）からアクセス可能になります
-
-**カスタムドメインの設定（オプション）:**
-
-1. Vercel Dashboard → プロジェクト → **Settings** → **Domains**
-2. 「**Add Domain**」をクリック
-3. カスタムドメインを入力（例: `www.auriaries.org`）
-4. DNS設定の指示に従って設定
-   - Vercelが提供するDNSレコードをDNSプロバイダーに追加
-   - SSL証明書は自動的に設定されます
-
-**詳細な設定手順:**
-
-詳細な設定手順については、[docs/800_Release/800_Deploy.md](./docs/800_Release/800_Deploy.md) を参照してください。
+遠隔の D1 は未作成です。手順は [docs/800_Release/801_Deploy_Workers.md](./docs/800_Release/801_Deploy_Workers.md) です。本番の日記は、指示があるまで移しません。
 
 ---
 
@@ -249,7 +193,7 @@ pnpm test:e2e:ui
 - `test:ui`: VitestのUIモード。ブラウザでテスト結果を視覚的に確認
 - `test:unit`: 単体テストのみを実行。結合テストは除外される。CI/CDパイプラインで使用
 - `test:coverage`: コードカバレッジレポートを生成
-- `test:integration`: 結合テストのみを実行（Supabase Localが必要）
+- `test:integration`: 結合テスト。ローカルの SQLite を使う。Supabase Local は不要
 - `test:e2e`: PlaywrightでE2Eテストを実行
 - `test:e2e:ui`: PlaywrightのUIモードでE2Eテストを実行
 
@@ -261,62 +205,15 @@ GitHub Actionsでプッシュ時に自動的にテストが実行されます。
 
 ### CI環境での動作
 
-GitHub Actionsでは、`supabase status -o env`コマンドを使用してSupabase Localの環境変数を自動的に取得します。これにより、手動で環境変数を設定する必要がありません。
-
-**動作の流れ：**
-
-1. `supabase start`でSupabase Localを起動
-2. `supabase db reset`でマイグレーションを適用
-3. `supabase status -o env >> $GITHUB_ENV`で環境変数を自動取得
-4. テスト実行時に環境変数が自動的に利用可能
-
-**ローカル開発での確認方法：**
-
-ローカルでSupabase Localを起動してキーを確認できます：
-
-```bash
-# Supabase Localを起動
-supabase start
-
-# 環境変数形式でキーを確認
-supabase status -o env
-```
-
-出力例：
-
-```
-SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
-```
-
-**注意**:
-
-- Supabase Localのキーは、JWT secretがデフォルト値（`super-secret-jwt-token-with-at-least-32-characters-long`）の場合、同じキーが生成されます
-- これらのキーはローカル開発環境専用で、本番環境のキーとは完全に別物です
-- CI環境では自動的に環境変数が設定されるため、GitHub Environmentsでの手動設定は不要です
-
-**参考**: [Supabase CLI: Local Development](https://supabase.com/docs/guides/cli/local-development)
+GitHub Actions は Node.js 24 と pnpm 11 で、単体テスト、D1 の結合テスト、Playwright の E2E を実行します。Supabase Local は起動しません。
 
 ### テストパイプライン
 
-`.github/workflows/test.yml`で以下のテストが並列実行されます：
+`.github/workflows/test.yml` で次を実行します。
 
 1. **単体テスト** (`pnpm test:unit`)
-   - 最も軽量で高速
-   - 依存関係なし
-   - バリデーションスキーマやユーティリティ関数のテスト
-
 2. **結合テスト** (`pnpm test:integration`)
-   - Supabase Localが必要
-   - データベースとの連携をテスト
-   - 認証やCRUD操作のテスト
-
 3. **E2Eテスト** (`pnpm test:e2e`)
-   - Next.jsアプリのビルドとPlaywrightが必要
-   - ブラウザでの実際の動作をテスト
-   - ユーザーフローのテスト
 
 ### テスト結果の確認
 

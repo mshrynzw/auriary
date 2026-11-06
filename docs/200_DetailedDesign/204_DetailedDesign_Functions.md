@@ -4,71 +4,54 @@
 
 ### 4.1 認証
 
-#### 4.1.1 Supabase Auth（Email / OAuth）
+#### 4.1.1 メールとパスワード
 
 **実装方式:**
-- **Email/Password 認証**：メールアドレス + パスワード
-- **OAuth 認証**：Google / GitHub など（将来実装）
+
+- 登録とログインはメールアドレスとパスワードだけ。OAuth は使わない
+- パスワードは PBKDF2-SHA-256（反復 100000）でハッシュし、`m_users.password_hash` に保存する
+- セッションは 32 バイトの乱数。Cookie `auriary_session` に載せる。D1 の `t_sessions` には SHA-256 の 16 進だけを保存する
+- Cookie は `HttpOnly`、`SameSite=Lax`、有効期限 30 日。`Secure` は本番だけ付ける
+- 平文パスワード、ハッシュ、セッショントークンはログに出さない
 
 **フロー:**
+
 ```
-1. ユーザーがログインフォームに入力
-2. Supabase Auth API にリクエスト
-3. 認証成功 → Cookie にセッション保存
-4. Server Component でセッション検証
+1. ログインフォームを Server Action に送る
+2. D1 の m_users とパスワードハッシュを照合する
+3. トークンを Cookie に入れ、SHA-256 を t_sessions に入れる
+4. src/proxy.ts と requireAuth() が、そのハッシュでセッションを検証する
 ```
 
-**セッション管理:**
-- `@supabase/ssr` を使用した Cookie ベースのセッション管理
-- Server Component で `createSupabaseServerClient()` を使用してセッション取得
+**ルート保護:**
 
-**コード例:**
-```typescript
-// src/lib/supabase.ts
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+- 実装は `src/proxy.ts`。`middleware.ts` は作らない
+- 未ログインでは `/calendar`、`/analytics`、`/settings`、`/blood-pressure`、`/diary/new`、`/diary/:id/edit` を `/login` へ送る
+- ログイン済みが `/login` または `/register` を開くと `/diary` へ送る
+- `/diary` と `/dashboard` は未ログインでも開ける
 
-export function createSupabaseServerClient() {
-  const cookieStore = cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          cookieStore.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          cookieStore.set({ name, value: '', ...options });
-        },
-      },
-    },
-  );
-}
-```
+詳細は [324_NextJS_Authentication.md](../300_Cording/324_NextJS_Authentication.md)。
 
 ### 4.2 日記管理機能
 
 #### 4.2.1 作成 / 更新 / 削除
 
 **CRUD 操作:**
-- **作成**：`POST /api/diaries` または Server Action
-- **更新**：`PATCH /api/diaries/[id]`
-- **削除**：`DELETE /api/diaries/[id]`（ソフトデリート）
 
-**RLS によるユーザースコープ:**
-- すべてのクエリは `user_id` でフィルタリング
-- RLS ポリシーで自動的にユーザー自身のデータのみアクセス可能
+- 作成、更新、削除は Server Actions。同じ処理の Route Handler は増やさない
+- 削除は `deleted_at` のソフトデリート
+
+**所有者の範囲:**
+
+- すべての読み書きで、セッションの `user_id` を条件にする
+- D1 は RLS で絞らない。クライアントから渡された `user_id` は使わない
 
 **データフロー:**
+
 ```
 1. ユーザーが日記を保存
-2. Server Action / API Route で Supabase に保存
-3. RLS ポリシーで自動的に user_id を付与
-4. 保存成功後、AI Summary 生成をトリガー（非同期）
+2. Server Action がセッションの user_id で D1 に保存
+3. 保存のあと、Railway の感情分析 API を呼ぶ。失敗しても保存は残す
 ```
 
 #### 4.2.2 運動レベル記録機能

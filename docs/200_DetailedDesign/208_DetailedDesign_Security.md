@@ -2,62 +2,23 @@
 
 ## 8. セキュリティ設計
 
-### 8.1 Supabase RLS ポリシー
+### 8.1 所有者の条件
 
-**実装方針:**
-- すべてのテーブルに RLS を有効化
-- ユーザーは自身のデータのみアクセス可能
+D1 に RLS はありません。`auth.uid()` も使いません。日記、入出金、服薬、デフォルト設定の読み書きは、セッションから取った `user_id` を SQL の条件にします。フォームやクエリで渡された `user_id` は使いません。
 
-**ポリシー例（t_diaries）:**
+削除は `deleted_at` を入れるソフトデリートです。入出金の範囲置換だけは、そのユーザーの指定期間を削除してから入れ直します。
 
-```sql
--- SELECT ポリシー
-CREATE POLICY "Users can view their own diaries"
-ON t_diaries FOR SELECT
-USING (auth.uid() = (
-  SELECT auth_user_id FROM m_users WHERE id = t_diaries.user_id
-));
+### 8.2 セッション Cookie
 
--- INSERT ポリシー
-CREATE POLICY "Users can insert their own diaries"
-ON t_diaries FOR INSERT
-WITH CHECK (auth.uid() = (
-  SELECT auth_user_id FROM m_users WHERE id = t_diaries.user_id
-));
+Cookie 名は `auriary_session` です。
 
--- UPDATE ポリシー
-CREATE POLICY "Users can update their own diaries"
-ON t_diaries FOR UPDATE
-USING (auth.uid() = (
-  SELECT auth_user_id FROM m_users WHERE id = t_diaries.user_id
-));
+- `HttpOnly`
+- `SameSite=Lax`
+- `Path=/`
+- `Max-Age` は 30 日
+- `Secure` は本番だけ。localhost の HTTP では付けない
 
--- DELETE ポリシー（ソフトデリート）
-CREATE POLICY "Users can delete their own diaries"
-ON t_diaries FOR UPDATE
-USING (auth.uid() = (
-  SELECT auth_user_id FROM m_users WHERE id = t_diaries.user_id
-));
-```
-
-### 8.2 Auth Cookie
-
-**実装方式:**
-- `@supabase/ssr` を使用した Cookie ベースのセッション管理
-- `HttpOnly` フラグを設定して XSS 対策
-- `Secure` フラグを設定（HTTPS 環境）
-- `SameSite=Strict` を設定して CSRF 対策
-
-**Cookie 設定例:**
-```typescript
-{
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
-  maxAge: 60 * 60 * 24 * 7, // 7日
-  path: '/',
-}
-```
+D1 に保存するのはトークンの SHA-256 だけです。平文のトークン、パスワード、パスワードハッシュはログに出しません。
 
 ### 8.3 XSS / CSRF 対策
 
@@ -68,42 +29,21 @@ USING (auth.uid() = (
 - Content Security Policy（CSP）ヘッダーを設定（将来実装）
 
 **CSRF 対策:**
-- SameSite Cookie を設定
-- API Route で CSRF トークン検証（将来実装）
-- 重要な操作（削除など）は確認ダイアログを表示
 
-### 8.4 API 認証フロー
+- Cookie は `SameSite=Lax`
+- 更新は Server Actions に寄せ、同じ処理の Route Handler を増やさない
+- 削除は確認ダイアログを出す
 
-**フロー:**
+### 8.4 認証の確認
+
 ```
-1. クライアントが API Route にリクエスト
-2. Server Component / Route Handler でセッション検証
-3. createSupabaseServerClient() でセッション取得
-4. セッションが有効な場合のみ処理実行
-5. RLS ポリシーで自動的にユーザースコープを適用
+1. ブラウザが Cookie auriary_session を送る
+2. proxy.ts または requireAuth() がトークンを SHA-256 する
+3. t_sessions に、失効しておらず期限内の行があるかを見る
+4. その user_id だけで D1 を読み書きする
 ```
 
-**認証チェック例:**
-```typescript
-// src/app/api/diaries/route.ts
-import { createSupabaseServerClient } from '@/lib/supabase';
-import { NextResponse } from 'next/server';
-
-export async function GET() {
-  const supabase = createSupabaseServerClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
-  if (error || !user) {
-    return NextResponse.json(
-      { error: { code: 'UNAUTHORIZED', message: '認証が必要です' } },
-      { status: 401 }
-    );
-  }
-  
-  // 認証済みユーザーのみ処理続行
-  // ...
-}
-```
+実装は `src/proxy.ts` と `src/lib/auth.ts` です。`middleware.ts` は作りません。
 
 ### 8.5 データ暗号化
 
@@ -116,7 +56,7 @@ export async function GET() {
 
 **実装方針:**
 - API Route でレート制限を実装
-- OpenAI API 呼び出しの頻度制限
+- 感情分析 API 呼び出しの頻度制限
 - ユーザーごとの1日あたりのリクエスト数制限
 
 ---

@@ -13,7 +13,6 @@ on:
       - develop
 
 jobs:
-  # 単体テスト（最も軽量、依存なし）
   unit-test:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -24,12 +23,12 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -40,7 +39,6 @@ jobs:
         env:
           NODE_ENV: test
 
-  # 結合テスト（Supabase Localが必要）
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -51,47 +49,22 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
-
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Start Supabase Local
-        run: supabase start
-        env:
-          SUPABASE_DB_PASSWORD: postgres
-
-      - name: Reset database (apply migrations)
-        run: supabase db reset
-
-      - name: Export Supabase environment variables
-        run: |
-          supabase status -o env >> $GITHUB_ENV
-          # Next.jsで使用する形式にマッピング
-          echo "NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> $GITHUB_ENV
 
       - name: Run integration tests
         run: pnpm test:integration
         env:
           NODE_ENV: test
 
-      - name: Stop Supabase Local
-        if: always()
-        run: supabase stop
-
-  # E2Eテスト（Next.jsビルドとPlaywrightが必要）
   e2e-test:
     name: E2E Tests
     runs-on: ubuntu-latest
@@ -102,53 +75,25 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
-
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Start Supabase Local
-        run: supabase start
-        env:
-          SUPABASE_DB_PASSWORD: postgres
-
-      - name: Reset database (apply migrations)
-        run: supabase db reset
-
-      - name: Export Supabase environment variables
-        run: |
-          supabase status -o env >> $GITHUB_ENV
-          # Next.jsで使用する形式にマッピング
-          echo "NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> $GITHUB_ENV
-
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
-
-      - name: Build Next.js app
-        run: pnpm build
-        env:
-          NODE_ENV: production
 
       - name: Run E2E tests
         run: pnpm test:e2e
         env:
-          NODE_ENV: test
-
-      - name: Stop Supabase Local
-        if: always()
-        run: supabase stop
+          CI: true
+          WRANGLER_SEND_METRICS: false
 
       - name: Upload Playwright report
         if: always()
@@ -158,7 +103,6 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-  # すべてのテストが成功したことを確認
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest

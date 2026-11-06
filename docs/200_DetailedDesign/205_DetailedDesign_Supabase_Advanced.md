@@ -1,5 +1,7 @@
 # 詳細設計書：Supabase 高度な機能
 
+この文書は、旧構成（Supabase）の Edge Functions、RLS、トリガーの記録です。現行のデータベースは Cloudflare D1 で、これらの機能は使いません。現行の定義は `migrations/0001_initial_schema.sql` と [205_DetailedDesign_Database.md](./205_DetailedDesign_Database.md) です。
+
 ## Supabase 高度な機能
 
 本ドキュメントでは、Supabase の高度な機能（Edge Functions、View、RLS ポリシー詳細、トリガー、ストアドプロシージャ）の設計方針を定めます。

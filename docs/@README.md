@@ -21,20 +21,20 @@
 
 #### UI実装
 
-- **[画面一覧](./202_DetailedDesign/203_DetailedDesign_UI.md)** で画面仕様を確認
-- **[コンポーネント設計](./202_DetailedDesign/207_DetailedDesign_Components.md)** でコンポーネントの実装方針を確認
+- **[画面一覧](./200_DetailedDesign/203_DetailedDesign_UI.md)** で画面仕様を確認
+- **[コンポーネント設計](./200_DetailedDesign/207_DetailedDesign_Components.md)** でコンポーネントの実装方針を確認
 
 #### 機能実装
 
-- **[機能設計](./202_DetailedDesign/204_DetailedDesign_Functions.md)** で機能仕様を確認
-- **[API設計](./202_DetailedDesign/206_DetailedDesign_API.md)** でAPI仕様を確認
+- **[機能設計](./200_DetailedDesign/204_DetailedDesign_Functions.md)** で機能仕様を確認
+- **[API設計](./200_DetailedDesign/206_DetailedDesign_API.md)** でAPI仕様を確認
 - **[Server Actions](./300_Cording/325_NextJS_ServerActions.md)** で実装パターンを確認
 
 #### データベース操作
 
-- **[データベース設計](./202_DetailedDesign/205_DetailedDesign_Database.md)** でテーブル概要を確認
-- **[ER図](./202_DetailedDesign/205_DetailedDesign_ER_Diagram.md)** でテーブル間の関係を確認
-- **[テーブル定義書](./202_DetailedDesign/205_DetailedDesign_Table_Definition.md)** で詳細なカラム定義を確認
+- **[データベース設計](./200_DetailedDesign/205_DetailedDesign_Database.md)** でテーブル概要を確認
+- **[ER図](./200_DetailedDesign/205_DetailedDesign_ER_Diagram.md)** でテーブル間の関係を確認
+- **[テーブル定義書](./200_DetailedDesign/205_DetailedDesign_Table_Definition.md)** で詳細なカラム定義を確認
 
 #### コーディング規約
 
@@ -55,8 +55,8 @@
 ### 設計レビュー時
 
 - 各詳細設計書を参照して実装が設計と一致しているか確認
-- **[セキュリティ設計](./202_DetailedDesign/208_DetailedDesign_Security.md)** でセキュリティ要件を確認
-- **[非機能要件](./202_DetailedDesign/210_DetailedDesign_NonFunctional.md)** でパフォーマンス要件を確認
+- **[セキュリティ設計](./200_DetailedDesign/208_DetailedDesign_Security.md)** でセキュリティ要件を確認
+- **[非機能要件](./200_DetailedDesign/210_DetailedDesign_NonFunctional.md)** でパフォーマンス要件を確認
 
 ---
 
@@ -89,23 +89,21 @@
 
 #### アーキテクチャ・設計
 
-- [202_DetailedDesign_Architecture.md](./202_DetailedDesign/202_DetailedDesign_Architecture.md)
+- [202_DetailedDesign_Architecture.md](./200_DetailedDesign/202_DetailedDesign_Architecture.md)
   - Next.js 16 App Router 構成
-  - Supabase アーキテクチャ
-  - Frontend Architecture
-  - AI Integration
-  - デプロイ構成（Vercel）
+  - Cloudflare Workers と D1
+  - デプロイ構成（OpenNext。遠隔 D1 は未作成）
 
 #### UI設計
 
-- [203_DetailedDesign_UI.md](./202_DetailedDesign/203_DetailedDesign_UI.md)
+- [203_DetailedDesign_UI.md](./200_DetailedDesign/203_DetailedDesign_UI.md)
   - 画面一覧（トップ、日記一覧、日記詳細、日記編集、カレンダー、分析、設定）
   - 各画面のURL、概要、使用コンポーネント、UI構成
 
 #### 機能設計
 
-- [204_DetailedDesign_Functions.md](./202_DetailedDesign/204_DetailedDesign_Functions.md)
-  - 認証（Supabase Auth）
+- [204_DetailedDesign_Functions.md](./200_DetailedDesign/204_DetailedDesign_Functions.md)
+  - 認証（メールとパスワード、セッション）
   - 日記管理機能（作成・更新・削除、AI Summary生成）
   - タグ管理（自動生成・手動追加）
   - カレンダー（月/週/日ビュー、フィルタリング）
@@ -113,22 +111,22 @@
 
 #### データベース設計
 
-- [205_DetailedDesign_Database.md](./202_DetailedDesign/205_DetailedDesign_Database.md)
+- [205_DetailedDesign_Database.md](./200_DetailedDesign/205_DetailedDesign_Database.md)
   - 主要テーブル概要
-  - RLS ポリシー
-- [205_DetailedDesign_ER_Diagram.md](./202_DetailedDesign/205_DetailedDesign_ER_Diagram.md)
+  - セッションの user_id による所有者チェック（RLS は無い）
+- [205_DetailedDesign_ER_Diagram.md](./200_DetailedDesign/205_DetailedDesign_ER_Diagram.md)
   - ER図（Mermaid形式）
-- [205_DetailedDesign_Table_Definition.md](./202_DetailedDesign/205_DetailedDesign_Table_Definition.md)
+- [205_DetailedDesign_Table_Definition.md](./200_DetailedDesign/205_DetailedDesign_Table_Definition.md)
   - 全テーブルの詳細定義
-- [205_DetailedDesign_Supabase_Advanced.md](./202_DetailedDesign/205_DetailedDesign_Supabase_Advanced.md)
-  - Supabase Edge Functions
+- [205_DetailedDesign_Supabase_Advanced.md](./200_DetailedDesign/205_DetailedDesign_Supabase_Advanced.md)
+  - Supabase Edge Functions（旧構成。現行では使わない）
   - データベース View
-  - RLS ポリシー詳細
+  - RLS ポリシー詳細（旧構成）
   - トリガー、ストアドプロシージャ
 
 #### API設計
 
-- [206_DetailedDesign_API.md](./202_DetailedDesign/206_DetailedDesign_API.md)
+- [206_DetailedDesign_API.md](./200_DetailedDesign/206_DetailedDesign_API.md)
   - Route Handlers（日記 CRUD、AI機能、認証関連）
   - バリデーション（Zod）
   - エラーハンドリング
@@ -136,7 +134,7 @@
 
 #### コンポーネント設計
 
-- [207_DetailedDesign_Components.md](./202_DetailedDesign/207_DetailedDesign_Components.md)
+- [207_DetailedDesign_Components.md](./200_DetailedDesign/207_DetailedDesign_Components.md)
   - UI コンポーネント一覧（shadcn/ui）
   - 共通コンポーネント（Header, Sidebar）
   - Domain Components（DiaryEditor, DiaryCard, EmotionChart）
@@ -144,8 +142,8 @@
 
 #### セキュリティ設計
 
-- [208_DetailedDesign_Security.md](./202_DetailedDesign/208_DetailedDesign_Security.md)
-  - Supabase RLS ポリシー
+- [208_DetailedDesign_Security.md](./200_DetailedDesign/208_DetailedDesign_Security.md)
+  - 所有者チェックとセッション Cookie
   - Auth Cookie
   - XSS / CSRF 対策
   - API 認証フロー
@@ -154,7 +152,7 @@
 
 #### ログ・監査
 
-- [209_DetailedDesign_Logging.md](./202_DetailedDesign/209_DetailedDesign_Logging.md)
+- [209_DetailedDesign_Logging.md](./200_DetailedDesign/209_DetailedDesign_Logging.md)
   - AI 利用ログ（将来実装）
   - 日記更新履歴（将来実装）
   - アクセスログ（将来実装）
@@ -163,13 +161,26 @@
 
 #### 非機能要件
 
-- [210_DetailedDesign_NonFunctional.md](./202_DetailedDesign/210_DetailedDesign_NonFunctional.md)
-  - パフォーマンス要件（Next.js 16 Cache Components、Vercel最適化）
+- [210_DetailedDesign_NonFunctional.md](./200_DetailedDesign/210_DetailedDesign_NonFunctional.md)
+  - パフォーマンス要件（Workers 上の Next.js）
   - アクセシビリティ
   - 保守性
   - 拡張性
   - 可用性、スケーラビリティ、セキュリティ要件
   - 国際化、ブラウザサポート
+
+---
+
+### 800_Release（デプロイ）
+
+**目的：** 現行の公開手順を示す
+
+- [801_Deploy_Workers.md](./800_Release/801_Deploy_Workers.md)
+  - Cloudflare Workers と D1。遠隔データベースは未作成
+- [800_Deploy_Vercel.md](./800_Release/800_Deploy_Vercel.md)
+  - 以前の Vercel 手順
+- [805_DEPLOY_Railway.md](./800_Release/805_DEPLOY_Railway.md)
+  - 感情分析 API
 
 ---
 
@@ -442,17 +453,17 @@
 | -------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------- |
 | **要件**                   | [000_Requirements.md](./000_Requirements/000_Requirements.md)                                           | 機能要件・非機能要件        |
 | **基本設計**               | [100_BasicDesign.md](./100_BasicDesign/100_BasicDesign.md)                                              | システム概要                |
-| **アーキテクチャ**         | [202_DetailedDesign_Architecture.md](./202_DetailedDesign/202_DetailedDesign_Architecture.md)           | 全体アーキテクチャ          |
-| **UI**                     | [203_DetailedDesign_UI.md](./202_DetailedDesign/203_DetailedDesign_UI.md)                               | 画面一覧                    |
-| **機能**                   | [204_DetailedDesign_Functions.md](./202_DetailedDesign/204_DetailedDesign_Functions.md)                 | 機能設計                    |
-| **DB**                     | [205_DetailedDesign_Database.md](./202_DetailedDesign/205_DetailedDesign_Database.md)                   | データベース設計            |
-| **Supabase**               | [205_DetailedDesign_Supabase_Advanced.md](./202_DetailedDesign/205_DetailedDesign_Supabase_Advanced.md) | Supabase 高度な機能         |
-| **API**                    | [206_DetailedDesign_API.md](./202_DetailedDesign/206_DetailedDesign_API.md)                             | API設計                     |
-| **コンポーネント**         | [207_DetailedDesign_Components.md](./202_DetailedDesign/207_DetailedDesign_Components.md)               | コンポーネント設計          |
-| **セキュリティ**           | [208_DetailedDesign_Security.md](./202_DetailedDesign/208_DetailedDesign_Security.md)                   | セキュリティ設計            |
-| **ログ**                   | [209_DetailedDesign_Logging.md](./202_DetailedDesign/209_DetailedDesign_Logging.md)                     | ログ・監査                  |
-| **非機能**                 | [210_DetailedDesign_NonFunctional.md](./202_DetailedDesign/210_DetailedDesign_NonFunctional.md)         | 非機能要件                  |
-| **感情分析API**            | [211_DetailedDesign_SentimentAPI.md](./202_DetailedDesign/211_DetailedDesign_SentimentAPI.md)           | 感情分析API設計             |
+| **アーキテクチャ**         | [202_DetailedDesign_Architecture.md](./200_DetailedDesign/202_DetailedDesign_Architecture.md)           | 全体アーキテクチャ          |
+| **UI**                     | [203_DetailedDesign_UI.md](./200_DetailedDesign/203_DetailedDesign_UI.md)                               | 画面一覧                    |
+| **機能**                   | [204_DetailedDesign_Functions.md](./200_DetailedDesign/204_DetailedDesign_Functions.md)                 | 機能設計                    |
+| **DB**                     | [205_DetailedDesign_Database.md](./200_DetailedDesign/205_DetailedDesign_Database.md)                   | データベース設計            |
+| **Supabase**               | [205_DetailedDesign_Supabase_Advanced.md](./200_DetailedDesign/205_DetailedDesign_Supabase_Advanced.md) | Supabase 高度な機能         |
+| **API**                    | [206_DetailedDesign_API.md](./200_DetailedDesign/206_DetailedDesign_API.md)                             | API設計                     |
+| **コンポーネント**         | [207_DetailedDesign_Components.md](./200_DetailedDesign/207_DetailedDesign_Components.md)               | コンポーネント設計          |
+| **セキュリティ**           | [208_DetailedDesign_Security.md](./200_DetailedDesign/208_DetailedDesign_Security.md)                   | セキュリティ設計            |
+| **ログ**                   | [209_DetailedDesign_Logging.md](./200_DetailedDesign/209_DetailedDesign_Logging.md)                     | ログ・監査                  |
+| **非機能**                 | [210_DetailedDesign_NonFunctional.md](./200_DetailedDesign/210_DetailedDesign_NonFunctional.md)         | 非機能要件                  |
+| **感情分析API**            | [211_DetailedDesign_SentimentAPI.md](./200_DetailedDesign/211_DetailedDesign_SentimentAPI.md)           | 感情分析API設計             |
 | **コーディング規約**       | [301_CodingStandards.md](./300_Cording/301_CodingStandards.md)                                          | コーディング規約（概要）    |
 | **TypeScript**             | [302_TypeScript.md](./300_Cording/302_TypeScript.md)                                                    | TypeScript コーディング規約 |
 | **命名規則**               | [303_NamingConventions.md](./300_Cording/303_NamingConventions.md)                                      | 命名規則・ファイル構造      |

@@ -1,58 +1,53 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/lib/supabase';
-import { loginFormSchema, registerFormSchema } from '@/schemas';
+import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { authenticateAccount, registerAccount } from '@/lib/auth/accounts';
+import {
+  SESSION_COOKIE,
+  issueSession,
+  revokeSession,
+  sessionCookieAttributes,
+} from '@/lib/auth/session';
+import { getDatabase } from '@/lib/db';
+import { loginFormSchema, registerFormSchema } from '@/schemas';
 
 /**
  * ログイン
  */
 export async function loginAction(formData: FormData) {
-  const rawData = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  };
-
-  // バリデーション
-  const validated = loginFormSchema.safeParse(rawData);
+  const validated = loginFormSchema.safeParse({
+    email: readField(formData, 'email'),
+    password: readField(formData, 'password'),
+  });
   if (!validated.success) {
     return {
       error: {
         code: 'VALIDATION_ERROR',
-        message: validated.error.issues[0].message,
+        message: validated.error.issues[0]?.message ?? '入力内容を確認してください',
       },
     };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: validated.data.email,
-    password: validated.data.password,
-  });
+  try {
+    const db = await getDatabase();
+    const authenticated = await authenticateAccount(db, {
+      email: validated.data.email,
+      password: validated.data.password,
+    });
+    if (!authenticated.ok) {
+      return {
+        error: {
+          code: 'AUTH_ERROR',
+          message: authenticated.message,
+        },
+      };
+    }
 
-  // デバッグログ
-  console.log('loginAction() - Sign in result:', {
-    hasUser: !!data?.user,
-    userId: data?.user?.id,
-    userEmail: data?.user?.email,
-    hasError: !!error,
-    errorMessage: error?.message,
-    errorCode: error?.code,
-  });
-
-  if (error) {
-    return {
-      error: {
-        code: 'AUTH_ERROR',
-        message:
-          error.message === 'Invalid login credentials'
-            ? 'メールアドレスまたはパスワードが正しくありません'
-            : error.message,
-      },
-    };
-  }
-
-  if (!data.user) {
+    const token = await issueSession(db, authenticated.user.id);
+    await writeSessionCookie(token);
+  } catch (error) {
+    console.error('ログインに失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
         code: 'AUTH_ERROR',
@@ -61,108 +56,58 @@ export async function loginAction(formData: FormData) {
     };
   }
 
-  // m_users テーブルにユーザーが存在しない場合は作成
-  const { data: existingUser } = await supabase
-    .from('m_users')
-    .select('id')
-    .eq('auth_user_id', data.user.id)
-    .single();
-
-  if (!existingUser) {
-    // 新規ユーザーを作成
-    const { error: insertError } = await supabase.from('m_users').insert({
-      auth_user_id: data.user.id,
-      display_name: data.user.email?.split('@')[0] || 'ユーザー',
-      email: data.user.email,
-      is_active: true,
-      created_by: data.user.id,
-      updated_by: data.user.id,
-    });
-
-    if (insertError) {
-      console.error('Failed to create user profile:', insertError);
-      // ユーザープロフィール作成に失敗してもログインは成功しているので、続行
-    }
-  }
-
   revalidatePath('/');
-  // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
-  return { success: true, redirectTo: '/' };
+  return { success: true, redirectTo: '/diary' };
 }
 
 /**
  * 新規登録
  */
 export async function registerAction(formData: FormData) {
-  const rawData = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-    display_name: formData.get('display_name') as string,
-  };
-
-  // バリデーション
-  const validated = registerFormSchema.safeParse(rawData);
+  const validated = registerFormSchema.safeParse({
+    email: readField(formData, 'email'),
+    password: readField(formData, 'password'),
+    display_name: readField(formData, 'display_name'),
+  });
   if (!validated.success) {
     return {
       error: {
         code: 'VALIDATION_ERROR',
-        message: validated.error.issues[0].message,
+        message: validated.error.issues[0]?.message ?? '入力内容を確認してください',
       },
     };
   }
 
-  const supabase = await createSupabaseServerClient();
+  try {
+    const db = await getDatabase();
+    const registered = await registerAccount(db, {
+      email: validated.data.email,
+      password: validated.data.password,
+      displayName: validated.data.display_name,
+    });
+    if (!registered.ok) {
+      return {
+        error: {
+          code: 'AUTH_ERROR',
+          message: registered.message,
+        },
+      };
+    }
 
-  // Supabase Auth でユーザー作成
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: validated.data.email,
-    password: validated.data.password,
-  });
-
-  if (authError) {
+    const token = await issueSession(db, registered.user.id);
+    await writeSessionCookie(token);
+  } catch (error) {
+    console.error('登録に失敗しました', error instanceof Error ? error.message : 'unknown');
     return {
       error: {
-        code: 'AUTH_ERROR',
-        message:
-          authError.message === 'User already registered'
-            ? 'このメールアドレスは既に登録されています'
-            : authError.message,
-      },
-    };
-  }
-
-  if (!authData.user) {
-    return {
-      error: {
-        code: 'AUTH_ERROR',
+        code: 'INTERNAL_ERROR',
         message: '登録に失敗しました',
       },
     };
   }
 
-  // m_users テーブルにユーザープロフィールを作成
-  const { error: profileError } = await supabase.from('m_users').insert({
-    auth_user_id: authData.user.id,
-    display_name: validated.data.display_name,
-    email: validated.data.email,
-    is_active: true,
-    created_by: authData.user.id,
-    updated_by: authData.user.id,
-  });
-
-  if (profileError) {
-    console.error('Failed to create user profile:', profileError);
-    return {
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'ユーザープロフィールの作成に失敗しました',
-      },
-    };
-  }
-
   revalidatePath('/');
-  // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
-  return { success: true, redirectTo: '/' };
+  return { success: true, redirectTo: '/diary' };
 }
 
 /**
@@ -170,15 +115,16 @@ export async function registerAction(formData: FormData) {
  */
 export async function logoutAction() {
   try {
-    const supabase = await createSupabaseServerClient();
-    await supabase.auth.signOut();
-
-    revalidatePath('/');
-    // redirect()の代わりに、成功レスポンスを返してクライアント側でリダイレクト
-    return { success: true, redirectTo: '/login' };
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE.name)?.value;
+    if (token) {
+      const db = await getDatabase();
+      await revokeSession(db, token);
+    }
+    await clearSessionCookie();
   } catch (error) {
-    console.error('Logout error:', error);
-    // エラーが発生してもログアウト処理は続行
+    console.error('ログアウトに失敗しました', error instanceof Error ? error.message : 'unknown');
+    await clearSessionCookie();
     return {
       error: {
         code: 'LOGOUT_ERROR',
@@ -186,4 +132,25 @@ export async function logoutAction() {
       },
     };
   }
+
+  revalidatePath('/');
+  return { success: true, redirectTo: '/login' };
+}
+
+function readField(formData: FormData, name: string): string {
+  const value = formData.get(name);
+  return typeof value === 'string' ? value : '';
+}
+
+async function writeSessionCookie(token: string): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE.name, token, sessionCookieAttributes());
+}
+
+async function clearSessionCookie(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE.name, '', {
+    ...sessionCookieAttributes(),
+    maxAge: 0,
+  });
 }

@@ -45,6 +45,7 @@ test.describe('認証機能のE2Eテスト', () => {
 
   test('無効な認証情報でログインが失敗する', async ({ page }) => {
     await page.goto('/login');
+    await page.waitForSelector('input[name="email"]', { timeout: 30000 });
 
     await page.fill('input[name="email"]', 'invalid@example.com');
     await page.fill('input[name="password"]', 'wrongpassword');

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { registerFormSchema, type RegisterFormInput } from '@/schemas';
 import { registerAction } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import Link from 'next/link';
 export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -39,8 +41,9 @@ export function RegisterForm() {
     if (result?.error) {
       setError(result.error.message);
       setIsLoading(false);
+    } else if (result?.success && result.redirectTo) {
+      router.push(result.redirectTo);
     }
-    // 成功時は registerAction 内でリダイレクトされる
   };
 
   return (

@@ -1,10 +1,20 @@
-# デプロイ前チェックリスト・FAQ（Vercel デプロイ）
+# デプロイ前チェックリスト
 
-このドキュメントでは、Vercelへのデプロイ前の確認事項、参考リンク、よくある質問をまとめています。
+現行のデプロイ先は Cloudflare Workers です。手順は [801_Deploy_Workers.md](./801_Deploy_Workers.md) です。遠隔の D1 は未作成で、本番データはまだ移しません。
 
----
+公開前に確認すること:
 
-## 📝 デプロイ前チェックリスト
+- [ ] `pnpm test:unit`、`pnpm test:integration`、`pnpm test:e2e` が通る
+- [ ] `pnpm types` と `pnpm lint` が通る
+- [ ] `opennextjs-cloudflare build` が、シンボリックリンクを作れる環境で通る
+- [ ] 空の遠隔 D1 を作り、`database_id` をプレースホルダから替え、マイグレーションだけを適用した
+- [ ] 日記とユーザーの本番投入は、別の指示があるまでしていない
+- [ ] 秘密情報を `NEXT_PUBLIC_` やログに出していない
+- [ ] 感情分析 API の URL は Railway のままである
+
+以下は、以前の Vercel 向けチェックリストです。
+
+## 以前の Vercel 向けチェックリスト
 
 デプロイ前に以下を確認してください：
 

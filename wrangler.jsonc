@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "auriary",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-06",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  // ローカル開発用の D1。遠隔データベースは未作成。
+  // database_id はプレースホルダ。本番の `wrangler d1 create` は別作業。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "auriary",
+      "database_id": "11111111-1111-4111-8111-111111111111",
+      "migrations_dir": "migrations",
+    },
+  ],
+}

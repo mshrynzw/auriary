@@ -13,6 +13,7 @@ import { Header } from '@/components/layout/header';
 import { WireframeTerrainBackground } from '@/components/background/wireframe-terrain-background';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
+import PwaScript from '@/components/pwa/PwaScript';
 import './globals.css';
 
 // メインフォントとして Geist_Mono を使用
@@ -78,7 +79,6 @@ const mainFont = geistMono;
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 export const revalidate = 0;
-export const runtime = 'edge';
 
 export const metadata: Metadata = {
   title: 'auriary',
@@ -116,38 +116,7 @@ export default function RootLayout({
         className={`${mainFont.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-                (async () => {
-                  try {
-                    const registration = await navigator.serviceWorker.register('/sw.js', {
-                      scope: '/',
-                    });
-                    console.log('Service Worker registered:', registration.scope);
-                    registration.addEventListener('updatefound', () => {
-                      const newWorker = registration.installing;
-                      if (newWorker) {
-                        newWorker.addEventListener('statechange', () => {
-                          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('New Service Worker available');
-                          }
-                        });
-                      }
-                    });
-                    navigator.serviceWorker.addEventListener('controllerchange', () => {
-                      console.log('Service Worker controller changed');
-                      window.location.reload();
-                    });
-                  } catch (error) {
-                    console.error('Service Worker registration failed:', error);
-                  }
-                })();
-              }
-            `,
-          }}
-        />
+        <PwaScript />
         <OfflineIndicator />
         <WireframeTerrainBackground />
         <Header />

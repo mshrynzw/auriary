@@ -1,103 +1,64 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { authRedirectTarget } from '@/lib/auth/routes';
+import { SESSION_COOKIE, sessionCookieAttributes, verifySession } from '@/lib/auth/session';
+import { getDatabase } from '@/lib/db';
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({
+  const token = request.cookies.get(SESSION_COOKIE.name)?.value ?? '';
+  let isAuthenticated = false;
+
+  if (token) {
+    try {
+      const db = await getDatabase();
+      isAuthenticated = (await verifySession(db, token)) !== null;
+    } catch (error) {
+      console.error(
+        'セッションの検証に失敗しました',
+        error instanceof Error ? error.message : 'unknown',
+      );
+      isAuthenticated = false;
+    }
+  }
+
+  const pathname = request.nextUrl.pathname;
+  const target = authRedirectTarget(pathname, isAuthenticated);
+
+  if (target) {
+    const redirectUrl = new URL(target, request.url);
+    if (target === '/login') {
+      redirectUrl.searchParams.set('redirect', pathname);
+    }
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    redirectResponse.headers.set('x-pathname', target);
+    if (token && !isAuthenticated) {
+      clearSessionCookie(redirectResponse);
+    }
+    return redirectResponse;
+  }
+
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
-
-  // 環境変数の検証
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error(
-      `Missing Supabase environment variables. URL: ${supabaseUrl ? 'OK' : 'MISSING'}, Key: ${supabaseAnonKey ? 'OK' : 'MISSING'}`,
-    );
-    // 環境変数が設定されていない場合は、エラーページにリダイレクトせずに続行
-    // アプリケーション側でエラーハンドリングを行う
-    return response;
+  response.headers.set('x-pathname', pathname);
+  if (token && !isAuthenticated) {
+    clearSessionCookie(response);
   }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-      set(name: string, value: string, options: any) {
-        request.cookies.set({
-          name,
-          value,
-          ...options,
-        });
-        response = NextResponse.next({
-          request: {
-            headers: request.headers,
-          },
-        });
-        response.cookies.set({
-          name,
-          value,
-          ...options,
-        });
-      },
-      remove(name: string, options: any) {
-        request.cookies.set({
-          name,
-          value: '',
-          ...options,
-        });
-        response = NextResponse.next({
-          request: {
-            headers: request.headers,
-          },
-        });
-        response.cookies.set({
-          name,
-          value: '',
-          ...options,
-        });
-      },
-    },
-  });
-
-  // UI表示用のため、getSession()を使用（即座に取得可能）
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user ?? null;
-
-  // 保護されたルート（/diaryと/dashboardは未認証でも閲覧可能）
-  const protectedPaths = ['/calendar', '/analytics', '/settings', '/blood-pressure'];
-  const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
-
-  // 編集・削除ページは認証が必要
-  const isEditPath =
-    request.nextUrl.pathname === '/diary/new' ||
-    /^\/diary\/\d+\/edit$/.test(request.nextUrl.pathname);
-
-  // 認証が必要なページに未認証でアクセスした場合
-  if ((isProtectedPath || isEditPath) && !user) {
-    const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    const redirectResponse = NextResponse.redirect(redirectUrl);
-    redirectResponse.headers.set('x-pathname', '/login');
-    return redirectResponse;
-  }
-
-  // ログイン/登録ページに認証済みでアクセスした場合
-  if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register') && user) {
-    const redirectResponse = NextResponse.redirect(new URL('/diary', request.url));
-    redirectResponse.headers.set('x-pathname', '/diary');
-    return redirectResponse;
-  }
-
-  // パス名をヘッダーに追加（ヘッダーコンポーネントで使用）
-  response.headers.set('x-pathname', request.nextUrl.pathname);
-
   return response;
+}
+
+function clearSessionCookie(response: NextResponse): void {
+  const attributes = sessionCookieAttributes();
+  response.cookies.set({
+    name: SESSION_COOKIE.name,
+    value: '',
+    httpOnly: attributes.httpOnly,
+    secure: attributes.secure,
+    sameSite: attributes.sameSite,
+    path: attributes.path,
+    maxAge: 0,
+  });
 }
 
 export const config = {

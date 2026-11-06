@@ -1,6 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -47,29 +48,18 @@ export function DiaryEditDeleteButtons({ diaryId, isAuthenticated }: DiaryEditDe
 
   return (
     <div className="flex items-center justify-end gap-2">
+          <Link
+            href={`/diary/${diaryId}/edit`}
+            onClick={stopPropagation}
+            aria-label="日記を編集"
+            className={cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'cursor-pointer')}
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
       <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href={`/diary/${diaryId}/edit`} onClick={stopPropagation}>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={stopPropagation}
-                className="cursor-pointer"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>日記を編集</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <AlertDialog>
+        <AlertDialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="outline"
@@ -80,29 +70,29 @@ export function DiaryEditDeleteButtons({ diaryId, isAuthenticated }: DiaryEditDe
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>日記を削除しますか？</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    この操作は取り消せません。日記が完全に削除されます。
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => handleDelete(diaryId)}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    削除
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>日記を削除</p>
-          </TooltipContent>
-        </Tooltip>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>日記を削除</p>
+            </TooltipContent>
+          </Tooltip>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>日記を削除しますか？</AlertDialogTitle>
+              <AlertDialogDescription>
+                この操作は取り消せません。日記が完全に削除されます。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleDelete(diaryId)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                削除
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </TooltipProvider>
     </div>
   );

@@ -35,8 +35,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { OdTimeFormItem } from '@/schemas/forms/diary-form';
-import type { MedicationRow } from '@/schemas';
 import { medicationIdSchema } from '@/schemas';
+
+type MedicationOption = {
+  id: number;
+  name: string;
+  generic_name: string | null;
+  memo: string | null;
+};
 
 // デフォルト設定の必要なフィールドのみを抽出
 type DailyDefaults = Pick<
@@ -65,7 +71,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [medications, setMedications] = useState<MedicationRow[]>([]);
+  const [medications, setMedications] = useState<MedicationOption[]>([]);
   const isEdit = !!diary;
 
   const {
@@ -164,8 +170,7 @@ export function DiaryEditor({ diary, defaults }: DiaryEditorProps) {
   });
 
   const sleepQuality = watch('sleep_quality') ?? defaults?.sleep_quality_default ?? 3;
-  const bipolarSelfLevel =
-    watch('bipolar_self_level') ?? defaults?.bipolar_self_level_default ?? 5;
+  const bipolarSelfLevel = watch('bipolar_self_level') ?? defaults?.bipolar_self_level_default ?? 5;
   const wakeLevel = watch('wake_level') ?? defaults?.wake_level_default ?? 3;
   const daytimeLevel = watch('daytime_level') ?? defaults?.daytime_level_default ?? 3;
   const preSleepLevel = watch('pre_sleep_level') ?? defaults?.pre_sleep_level_default ?? 3;

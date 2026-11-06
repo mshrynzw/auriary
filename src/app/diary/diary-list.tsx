@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -81,6 +82,18 @@ export function DiaryList({
   const [filterError, setFilterError] = useState<string | null>(null);
 
   const [browseDiaries, setBrowseDiaries] = useState<DiaryRow[]>(initialDiaries);
+
+  useEffect(() => {
+    const monthKey = format(new Date(), 'yyyy-MM');
+    setBrowseDiaries((current) => {
+      const incomingIds = new Set(initialDiaries.map((diary) => diary.id));
+      const older = current.filter(
+        (diary) =>
+          !String(diary.journal_date).startsWith(monthKey) && !incomingIds.has(diary.id),
+      );
+      return [...initialDiaries, ...older];
+    });
+  }, [initialDiaries]);
   const [cursor, setCursor] = useState(() => startOfMonth(parseISO(initialPastMonthStart)));
   const [loading, setLoading] = useState(
     () => initialDiaries.length === 0 && !!earliestJournalDate,
@@ -339,8 +352,8 @@ export function DiaryList({
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">まだ日記がありません</p>
-            <Link href="/diary/new" className="mt-4 inline-block">
-              <Button>最初の日記を作成</Button>
+            <Link href="/diary/new" className={cn(buttonVariants(), 'mt-4')}>
+              最初の日記を作成
             </Link>
           </CardContent>
         </Card>

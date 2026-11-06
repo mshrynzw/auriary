@@ -1,26 +1,41 @@
 ## m_users（ユーザーマスタ）
 
-ユーザー（あなた自身や将来的な複数ユーザー）の基本情報を管理するマスタテーブル。
-Supabase の `auth.users` と紐づくアプリ側ユーザーマスタ。
+ログインするユーザーの行。認証基盤の別ユーザー ID は持たない。
+物理型は SQLite。この表より下の BIGINT、BOOLEAN、TIMESTAMPTZ、UUID、JSONB は旧 PostgreSQL の呼び方で、D1 では INTEGER、INTEGER の 0/1、TEXT、`m_users.id`、TEXT です。実体は `migrations/0001_initial_schema.sql`。
 
-| No | 物理名              | 論理名         | 型           | NULL     | キー | 説明                                      |
-| -- | ---------------- | ----------- | ----------- | -------- | -- | --------------------------------------- |
-| 1  | id               | ユーザーID      | BIGINT      | NOT NULL | PK | アプリ内で一意となるユーザーID。                       |
-| 2  | auth_user_id     | 認証ユーザーID    | UUID        | NOT NULL |    | Supabase `auth.users.id` を想定。認証基盤との紐付け。 |
-| 3  | display_name     | 表示名         | TEXT        | NOT NULL |    | 画面に表示するユーザー名。ニックネームなど。                  |
-| 4  | family_name      | 姓           | TEXT        | NULL     |    | 本名の姓。必要に応じて利用。                          |
-| 5  | first_name       | 名           | TEXT        | NULL     |    | 本名の名。                                   |
-| 6  | family_name_kana | セイ（フリガナ）    | TEXT        | NULL     |    | 姓のカナ表記。                                 |
-| 7  | first_name_kana  | メイ（フリガナ）    | TEXT        | NULL     |    | 名のカナ表記。                                 |
-| 8  | email            | メールアドレス     | TEXT        | NULL     |    | 連絡用メールアドレス。未設定も許容。                      |
-| 9  | is_active        | 有効フラグ       | BOOLEAN     | NOT NULL |    | アカウントの有効・無効（退会など）。                      |
-| 10 | source_id        | 元レコードID     | BIGINT      | NULL     |    | バージョン管理用。過去レコードを指す場合に使用。                |
-| 11 | created_at       | 作成日時        | TIMESTAMPTZ | NOT NULL |    | レコード作成日時。                               |
-| 12 | updated_at       | 更新日時        | TIMESTAMPTZ | NOT NULL |    | レコード最終更新日時。                             |
-| 13 | deleted_at       | 削除日時        | TIMESTAMPTZ | NULL     |    | ソフトデリート用。削除時刻。                          |
-| 14 | created_by       | 作成者ユーザーUUID | UUID        | NOT NULL |    | 作成したユーザーの `auth_user_id` など。            |
-| 15 | updated_by       | 更新者ユーザーUUID | UUID        | NOT NULL |    | 最終更新を行ったユーザー。                           |
-| 16 | deleted_by       | 削除者ユーザーUUID | UUID        | NULL     |    | 削除操作を行ったユーザー。                           |
+| No | 物理名              | 論理名      | 型       | NULL     | キー | 説明                                      |
+| -- | ---------------- | -------- | ------- | -------- | -- | --------------------------------------- |
+| 1  | id               | ユーザーID   | INTEGER | NOT NULL | PK | アプリ内で一意となるユーザーID。                       |
+| 2  | display_name     | 表示名      | TEXT    | NOT NULL |    | 画面に表示するユーザー名。                           |
+| 3  | family_name      | 姓        | TEXT    | NULL     |    | 本名の姓。                                   |
+| 4  | first_name       | 名        | TEXT    | NULL     |    | 本名の名。                                   |
+| 5  | family_name_kana | セイ（フリガナ） | TEXT    | NULL     |    | 姓のカナ表記。                                 |
+| 6  | first_name_kana  | メイ（フリガナ） | TEXT    | NULL     |    | 名のカナ表記。                                 |
+| 7  | email            | メールアドレス  | TEXT    | NOT NULL | UQ | 小文字。空にしない。                              |
+| 8  | password_hash    | パスワードハッシュ | TEXT  | NOT NULL |    | `pbkdf2-sha256$反復$salt$hex`。平文は保存しない。 |
+| 9  | is_active        | 有効フラグ    | INTEGER | NOT NULL |    | 0 または 1。                                |
+| 10 | source_id        | 元レコードID  | INTEGER | NULL     |    | 過去レコードを指す場合に使用。                         |
+| 11 | created_at       | 作成日時     | TEXT    | NOT NULL |    | ISO 8601。                                |
+| 12 | updated_at       | 更新日時     | TEXT    | NOT NULL |    | アプリが更新する。                               |
+| 13 | deleted_at       | 削除日時     | TEXT    | NULL     |    | ソフトデリート。                                |
+| 14 | created_by       | 作成者      | INTEGER | NULL     | FK | 挿入後に自分の `id` を入れる。                      |
+| 15 | updated_by       | 更新者      | INTEGER | NULL     | FK | `m_users.id`。                            |
+| 16 | deleted_by       | 削除者      | INTEGER | NULL     | FK | `m_users.id`。                            |
+
+---
+
+## t_sessions（セッション）
+
+Cookie のトークンそのものは保存しない。SHA-256 の 16 進 64 文字だけを保存する。
+
+| No | 物理名         | 論理名     | 型       | NULL     | キー | 説明                    |
+| -- | ----------- | ------- | ------- | -------- | -- | --------------------- |
+| 1  | id          | セッションID | INTEGER | NOT NULL | PK |                       |
+| 2  | user_id     | ユーザーID  | INTEGER | NOT NULL | FK | `m_users.id`。         |
+| 3  | token_hash  | トークンハッシュ | TEXT    | NOT NULL | UQ | SHA-256 の 16 進。       |
+| 4  | expires_at  | 期限      | TEXT    | NOT NULL |    | ISO 8601。発行から 30 日。   |
+| 5  | revoked_at  | 失効日時    | TEXT    | NULL     |    | ログアウトで入れる。            |
+| 6  | created_at  | 作成日時    | TEXT    | NOT NULL |    | ISO 8601。             |
 
 ---
 
