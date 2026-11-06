@@ -3,3 +3,6 @@ allowBuilds:
   sharp: false
   unrs-resolver: false
   workerd: true
+
+overrides:
+  sharp: file:./stubs/sharp

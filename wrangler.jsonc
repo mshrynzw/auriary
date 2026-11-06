@@ -12,8 +12,8 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
-  // ローカル開発用の D1。遠隔データベースは未作成。
-  // database_id はプレースホルダ。本番の `wrangler d1 create` は別作業。
+  // ローカル開発用の D1。この database_id を変えると、ローカルの SQLite ファイルが別物になる。
+  // 遠隔の空データベースは env.production。日記やユーザーは入れていない。
   "d1_databases": [
     {
       "binding": "DB",
@@ -22,4 +22,16 @@
       "migrations_dir": "migrations",
     },
   ],
+  "env": {
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "auriary",
+          "database_id": "62d99f13-dff1-43cb-8735-4f5c1f344a75",
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
+  },
 }

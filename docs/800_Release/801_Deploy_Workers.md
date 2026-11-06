@@ -6,7 +6,9 @@
 
 ## 現状
 
-ローカルの D1 と、Workers 向けの設定までは入っています。遠隔の Worker と遠隔の D1 は未作成です。`wrangler.jsonc` の `database_id` はプレースホルダ `11111111-1111-4111-8111-111111111111` です。
+空の遠隔 D1 `auriary`（リージョン APAC）と、Worker `auriary-production` は作成済みです。公開 URL は `https://auriary-production.iq87io25.workers.dev` です。`iq87io25@gmail.com` のユーザーと日記 339 件（削除済みを含む）を、ローカル D1 からコピーしてあります。入出金明細は `t_bank_transactions` にあり、公開側には直近 42 件だけ入っていたので、Supabase の 1,551 件から足りない分を足しました。いま有効な明細は 1,551 件です。同じ内容をローカル D1 にも入れました。パスワードはローカルで設定したハッシュのままです。Supabase は変更していません。
+
+`wrangler.jsonc` のトップレベルの `database_id` はローカル用のプレースホルダです。本番の ID は `env.production` にあります。トップレベルを変えると、ローカルの SQLite ファイルが別物になります。
 
 指示があるまで、次はしません。
 
@@ -41,15 +43,15 @@ pnpm preview
 pnpm deploy
 ```
 
-どちらも先に `opennextjs-cloudflare build` を実行します。`preview` はローカルの workerd、`deploy` は Cloudflare への公開です。
+`pnpm deploy` は、ビルドのあいだだけ `getMiddlewareManifest` が null を返すようにしてから `opennextjs-cloudflare build` し、そのあと `opennextjs-cloudflare deploy --env production` を実行します。この差し替えをしないと、公開した Worker が存在しない `middleware-manifest.json` を読んで 500 になります。ビルド後に Next のファイルは元に戻します。公開先の D1 は `env.production` です。`preview` はローカルの workerd で、トップレベルのプレースホルダ ID を使います。
 
-`deploy` の前に、空の遠隔 D1 を作り、`wrangler.jsonc` の `database_id` をその ID に替え、遠隔へマイグレーションを適用します。この作業はまだ行っていません。日記データの投入とは別です。
+この Windows では、OpenNext が `node_modules` のシンボリックリンクをコピーするときに権限不足で止まります。シンボリックリンクを作れる環境でビルドしてください。画面は `next/image` を使わないため、`sharp` は `stubs/sharp` に置き換えています。ネイティブの画像変換は Workers では動きません。
 
 増分キャッシュ用の R2 は作りません。画面は動的で、`open-next.config.ts` のキャッシュは `dummy` です。
 
 ## Windows
 
-この環境の Windows では、Workers 向けバンドルが完走しません。OpenNext が `node_modules` のシンボリックリンクをコピーできず、続けて `sharp` の同梱で esbuild が止まります。`next build` 自体は成功します。バンドルは WSL か、シンボリックリンクを作れる環境で実行します。
+シンボリックリンクを作れない Windows では、Workers 向けバンドルの途中でコピーが失敗します。`next build` 自体は成功します。バンドルは、シンボリックリンクを作れる環境で実行します。
 
 ## 秘密情報
 

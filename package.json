@@ -7,7 +7,7 @@
     "dev": "next dev",
     "d1:migrate:local": "cross-env CI=true WRANGLER_SEND_METRICS=false wrangler d1 migrations apply auriary --local",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": "node scripts/with-workers-next-patch.mjs node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js build && node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js deploy --env production",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv --include-runtime false cloudflare-env.d.ts",
     "build": "next build",
     "start": "next start",

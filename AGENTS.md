@@ -30,16 +30,16 @@ SQLite に合わせる。`BIGSERIAL` は整数の主キー、日時と JSON は 
 
 感情分析 API は Railway のままにする。この移行の対象外。
 
-アプリの画面と Server Actions は D1 の binding `DB` を使う。`next dev` では OpenNext がローカル D1 をその binding に載せる。binding が無い開発時だけ、`.wrangler` の SQLite を直接開く。`src/lib/supabase.ts` は廃止した。Supabase を読むのは、日記コピーと感情分析のバックフィルスクリプトだけ。
+アプリの画面と Server Actions は D1 の binding `DB` を使う。`next dev` では OpenNext がローカル D1 をその binding に載せる。binding が無い開発時だけ、`.wrangler` の SQLite を直接開く。`src/lib/supabase.ts` は廃止した。Supabase を読むのは、日記コピー、入出金明細のコピー、感情分析のバックフィルスクリプトだけ。
 
-本番データの移行は未決定。指示があるまで Supabase のデータを消す操作、本番 D1 への投入、既存ユーザーのパスワード移行をしない。Supabase のパスワードハッシュは取り出せない前提で扱う。遠隔 D1 は未作成で、`wrangler.jsonc` の `database_id` はプレースホルダのまま。
+本番データの移行は未決定。指示があるまで Supabase のデータを消す操作、本番 D1 への日記やユーザーの投入、既存ユーザーのパスワード移行をしない。Supabase のパスワードハッシュは取り出せない前提で扱う。遠隔 D1 `auriary` は作成済みで、`iq87io25@gmail.com` のユーザー、日記、入出金明細を入れてある。ID は `wrangler.jsonc` の `env.production` にある。トップレベルの `database_id` はローカル用プレースホルダのままにする。ここを変えると、ローカルの SQLite ファイルが別物になる。
 
 作業順は次のとおり。
 
 1. D1 スキーマとセッションの発行・検証
 2. ログイン、登録、ログアウト、`src/proxy.ts` のルート保護
 3. Server Actions（日記、入出金、服薬、デフォルト設定、AI）を D1 に置き換え
-4. OpenNext で Workers にデプロイし、Supabase クライアントを外す
+4. OpenNext で Workers にデプロイし、Supabase クライアントを外す。Worker `auriary-production` は公開済み。`iq87io25@gmail.com` の日記と入出金明細は本番 D1 にコピー済み。
 5. 無効になった設計書（アーキテクチャ、認証、データベース、セキュリティ、デプロイ）を更新する。この5つは更新済み。遠隔の D1 作成と本番データの投入は、別の指示までしない。
 
 ## 守る実装
