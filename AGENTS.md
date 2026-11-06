@@ -6,8 +6,9 @@ auriary（日記アプリ）の実装ガイド。詳細は `docs/` にあり、�
 
 1. ユーザーの直近の指示
 2. このファイルの「現在の移行」
-3. `src/` の既存実装
-4. `docs/` と `README.md`
+3. `.cursor/rules/` のルール。本文はここに複製しない
+4. `src/` の既存実装
+5. `docs/` と `README.md`
 
 `docs/` と `README.md` のうち、アーキテクチャ、認証、データベース、セキュリティ、デプロイは Workers + D1 に合わせて更新済みです。`docs/300_Cording/` の一部と `205_DetailedDesign_Supabase_Advanced.md` には、旧 Supabase の例が残っています。そこは現行の実装説明ではありません。
 

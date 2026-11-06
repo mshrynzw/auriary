@@ -1,0 +1,14 @@
+---
+description: セッションのユーザー以外の行を読み書きしない
+globs: src/app/actions/**/*.ts,src/lib/**/*.ts
+alwaysApply: false
+---
+
+# データアクセス
+
+D1 に RLS はない。読み書きは、セッションから取った `user_id` を SQL の条件にする。
+
+- フォーム、クエリ、JSON で渡された `user_id` は条件に使わない。
+- 削除は `deleted_at` を入れる。入出金の範囲置換だけは、そのユーザーの指定期間を消してから入れ直す。
+- 同じ更新を Route Handler に増やさない。更新は Server Actions に置く。
+- `middleware.ts` は作らない。ルート保護は `src/proxy.ts`。
