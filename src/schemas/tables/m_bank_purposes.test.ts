@@ -29,7 +29,7 @@ describe('用途の名前と文字色', () => {
     });
   });
 
-  it('文字色は #RRGGBB に揃え、空は黒にする', () => {
+  it('文字色は #RRGGBB に揃え、空は灰色にする', () => {
     expect(parseBankPurposeInput({ name: '食費', textColor: ' #DC2626 ' })).toEqual({
       ok: true,
       name: '食費',
@@ -37,7 +37,7 @@ describe('用途の名前と文字色', () => {
     });
     expect(parseBankPurposeInput({ name: '食費', textColor: '' })).toMatchObject({
       ok: true,
-      textColor: '#000000',
+      textColor: '#808080',
     });
     expect(parseBankPurposeInput({ name: '食費', textColor: '#fff' })).toMatchObject({
       ok: false,
@@ -48,6 +48,6 @@ describe('用途の名前と文字色', () => {
 
   it('表示に使う色は16進6桁だけ', () => {
     expect(bankPurposeTextColor('#DC2626')).toBe('#dc2626');
-    expect(bankPurposeTextColor('red')).toBe('#000000');
+    expect(bankPurposeTextColor('red')).toBe('#808080');
   });
 });

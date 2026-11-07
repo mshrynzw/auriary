@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const bankPurposeNameMaxLength = 30;
-export const defaultBankPurposeTextColor = '#000000';
+export const defaultBankPurposeTextColor = '#808080';
 export const unsetBankPurposeValue = 'unset';
 
 const hexColorPattern = /^#[0-9a-f]{6}$/;

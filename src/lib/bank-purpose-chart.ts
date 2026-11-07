@@ -1,18 +1,25 @@
 /**
- * ダッシュボードの用途グラフ。支払だけを、今月を含む直近の月に分ける。
+ * ダッシュボードの用途グラフ。支払だけを、今週・今月・今年を含む直近の期間に分ける。
  */
 
-import { format } from 'date-fns';
+import { addWeeks, format, startOfWeek } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { bankPurposeTextColor } from '@/schemas/tables/m_bank_purposes';
+import {
+  bankPurposeTextColor,
+  defaultBankPurposeTextColor,
+} from '@/schemas/tables/m_bank_purposes';
 
 export const purposeChartMonthOptions = [1, 3, 6, 12] as const;
 export type PurposeChartMonthCount = (typeof purposeChartMonthOptions)[number];
 export const defaultPurposeChartMonthCount: PurposeChartMonthCount = 3;
 
+export const purposeChartGranularities = ['week', 'month', 'year'] as const;
+export type PurposeChartGranularity = (typeof purposeChartGranularities)[number];
+export const defaultPurposeChartGranularity: PurposeChartGranularity = 'month';
+
 export const unsetPurposeChartKey = 'unset';
 export const unsetPurposeChartName = '未設定';
-export const unsetPurposeChartColor = '#000000';
+export const unsetPurposeChartColor = defaultBankPurposeTextColor;
 
 export type PurposeChartPurpose = {
   id: number;
@@ -53,6 +60,25 @@ export function isPurposeChartMonthCount(value: number): value is PurposeChartMo
   return purposeChartMonthOptions.some((option) => option === value);
 }
 
+export function isPurposeChartGranularity(value: string): value is PurposeChartGranularity {
+  return purposeChartGranularities.some((option) => option === value);
+}
+
+export function purposeChartPeriodLabel(count: number, granularity: PurposeChartGranularity) {
+  if (granularity === 'week') return `過去${count}週`;
+  if (granularity === 'year') return `過去${count}年`;
+  return `過去${count}か月`;
+}
+
+function parseTxnDate(txnDate: string) {
+  const [year, month, day] = txnDate.split('-').map(Number);
+  return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
+}
+
+function weekStart(date: Date) {
+  return startOfWeek(date, { weekStartsOn: 1 });
+}
+
 export function recentPurposeMonths(now: Date, monthCount: number): Array<{ key: string; label: string }> {
   const end = new Date(now.getFullYear(), now.getMonth(), 1);
   const start = new Date(end.getFullYear(), end.getMonth() - (monthCount - 1), 1);
@@ -68,13 +94,47 @@ export function recentPurposeMonths(now: Date, monthCount: number): Array<{ key:
   return months;
 }
 
+export function recentPurposeBuckets(
+  now: Date,
+  count: number,
+  granularity: PurposeChartGranularity,
+): Array<{ key: string; label: string }> {
+  if (granularity === 'month') return recentPurposeMonths(now, count);
+  if (granularity === 'year') {
+    const endYear = now.getFullYear();
+    const startYear = endYear - (count - 1);
+    return Array.from({ length: count }, (_, index) => {
+      const year = startYear + index;
+      return { key: String(year), label: `${year}年` };
+    });
+  }
+
+  const end = weekStart(now);
+  const start = addWeeks(end, -(count - 1));
+  const includeYear = start.getFullYear() !== end.getFullYear();
+  return Array.from({ length: count }, (_, index) => {
+    const date = addWeeks(start, index);
+    return {
+      key: format(date, 'yyyy-MM-dd'),
+      label: format(date, includeYear ? 'yyyy/M/d' : 'M/d', { locale: ja }),
+    };
+  });
+}
+
+function transactionBucketKey(txnDate: string, granularity: PurposeChartGranularity) {
+  if (granularity === 'month') return txnDate.slice(0, 7);
+  if (granularity === 'year') return txnDate.slice(0, 4);
+  return format(weekStart(parseTxnDate(txnDate)), 'yyyy-MM-dd');
+}
+
 export function aggregatePurposeSpending(
   now: Date,
   monthCount: number,
   transactions: PurposeChartTransaction[],
   purposes: PurposeChartPurpose[],
+  granularity: PurposeChartGranularity = 'month',
 ): PurposeChart {
-  const months = recentPurposeMonths(now, monthCount);
+  const months = recentPurposeBuckets(now, monthCount, granularity);
   const totals = new Map<string, Map<string, number>>(
     months.map((month) => [month.key, new Map()]),
   );
@@ -82,7 +142,7 @@ export function aggregatePurposeSpending(
 
   for (const transaction of transactions) {
     if (transaction.txn_type !== '支払') continue;
-    const bucket = totals.get(transaction.txn_date.slice(0, 7));
+    const bucket = totals.get(transactionBucketKey(transaction.txn_date, granularity));
     if (!bucket) continue;
     const purpose =
       transaction.purpose_id === null ? undefined : purposeById.get(transaction.purpose_id);
@@ -123,6 +183,11 @@ export function aggregatePurposeSpending(
       };
     }),
   };
+}
+
+/** 円グラフは新しい期間を上にする。棒グラフは古い期間を左にする。 */
+export function purposeShareBuckets(chart: PurposeChart): PurposeChartMonth[] {
+  return [...chart.months].reverse();
 }
 
 export function purposeBarRows(chart: PurposeChart): Array<Record<string, string | number>> {

@@ -24,11 +24,17 @@ import {
 } from '@/components/ui/select';
 import {
   aggregatePurposeSpending,
+  defaultPurposeChartGranularity,
   defaultPurposeChartMonthCount,
+  isPurposeChartGranularity,
   isPurposeChartMonthCount,
   purposeBarRows,
+  purposeChartGranularities,
   purposeChartMonthOptions,
+  purposeChartPeriodLabel,
+  purposeShareBuckets,
   purposeSharePercent,
+  type PurposeChartGranularity,
   type PurposeChartMonthCount,
   type PurposeChartPurpose,
   type PurposeChartTransaction,
@@ -39,11 +45,10 @@ type PurposeChartsProps = {
   purposes: PurposeChartPurpose[];
 };
 
-const monthLabels: Record<PurposeChartMonthCount, string> = {
-  1: '過去1か月',
-  3: '過去3か月',
-  6: '過去6か月',
-  12: '過去12か月',
+const granularityLabels: Record<PurposeChartGranularity, string> = {
+  week: '週毎',
+  month: '月毎',
+  year: '年毎',
 };
 
 function yen(amount: number) {
@@ -54,15 +59,42 @@ export function PurposeCharts({ transactions, purposes }: PurposeChartsProps) {
   const [monthCount, setMonthCount] = useState<PurposeChartMonthCount>(
     defaultPurposeChartMonthCount,
   );
-  const chart = aggregatePurposeSpending(new Date(), monthCount, transactions, purposes);
+  const [granularity, setGranularity] = useState<PurposeChartGranularity>(
+    defaultPurposeChartGranularity,
+  );
+  const chart = aggregatePurposeSpending(
+    new Date(),
+    monthCount,
+    transactions,
+    purposes,
+    granularity,
+  );
   const rows = purposeBarRows(chart);
+  const shareBuckets = purposeShareBuckets(chart);
 
   return (
     <>
       <Card role="region" className="md:col-span-2" aria-label="用途の支出">
         <CardHeader>
           <CardTitle>用途の支出</CardTitle>
-          <CardAction>
+          <CardAction className="flex flex-wrap items-center justify-end gap-2">
+            <Select
+              value={granularity}
+              onValueChange={(value) => {
+                if (isPurposeChartGranularity(value)) setGranularity(value);
+              }}
+            >
+              <SelectTrigger className="w-[110px] cursor-pointer" aria-label="集計単位">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {purposeChartGranularities.map((option) => (
+                  <SelectItem key={option} value={option} className="cursor-pointer">
+                    {granularityLabels[option]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select
               value={String(monthCount)}
               onValueChange={(value) => {
@@ -76,7 +108,7 @@ export function PurposeCharts({ transactions, purposes }: PurposeChartsProps) {
               <SelectContent>
                 {purposeChartMonthOptions.map((option) => (
                   <SelectItem key={option} value={String(option)} className="cursor-pointer">
-                    {monthLabels[option]}
+                    {purposeChartPeriodLabel(option, granularity)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -115,7 +147,7 @@ export function PurposeCharts({ transactions, purposes }: PurposeChartsProps) {
         </CardHeader>
         <CardContent>
           <div className="max-h-[420px] space-y-4 overflow-y-auto">
-            {chart.months.map((month) => (
+            {shareBuckets.map((month) => (
               <div key={month.key}>
                 <p className="text-center text-sm font-medium">{month.label}</p>
                 {month.total === 0 ? (

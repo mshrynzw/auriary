@@ -46,9 +46,10 @@ test('ダッシュボードに用途の支出と割合が出て、期間を変�
   await page.goto('/dashboard');
   const spending = page.getByRole('region', { name: '用途の支出' });
   const share = page.getByRole('region', { name: '用途の割合' });
-  await expect(spending.getByRole('combobox', { name: '表示期間' })).toHaveText('過去3か月', {
+  await expect(spending.getByRole('combobox', { name: '集計単位' })).toHaveText('月毎', {
     timeout: 20000,
   });
+  await expect(spending.getByRole('combobox', { name: '表示期間' })).toHaveText('過去3か月');
   const oldest = monthLabel(2, 3);
   await expect(spending.getByText(oldest, { exact: true })).toBeVisible();
   await expect(spending.getByText('食費').first()).toBeVisible();
@@ -58,5 +59,12 @@ test('ダッシュボードに用途の支出と割合が出て、期間を変�
   await page.getByRole('option', { name: '過去1か月' }).click();
   await expect(spending.getByText(oldest, { exact: true })).not.toBeVisible();
   await expect(spending.getByText(monthLabel(0, 1), { exact: true })).toBeVisible();
+  await expect(share.getByText('食費 100%')).toBeVisible();
+  const shareLabels = share.locator('p');
+  await expect(shareLabels.first()).toHaveText(monthLabel(0, 3));
+
+  await spending.getByRole('combobox', { name: '集計単位' }).click();
+  await page.getByRole('option', { name: '週毎' }).click();
+  await expect(spending.getByRole('combobox', { name: '表示期間' })).toHaveText('過去1週');
   await expect(share.getByText('食費 100%')).toBeVisible();
 });
