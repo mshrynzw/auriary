@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Check, Loader2, Plus, Trash2, Upload } from 'lucide-react';
+import { Check, Download, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Bar,
@@ -17,11 +17,18 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { bankTransactionMemoMaxLength, type BankTransactionRow } from '@/schemas';
 import {
   replaceBankTransactionsAction,
   updateBankTransactionMemoAction,
+  updateBankTransactionPurposeAction,
 } from '@/app/actions/bank-transaction';
+import { bankTransactionCsv } from '@/lib/bank-transaction-csv';
+import { bankTransactionMemoMaxLength, type BankTransactionRow } from '@/schemas';
+import {
+  bankPurposeTextColor,
+  unsetBankPurposeValue,
+  type BankPurpose,
+} from '@/schemas/tables/m_bank_purposes';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,6 +50,7 @@ import {
 
 type IncomeExpenseViewProps = {
   initialTransactions: BankTransactionRow[];
+  purposes: BankPurpose[];
   isAuthenticated?: boolean;
 };
 
@@ -455,6 +463,102 @@ function buildBalanceSeries(
   return points;
 }
 
+function TransactionPurposeSelect({
+  transactionId,
+  purposeId,
+  purposes,
+  disabled,
+  onSaved,
+}: {
+  transactionId: number;
+  purposeId: number | null;
+  purposes: BankPurpose[];
+  disabled: boolean;
+  onSaved: (id: number, purposeId: number | null) => void;
+}) {
+  const [currentId, setCurrentId] = useState<number | null>(purposeId);
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const requestIdRef = useRef(0);
+  const selected = purposes.find((purpose) => purpose.id === currentId) ?? null;
+
+  useEffect(() => {
+    setCurrentId(purposeId);
+  }, [purposeId]);
+
+  useEffect(() => {
+    if (status !== 'saved') return;
+    const timer = window.setTimeout(() => setStatus('idle'), 2000);
+    return () => window.clearTimeout(timer);
+  }, [status]);
+
+  const onChange = async (next: string) => {
+    const nextId = next === unsetBankPurposeValue ? null : Number(next);
+    if (nextId !== null && !Number.isInteger(nextId)) return;
+    if (nextId === currentId) return;
+    if (disabled || transactionId <= 0) return;
+
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    setCurrentId(nextId);
+    setStatus('saving');
+    try {
+      const result = await updateBankTransactionPurposeAction({
+        id: transactionId,
+        purposeId: nextId,
+      });
+      if (requestIdRef.current !== requestId) return;
+      if ('error' in result) {
+        setCurrentId(purposeId);
+        setStatus('error');
+        toast.error(result.error.message);
+        return;
+      }
+      setStatus('saved');
+      onSaved(transactionId, result.purposeId);
+    } catch (error) {
+      console.error(error);
+      if (requestIdRef.current !== requestId) return;
+      setCurrentId(purposeId);
+      setStatus('error');
+      toast.error('用途の保存に失敗しました');
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Select
+        value={selected ? String(selected.id) : unsetBankPurposeValue}
+        onValueChange={(value) => void onChange(value)}
+        disabled={disabled || status === 'saving'}
+      >
+        <SelectTrigger
+          aria-label="用途"
+          className="h-8 w-full min-w-[140px] bg-background"
+          style={selected ? { color: bankPurposeTextColor(selected.text_color) } : undefined}
+        >
+          <SelectValue placeholder="未設定" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={unsetBankPurposeValue}>未設定</SelectItem>
+          {purposes.map((purpose) => (
+            <SelectItem
+              key={purpose.id}
+              value={String(purpose.id)}
+              style={{ color: bankPurposeTextColor(purpose.text_color) }}
+            >
+              {purpose.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {status === 'saving' && (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+      )}
+      {status === 'saved' && <Check className="h-4 w-4 shrink-0 text-emerald-600" />}
+    </div>
+  );
+}
+
 function TransactionMemoInput({
   transactionId,
   savedMemo,
@@ -542,6 +646,7 @@ function TransactionMemoInput({
 
 export function IncomeExpenseView({
   initialTransactions,
+  purposes,
   isAuthenticated = false,
 }: IncomeExpenseViewProps) {
   const [transactions, setTransactions] = useState<BankTransactionRow[]>(initialTransactions);
@@ -878,6 +983,23 @@ export function IncomeExpenseView({
     setTransactions((prev) => prev.map((row) => (row.id === id ? { ...row, memo } : row)));
   };
 
+  const onPurposeSaved = (id: number, purposeId: number | null) => {
+    setTransactions((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, purpose_id: purposeId } : row)),
+    );
+  };
+
+  const onExportCsv = () => {
+    const csv = bankTransactionCsv(transactions, purposes);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `auriary-明細-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const onImportCsv = async (formData: FormData) => {
     if (!isAuthenticated) {
       toast.error('ログイン後にご利用ください');
@@ -1210,7 +1332,11 @@ export function IncomeExpenseView({
                   </SelectTrigger>
                   <SelectContent>
                     {PERIOD_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="cursor-pointer"
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
@@ -1230,7 +1356,11 @@ export function IncomeExpenseView({
                   </SelectTrigger>
                   <SelectContent>
                     {SHOW_FORECAST_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="cursor-pointer"
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
@@ -1250,7 +1380,11 @@ export function IncomeExpenseView({
                   </SelectTrigger>
                   <SelectContent>
                     {AMOUNT_AXIS_CAP_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="cursor-pointer"
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
@@ -1409,6 +1543,19 @@ export function IncomeExpenseView({
       <Card>
         <CardHeader>
           <CardTitle>明細一覧</CardTitle>
+          <CardAction>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="cursor-pointer mb-1"
+              onClick={onExportCsv}
+              disabled={transactions.length === 0}
+            >
+              <Download className="h-4 w-4" />
+              CSV書き出し
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
@@ -1421,6 +1568,7 @@ export function IncomeExpenseView({
                   <TableHead>取引名</TableHead>
                   <TableHead className="text-right">金額</TableHead>
                   <TableHead>摘要</TableHead>
+                  <TableHead>用途</TableHead>
                   <TableHead>メモ</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1443,6 +1591,15 @@ export function IncomeExpenseView({
                     </TableCell>
                     <TableCell className="max-w-[460px] truncate">
                       {row.description ?? '-'}
+                    </TableCell>
+                    <TableCell className="min-w-[160px]">
+                      <TransactionPurposeSelect
+                        transactionId={row.id}
+                        purposeId={row.purpose_id ?? null}
+                        purposes={purposes}
+                        disabled={!isAuthenticated || row.id <= 0}
+                        onSaved={onPurposeSaved}
+                      />
                     </TableCell>
                     <TableCell className="min-w-[240px]">
                       <TransactionMemoInput

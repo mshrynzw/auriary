@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { getDailyDefaultsAction, saveDailyDefaultsAction } from '@/app/actions/daily-defaults';
+import { BankPurposeSettings } from './bank-purpose-settings';
+import type { BankPurpose } from '@/schemas/tables/m_bank_purposes';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info, Loader2 } from 'lucide-react';
 
@@ -19,9 +21,10 @@ type UserProfile = {
 
 type SettingsFormProps = {
   userProfile: UserProfile | null;
+  initialPurposes: BankPurpose[];
 };
 
-export function SettingsForm({ userProfile }: SettingsFormProps) {
+export function SettingsForm({ userProfile, initialPurposes }: SettingsFormProps) {
   const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
   const [isSavingDefaults, setIsSavingDefaults] = useState(false);
   const [defaults, setDefaults] = useState({
@@ -124,6 +127,8 @@ export function SettingsForm({ userProfile }: SettingsFormProps) {
           </form>
         </CardContent>
       </Card>
+
+      <BankPurposeSettings initialPurposes={initialPurposes} />
 
       <Card>
         <CardHeader>

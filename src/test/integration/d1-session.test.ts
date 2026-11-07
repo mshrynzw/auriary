@@ -224,6 +224,20 @@ const EXPECTED_COLUMNS: Record<string, readonly string[]> = {
     'created_by',
     'updated_by',
     'deleted_by',
+    'purpose_id',
+  ],
+  m_bank_purposes: [
+    'id',
+    'user_id',
+    'name',
+    'text_color',
+    'source_id',
+    'created_at',
+    'updated_at',
+    'deleted_at',
+    'created_by',
+    'updated_by',
+    'deleted_by',
   ],
   t_sessions: ['id', 'user_id', 'token_hash', 'expires_at', 'revoked_at', 'created_at'],
 };
@@ -373,6 +387,14 @@ describe('ローカル D1 のスキーマとセッション', () => {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [userId, '2026-11-06', '支払', 1200, '食費', userId, userId],
     );
+    run(
+      db,
+      `INSERT INTO m_bank_purposes (user_id, name, text_color, created_by, updated_by)
+       VALUES (?, ?, ?, ?, ?)`,
+      [userId, '食費', '#dc2626', userId, userId],
+    );
+    const purposeId = readId(getRow(db, 'SELECT id FROM m_bank_purposes WHERE user_id = ?', [userId]));
+    run(db, 'UPDATE t_bank_transactions SET purpose_id = ? WHERE user_id = ?', [purposeId, userId]);
 
     expect(() => insertUser(db, 'Bad@Example.com')).toThrow();
     expect(() =>
@@ -398,6 +420,14 @@ describe('ローカル D1 のスキーマとセッション', () => {
           (user_id, txn_date, txn_type, amount, memo, created_by, updated_by)
          VALUES (?, '2026-11-06', '支払', 1, ?, ?, ?)`,
         [userId, 'あ'.repeat(501), userId, userId],
+      ),
+    ).toThrow();
+    expect(() =>
+      run(
+        db,
+        `INSERT INTO m_bank_purposes (user_id, name, text_color, created_by, updated_by)
+         VALUES (?, ?, ?, ?, ?)`,
+        [userId, '交通費', 'red', userId, userId],
       ),
     ).toThrow();
     expect(() =>

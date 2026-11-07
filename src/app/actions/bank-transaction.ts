@@ -3,6 +3,11 @@
 import { requireAuth, getAuth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { setBankTransactionPurpose } from '@/lib/bank-purpose';
+import {
+  assignPreservedBankFields,
+  type PreservedBankTransaction,
+} from '@/lib/bank-transaction-preserve';
 import { bankTransactionMemoMaxLength, type BankTransactionRow } from '@/schemas';
 import { getDatabase } from '@/lib/db';
 import { execute, isRecord, queryAll, queryFirst, readId, readRows } from '@/lib/sql';
@@ -26,50 +31,10 @@ const updateMemoSchema = z.object({
   memo: z.string().max(bankTransactionMemoMaxLength).nullable(),
 });
 
-type MemoSourceRow = {
-  id: number;
-  txn_date: string;
-  txn_type: string;
-  amount: number;
-  description: string | null;
-  memo: string | null;
-};
-
-function memoMatchKey(row: {
-  txn_date: string;
-  txn_type: string;
-  amount: number;
-  description?: string | null;
-}) {
-  return JSON.stringify([row.txn_date, row.txn_type, row.amount, row.description ?? null]);
-}
-
-/** 再取り込みで行が作り直されても、同じ明細のメモを並び順どおり残す */
-function assignPreservedMemos(
-  existing: MemoSourceRow[],
-  records: Array<{
-    txn_date: string;
-    txn_type: string;
-    amount: number;
-    description?: string | null;
-  }>,
-): Array<string | null> {
-  const queues = new Map<string, Array<string | null>>();
-  const sorted = [...existing].sort((a, b) => a.id - b.id);
-  for (const row of sorted) {
-    const key = memoMatchKey(row);
-    const queue = queues.get(key);
-    const memo = row.memo ?? null;
-    if (queue) queue.push(memo);
-    else queues.set(key, [memo]);
-  }
-
-  return records.map((record) => {
-    const queue = queues.get(memoMatchKey(record));
-    if (!queue || queue.length === 0) return null;
-    return queue.shift() ?? null;
-  });
-}
+const updatePurposeSchema = z.object({
+  id: z.number().int().positive(),
+  purposeId: z.number().int().positive().nullable(),
+});
 
 function normalizeMemo(memo: string | null) {
   const trimmed = memo?.trim() ?? '';
@@ -112,7 +77,7 @@ export async function replaceBankTransactionsAction(payload: ImportPayload) {
     const existingRows = readRows(
       await queryAll(
         db,
-        'SELECT id, txn_date, txn_type, amount, description, memo FROM t_bank_transactions WHERE user_id = ? AND txn_date >= ? AND txn_date <= ? AND deleted_at IS NULL ORDER BY id ASC',
+        'SELECT id, txn_date, txn_type, amount, description, memo, purpose_id FROM t_bank_transactions WHERE user_id = ? AND txn_date >= ? AND txn_date <= ? AND deleted_at IS NULL ORDER BY id ASC',
         [user.id, startDate, endDate],
       ),
     ).flatMap((row) => {
@@ -129,10 +94,11 @@ export async function replaceBankTransactionsAction(payload: ImportPayload) {
           amount,
           description: typeof row.description === 'string' ? row.description : null,
           memo: typeof row.memo === 'string' ? row.memo : null,
-        } satisfies MemoSourceRow,
+          purposeId: readId(row.purpose_id),
+        } satisfies PreservedBankTransaction,
       ];
     });
-    const preservedMemos = assignPreservedMemos(existingRows, records);
+    const preservedFields = assignPreservedBankFields(existingRows, records);
     const now = new Date().toISOString();
 
     await execute(
@@ -144,14 +110,15 @@ export async function replaceBankTransactionsAction(payload: ImportPayload) {
     for (const [index, record] of records.entries()) {
       await execute(
         db,
-        'INSERT INTO t_bank_transactions (user_id, txn_date, txn_type, amount, description, memo, source_file_name, created_at, updated_at, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO t_bank_transactions (user_id, txn_date, txn_type, amount, description, memo, purpose_id, source_file_name, created_at, updated_at, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           user.id,
           record.txn_date,
           record.txn_type,
           record.amount,
           record.description ?? null,
-          preservedMemos[index] ?? null,
+          preservedFields[index]?.memo ?? null,
+          preservedFields[index]?.purposeId ?? null,
           validated.data.source_file_name ?? null,
           now,
           now,
@@ -239,6 +206,49 @@ export async function updateBankTransactionMemoAction(input: { id: number; memo:
   }
 }
 
+export async function updateBankTransactionPurposeAction(input: {
+  id: number;
+  purposeId: number | null;
+}): Promise<{ purposeId: number | null } | { error: { code: string; message: string } }> {
+  const { user } = await requireAuth();
+  const validated = updatePurposeSchema.safeParse(input);
+  if (!validated.success) {
+    return {
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: validated.error.issues[0]?.message ?? '用途の形式が正しくありません',
+      },
+    };
+  }
+
+  try {
+    const db = await getDatabase();
+    const result = await setBankTransactionPurpose(
+      db,
+      user.id,
+      validated.data.id,
+      validated.data.purposeId,
+    );
+    if (!result.ok) {
+      return {
+        error: {
+          code: result.code,
+          message: result.message,
+        },
+      };
+    }
+    return { purposeId: result.purposeId };
+  } catch (error) {
+    console.error('用途の保存に失敗しました', error instanceof Error ? error.message : 'unknown');
+    return {
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: '用途の保存に失敗しました',
+      },
+    };
+  }
+}
+
 export async function getBankTransactionsAction(params?: {
   start_date?: string;
   end_date?: string;
@@ -292,5 +302,9 @@ async function listBankTransactions(
     sql += ' LIMIT ? OFFSET ?';
     values.push(params.limit ?? -1, params.offset ?? 0);
   }
-  return readRows(await queryAll(db, sql, values)) as BankTransactionRow[];
+  return readRows(await queryAll(db, sql, values)).flatMap((row) => {
+    const id = readId(row.id);
+    if (id === null) return [];
+    return [{ ...(row as BankTransactionRow), id, purpose_id: readId(row.purpose_id) }];
+  });
 }

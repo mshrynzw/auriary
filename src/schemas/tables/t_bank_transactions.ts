@@ -16,6 +16,7 @@ export const bankTransactionRowSchema = commonColumnsSchema.extend({
   description: z.string().nullable(),
   memo: z.string().max(bankTransactionMemoMaxLength).nullable(),
   source_file_name: z.string().nullable(),
+  purpose_id: z.number().int().positive().nullable(),
 });
 
 /**

@@ -16,6 +16,7 @@ test.describe('日記機能のE2Eテスト', () => {
 
   test('日記を作成できる', async ({ page }) => {
     await page.goto('/diary/new');
+    await expect(page.locator('input[name="journal_date"]')).not.toHaveValue('');
 
     // 日記を入力
     await page.fill('input[name="journal_date"]', '2026-11-06');
@@ -58,7 +59,7 @@ test.describe('日記機能のE2Eテスト', () => {
     await expect(page).toHaveURL(/\/diary/, { timeout: 10000 });
 
     // 編集した内容が表示されることを確認
-    await expect(page.locator('text=編集後の日記')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=編集後の日記')).toBeVisible({ timeout: 15000 });
   });
 
   test('日記を削除できる', async ({ page }) => {

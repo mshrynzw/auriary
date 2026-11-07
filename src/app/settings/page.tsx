@@ -1,9 +1,12 @@
 import { requireAuth } from '@/lib/auth';
+import { getBankPurposesAction } from '@/app/actions/bank-purpose';
 import { SettingsForm } from './settings-form';
 import { ScreenHelpButton } from '@/components/layout/screen-help-button';
 
 export default async function SettingsPage() {
   const { userProfile } = await requireAuth();
+  const listed = await getBankPurposesAction();
+  const purposes = 'purposes' in listed ? listed.purposes : [];
 
   return (
     <div className="aurialy ">
@@ -15,6 +18,7 @@ export default async function SettingsPage() {
             description="設定画面では、ユーザー設定・アカウント管理を行えます。"
             items={[
               'プロフィール編集',
+              '収支の用途（項目の追加・削除と文字色）',
               '通知設定（将来実装）',
               'AI設定（将来実装）',
               'アカウント削除',
@@ -22,7 +26,7 @@ export default async function SettingsPage() {
           />
         </div>
 
-        <SettingsForm userProfile={userProfile} />
+        <SettingsForm userProfile={userProfile} initialPurposes={purposes} />
       </div>
     </div>
   );

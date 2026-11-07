@@ -10,7 +10,10 @@ import { SentimentText } from '@/components/diary/sentiment-text';
 import { getAuth } from '@/lib/auth';
 import { DiaryEditDeleteButtons } from '@/components/diary/diary-edit-delete-buttons';
 import { UnifiedChartClient } from './unified-chart-client';
+import { PurposeChartsClient } from './purpose-charts-client';
 import { getBankTransactionsAction } from '@/app/actions/bank-transaction';
+import { getBankPurposesAction } from '@/app/actions/bank-purpose';
+import type { BankPurpose } from '@/schemas/tables/m_bank_purposes';
 
 export default async function DashboardPage() {
   const { userProfile } = await getAuth();
@@ -22,6 +25,11 @@ export default async function DashboardPage() {
   ]);
   const allDiaries = allDiariesResult.diaries || [];
   const allBankTransactions = allBankTransactionsResult.transactions || [];
+  let purposes: BankPurpose[] = [];
+  if (userProfile) {
+    const listed = await getBankPurposesAction();
+    if ('purposes' in listed) purposes = listed.purposes;
+  }
 
   // 今月の日記を取得
   const now = new Date();
@@ -114,6 +122,8 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <PurposeChartsClient transactions={allBankTransactions} purposes={purposes} />
+
           {/* 最近の日記 */}
           <Card className="md:col-span-2">
             <CardHeader>
